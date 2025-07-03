@@ -1,14 +1,15 @@
-from typing import String
-from cardModel import Card
+from model.cardModel import Card
 
 class Player:
-    def __init__(self, name: str):
-        self.name: String = name
-        self.hand_size: int  # Cards in hand
-        self.seen_cards: list[Card] = []
+    def __init__(self, name: str, is_user: bool = False):
+        self.name: str = name
+        self.is_user: bool = is_user
+        self.cards: list[Card] = [] if is_user else None  # Only the user's cards are tracked
+        self.seen_cards: list[Card] = []  # Cards this player (user) has seen
 
-    def add_card_to_hand(self, card: str):
-        self.hand.append(card)
+    def add_card(self, card: Card):
+        if self.is_user and self.cards is not None:
+            self.cards.append(card)
 
     def see_card(self, card: Card):
         """

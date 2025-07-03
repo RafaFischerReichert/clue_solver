@@ -60,10 +60,10 @@ def GameInitializer() -> bool:
             else:
                 player.knowledge_table[card] = "UNKNOWN"
 
-    game_state: GameState = GameState(room_names, players, user_name)
-    game_state.set_possible_suspects(possible_suspects)
-    game_state.set_possible_weapons(possible_weapons)
-    game_state.set_possible_rooms(possible_rooms)
+    GameState(room_names, players, user_name, suspects, weapons, rooms)
+    GameState.get_instance().set_possible_suspects(possible_suspects)
+    GameState.get_instance().set_possible_weapons(possible_weapons)
+    GameState.get_instance().set_possible_rooms(possible_rooms)
     for card in user_cards_input:
         user_player.add_card(card)
         user_player.see_card(card)
@@ -73,6 +73,6 @@ def GameInitializer() -> bool:
     print(f"Players: {', '.join(player_names)}")
     print(f"You are: {user_name}")
     print(f"Your cards: {[f'{c.name} ({c.card_type})' for c in user_player.cards]}")
-    print(f"Possible suspects: {game_state.possible_suspects}")
-    print(f"Possible weapons: {game_state.possible_weapons}")
-    print(f"Possible rooms: {game_state.possible_rooms}") 
+    print(f"Possible suspects: {GameState.get_instance().possible_suspects}")
+    print(f"Possible weapons: {GameState.get_instance().possible_weapons}")
+    print(f"Possible rooms: {GameState.get_instance().possible_rooms}") 

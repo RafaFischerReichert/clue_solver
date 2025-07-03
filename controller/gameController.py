@@ -7,8 +7,8 @@ from model.gameStateModel import GameState
 class GameController:
     game_state: GameState
 
-    def __init__(self, game_state: Any) -> None:
-        self.game_state = game_state
+    def __init__(self) -> None:
+        self.game_state = GameState.get_instance()
 
     def get_possible_guesses(self, rooms_in_range: List[Card]) -> List[Tuple[Card, Card, Card]]:
         # This method should generate all possible guesses minus the cards the user has seen, only for rooms in range

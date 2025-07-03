@@ -1,24 +1,75 @@
 from typing import List, Tuple, Any
+from model.cardModel import Card
+from model.playerModel import Player
+from model.knowledgeState import KnowledgeState
+from model.gameStateModel import GameState
 
 class GameController:
-    game_state: Any
+    game_state: GameState
 
     def __init__(self, game_state: Any) -> None:
         self.game_state = game_state
 
-    def get_possible_guesses(self) -> List[Tuple[Any, Any, Any]]:
-        # Logic for STEP 2
-        # This method should generate all possible guesses minus the cards the user has seen
+    def get_possible_guesses(self, rooms_in_range: List[Card]) -> List[Tuple[Card, Card, Card]]:
+        # This method should generate all possible guesses minus the cards the user has seen, only for rooms in range
         possible_suspects = self.game_state.possible_suspects
         possible_weapons = self.game_state.possible_weapons
-        possible_rooms = self.game_state.possible_rooms
         possible_guesses = [
             (suspect, weapon, room)
             for suspect in possible_suspects
             for weapon in possible_weapons
-            for room in possible_rooms
+            for room in rooms_in_range
         ]
         return possible_guesses
+
+    def record_guess_event(
+        self,
+        guess: Tuple[Card, Card, Card],
+        asked_order: List[Player],
+        showed_by: Player = None,
+        card_shown: Card = None,
+        user_is_guesser: bool = False,
+        guesser: Player = None
+    ) -> None:
+        """
+        Records the outcome of a guess:
+        - guess: (suspect, weapon, room)
+        - asked_order: list of players asked in order
+        - showed_by: player who showed a card (if any)
+        - card_shown: the card shown (if known)
+        - user_is_guesser: True if the user made the guess, False otherwise
+        - guesser: the Player who made the guess
+        """
+        if user_is_guesser:
+            # User is the guesser
+            if showed_by is None:
+                for card in guess:
+                    if not guesser.has_card_in_hand(card):
+                        guesser.set_card_knowledge(card, KnowledgeState.IS_SOLUTION)
+                    else:
+                        guesser.set_card_knowledge(card, KnowledgeState.MIGHT_HAVE)
+            for player in asked_order:
+                if player is showed_by:
+                    if card_shown:
+                        # We know exactly which card was shown
+                        player.set_card_knowledge(card_shown, KnowledgeState.HAS)
+                    else:
+                        raise AttributeError("You have seen the card if you are guessing.")
+                else:
+                    for card in guess:
+                        player.set_card_knowledge(card, KnowledgeState.NOT_HAS)
+        else:
+            # User is not the guesser
+            if showed_by is None:
+                for card in guess:
+                    guesser.set_card_knowledge(card, KnowledgeState.MIGHT_HAVE)
+            for player in asked_order:
+                if showed_by is not player:
+                    for card in guess:
+                        player.set_card_knowledge(card, KnowledgeState.NOT_HAS)
+                else:
+                    for card in guess:
+                        player.set_card_knowledge(card, KnowledgeState.MIGHT_HAVE)
 
     def evaluate_guesses(self) -> None:
         # Logic for STEP 3

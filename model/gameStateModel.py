@@ -3,7 +3,6 @@ from model.cardModel import Card
 from model.playerModel import Player
 
 class GameState:
-    accessible_rooms: List[str]
     possible_suspects: Set[Card]
     possible_weapons: Set[Card]
     possible_rooms: Set[Card]
@@ -11,7 +10,6 @@ class GameState:
     user_index: int
 
     def __init__(self, rooms: List[str], players: List[Player], user_name: str) -> None:
-        self.accessible_rooms: List[str] = rooms
         self.possible_suspects: Set[Card] = set()
         self.possible_weapons: Set[Card] = set()
         self.possible_rooms: Set[Card] = set(rooms)

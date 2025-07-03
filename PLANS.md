@@ -9,8 +9,8 @@
 - [x] Print a summary of the initialized game state.
 
 ## STEP 2. GET POSSIBLE GUESSES
-- [ ] Generate all valid guesses: any unseen suspect and weapon, in any available room.
-- [ ] Exclude guesses involving cards known to be in the user's hand.
+- [x] Generate all valid guesses: any unseen suspect and weapon, in any available room.
+- [x] Exclude guesses involving cards known to be in the user's hand.
 
 ## STEP 3. EVALUATE GUESSES
 - [ ] For each possible guess, simulate outcomes (correct/incorrect) and calculate how much each guess would reduce the possible answer space.

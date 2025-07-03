@@ -1,15 +1,16 @@
 from model.cardModel import Card
 from model.playerModel import Player
 from model.gameStateModel import GameState
+from typing import List
 
 # Example card names (replace with your actual game data)
-suspect_names = ["Green", "Mustard", "Peacock", "Plum", "Scarlet", "White"]
-weapon_names = ["Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench"]
-room_names = ["Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Lounge", "Hall", "Study"]
+suspect_names: List[str] = ["Green", "Mustard", "Peacock", "Plum", "Scarlet", "White"]
+weapon_names: List[str] = ["Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench"]
+room_names: List[str] = ["Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Lounge", "Hall", "Study"]
 
 # Prompt for player names and user name
 print("Enter player names in turn order, one per line. Enter a blank line to finish:")
-player_names = []
+player_names: List[str] = []
 while True:
     name = input(f"Player {len(player_names)+1} name: ").strip()
     if not name:
@@ -19,20 +20,20 @@ while True:
 user_name = input("Enter your player name exactly as above: ").strip()
 
 # Create all cards
-suspects = [Card(name, 'suspect') for name in suspect_names]
-weapons = [Card(name, 'weapon') for name in weapon_names]
-rooms = [Card(name, 'room') for name in room_names]
-all_cards = suspects + weapons + rooms
+suspects: List[Card] = [Card(name, 'suspect') for name in suspect_names]
+weapons: List[Card] = [Card(name, 'weapon') for name in weapon_names]
+rooms: List[Card] = [Card(name, 'room') for name in room_names]
+all_cards: List[Card] = suspects + weapons + rooms
 
 # Create Player objects
-players = [Player(name, is_user=(name == user_name)) for name in player_names]
-user_player = next(p for p in players if p.is_user)
+players: List[Player] = [Player(name, is_user=(name == user_name)) for name in player_names]
+user_player: Player = next(p for p in players if p.is_user)
 
 # Prompt user for their hand
 print("\nEnter the cards in your hand, one per line (format: <name> (<type>)). Enter a blank line to finish:")
 for card in all_cards:
     print(f"- {card.name} ({card.card_type})")
-user_cards_input = []
+user_cards_input: List[Card] = []
 while True:
     card_input = input("Card (or blank to finish): ").strip()
     if not card_input:
@@ -45,9 +46,9 @@ while True:
         print("Card not recognized, try again.")
 
 # Remove user's cards from possible solutions and add to user hand
-possible_suspects = [c for c in suspects if c not in user_cards_input]
-possible_weapons = [c for c in weapons if c not in user_cards_input]
-possible_rooms = [c for c in rooms if c not in user_cards_input]
+possible_suspects: List[Card] = [c for c in suspects if c not in user_cards_input]
+possible_weapons: List[Card] = [c for c in weapons if c not in user_cards_input]
+possible_rooms: List[Card] = [c for c in rooms if c not in user_cards_input]
 
 for player in players:
     for card in all_cards:
@@ -58,7 +59,7 @@ for player in players:
         else:
             player.knowledge_table[card] = "UNKNOWN"
 
-game_state = GameState(room_names, players, user_name)
+game_state: GameState = GameState(room_names, players, user_name)
 game_state.set_possible_suspects(possible_suspects)
 game_state.set_possible_weapons(possible_weapons)
 game_state.set_possible_rooms(possible_rooms)

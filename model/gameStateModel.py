@@ -1,24 +1,31 @@
-from typing import List
+from typing import List, Set
 
 class GameState:
-    def __init__(self, rooms: List, players: List, user_name: str):
-        self.accessible_rooms = rooms
-        self.possible_suspects = set()
-        self.possible_weapons = set()
-        self.possible_rooms = set(rooms)
-        self.players = players
-        self.user_index = players.index(user_name)
+    accessible_rooms: List[str]
+    possible_suspects: Set["Card"]
+    possible_weapons: Set["Card"]
+    possible_rooms: Set["Card"]
+    players: List["Player"]
+    user_index: int
 
-    def set_possible_suspects(self, suspects):
+    def __init__(self, rooms: List[str], players: List["Player"], user_name: str) -> None:
+        self.accessible_rooms: List[str] = rooms
+        self.possible_suspects: Set["Card"] = set()
+        self.possible_weapons: Set["Card"] = set()
+        self.possible_rooms: Set["Card"] = set(rooms)
+        self.players: List["Player"] = players
+        self.user_index: int = players.index(user_name)
+
+    def set_possible_suspects(self, suspects: List["Card"]) -> None:
         self.possible_suspects = set(suspects)
 
-    def set_possible_weapons(self, weapons):
+    def set_possible_weapons(self, weapons: List["Card"]) -> None:
         self.possible_weapons = set(weapons)
 
-    def set_possible_rooms(self, rooms):
+    def set_possible_rooms(self, rooms: List["Card"]) -> None:
         self.possible_rooms = set(rooms)
 
-    def get_possible_solutions(self):
+    def get_possible_solutions(self) -> List[tuple]:
         # Returns all possible (suspect, weapon, room) combinations
         return [
             (suspect, weapon, room)

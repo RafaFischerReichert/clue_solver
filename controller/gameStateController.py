@@ -1,10 +1,10 @@
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Optional
 from model.cardModel import Card
 from model.playerModel import Player
 from model.knowledgeState import KnowledgeState
 from model.gameStateModel import GameState
 
-class GameController:
+class GameStateController:
     game_state: GameState
 
     def __init__(self) -> None:
@@ -26,8 +26,8 @@ class GameController:
         self,
         guess: Tuple[Card, Card, Card],
         asked_order: List[Player],
-        showed_by: Player = None,
-        card_shown: Card = None,
+        showed_by: Optional[Player] = None,
+        card_shown: Optional[Card] = None,
         user_is_guesser: bool = False,
         guesser: Player = None
     ) -> None:
@@ -74,11 +74,6 @@ class GameController:
     def evaluate_guesses(self) -> None:
         # Logic for STEP 3
         # This method should evaluate the possible guesses and return the one that eliminates the most possibilities
-        pass
-
-    def update_knowledge(self, info: Any) -> None:
-        # Logic for STEP 4
-        # This method should update table of each player's hands, being able to assign at least the values of "HAS THE CARD", "DOES NOT HAVE THE CARD", "MIGHT HAVE REVEALED THIS CARD TO SOMEONE ELSE"
         pass
 
     def killswitch(self) -> None:

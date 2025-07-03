@@ -1,12 +1,12 @@
 # WHAT WE NEED TO DO
 
 ## STEP 1. INITIALIZE GAME STATE
-- [ ] Prompt user for player names (in turn order) and identify the user.
-- [ ] Create all Card objects for suspects, weapons, and rooms.
-- [ ] Prompt user to enter the cards in their hand.
-- [ ] Remove user's cards from the possible solution sets in GameState.
-- [ ] Add user's cards to their Player object and mark them as seen.
-- [ ] Print a summary of the initialized game state.
+- [x] Prompt user for player names (in turn order) and identify the user.
+- [x] Create all Card objects for suspects, weapons, and rooms.
+- [x] Prompt user to enter the cards in their hand.
+- [x] Remove user's cards from the possible solution sets in GameState.
+- [x] Add user's cards to their Player object and mark them as seen.
+- [x] Print a summary of the initialized game state.
 
 ## STEP 2. GET POSSIBLE GUESSES
 - [ ] Generate all valid guesses: any unseen suspect and weapon, in any available room.

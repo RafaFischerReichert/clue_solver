@@ -45,9 +45,18 @@ while True:
         print("Card not recognized, try again.")
 
 # Remove user's cards from possible solutions and add to user hand
-possible_suspects = [c for c in suspect_names if Card(c, 'suspect') not in user_cards_input]
-possible_weapons = [c for c in weapon_names if Card(c, 'weapon') not in user_cards_input]
-possible_rooms = [c for c in room_names if Card(c, 'room') not in user_cards_input]
+possible_suspects = [c for c in suspects if c not in user_cards_input]
+possible_weapons = [c for c in weapons if c not in user_cards_input]
+possible_rooms = [c for c in rooms if c not in user_cards_input]
+
+for player in players:
+    for card in all_cards:
+        if player.is_user and card in user_cards_input:
+            player.add_card(card)
+            player.see_card(card)
+            player.knowledge_table[card] = "HAS"
+        else:
+            player.knowledge_table[card] = "UNKNOWN"
 
 game_state = GameState(room_names, players, user_name)
 game_state.set_possible_suspects(possible_suspects)

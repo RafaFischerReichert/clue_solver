@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 @dataclass(frozen=True)
 class Card:
@@ -12,5 +13,5 @@ class Card:
     name: str
     card_type: str  # e.g., 'suspect', 'weapon', 'room'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Card(name={self.name}, card_type={self.card_type})"

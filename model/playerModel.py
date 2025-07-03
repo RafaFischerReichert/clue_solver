@@ -1,19 +1,20 @@
+from typing import List, Dict, Any
 from model.cardModel import Card
 from model.knowledgeState import KnowledgeState
 
 class Player:
     name: str
     is_user: bool
-    cards: list[Card] | None
+    cards: List[Card]
     seen_cards: list[Card]
-    knowledge_table: dict[Card, KnowledgeState]
+    knowledge_table: Dict[Card, str]
 
-    def __init__(self, name: str, is_user: bool = False):
-        self.name = name
-        self.is_user = is_user
-        self.cards = [] if is_user else None  # Only the user's cards are tracked
+    def __init__(self, name: str, is_user: bool = False) -> None:
+        self.name: str = name
+        self.is_user: bool = is_user
+        self.cards: List[Card] = [] if is_user else None  # Only the user's cards are tracked
         self.seen_cards = []
-        self.knowledge_table = {}
+        self.knowledge_table: Dict[Card, str] = {}
 
     def add_card(self, card: Card) -> None:
         """
@@ -28,3 +29,6 @@ class Player:
         """
         if card not in self.seen_cards:
             self.seen_cards.append(card)
+
+    def __repr__(self) -> str:
+        return f"Player(name={self.name}, is_user={self.is_user}, cards={self.cards})"

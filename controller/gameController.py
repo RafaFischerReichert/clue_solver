@@ -11,13 +11,13 @@ class GameController:
         self.game_state = GameState.get_instance()
 
     def get_possible_guesses(self, rooms_in_range: List[Card]) -> List[Tuple[Card, Card, Card]]:
-        # This method should generate all possible guesses minus the cards the user has seen, only for rooms in range
-        possible_suspects = self.game_state.possible_suspects
-        possible_weapons = self.game_state.possible_weapons
+        # This method should generate all possible guesses. Evaluating of whether they're worthwhile guesses comes later, not now.
+        suspects = self.game_state.all_suspects
+        weapons = self.game_state.all_weapons
         possible_guesses = [
             (suspect, weapon, room)
-            for suspect in possible_suspects
-            for weapon in possible_weapons
+            for suspect in suspects
+            for weapon in weapons
             for room in rooms_in_range
         ]
         return possible_guesses

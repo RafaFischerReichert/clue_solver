@@ -13,12 +13,12 @@ class GameState:
     all_weapons: List[Card]
     all_rooms: List[Card]
 
-    def __init__(self, rooms: List[str], players: List[Player], user_name: str, all_suspects: List[Card], all_weapons: List[Card], all_rooms: List[Card]) -> None:
+    def __init__(self, possible_rooms: List[Card], players: List[Player], user_name: str, all_suspects: List[Card], all_weapons: List[Card], all_rooms: List[Card]) -> None:
         if GameState._instance is not None:
             raise Exception("GameState is a singleton! Use GameState.get_instance().")
         self.possible_suspects: Set[Card] = set()
         self.possible_weapons: Set[Card] = set()
-        self.possible_rooms: Set[Card] = set(rooms)
+        self.possible_rooms: Set[Card] = set(possible_rooms)
         self.players: List[Player] = players
         self.user_index: int = players.index(user_name)
         self.all_suspects: List[Card] = all_suspects

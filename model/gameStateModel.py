@@ -8,6 +8,7 @@ class GameState:
     def __init__(self, possible_rooms: List[Card], players: List[Player], user_name: str, all_suspects: List[Card], all_weapons: List[Card], all_rooms: List[Card]) -> None:
         if GameState._instance is not None:
             raise Exception("GameState is a singleton! Use GameState.get_instance().")
+            
         self.possible_suspects: Set[Card] = set()
         self.possible_weapons: Set[Card] = set()
         self.possible_rooms: Set[Card] = set(possible_rooms)
@@ -17,6 +18,11 @@ class GameState:
         self.all_weapons: List[Card] = all_weapons
         self.all_rooms: List[Card] = all_rooms
         self.best_guess: Optional[Tuple[Card, Card, Card]] = None
+        self.best_guess_info: str = 'solution'  # 'solution' or 'info'
+        # Movement state
+        self.current_room: Optional[str] = None  # Name of room if in a room
+        self.current_position: Optional[Tuple[int, int]] = None  # (row, col) if in hallway
+        self.movement_count: int = 0
         GameState._instance = self
 
     @classmethod

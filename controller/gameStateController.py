@@ -7,6 +7,7 @@ from model.cardModel import Card
 from model.playerModel import Player
 from model.knowledgeState import KnowledgeState
 from model.gameStateModel import GameState
+from model.boardModel import board_grid, room_entrances, room_hatch_map, get_neighbors, is_hallway_or_entrance
 
 class GameStateController:
     game_state: GameState
@@ -222,25 +223,42 @@ class GameStateController:
         self.save_knowledge_state()
         print("Knowledge state saved to JSON")
 
-    def evaluate_guesses(self, asked_order: List[Player]) -> None:
+    def evaluate_guesses(self, asked_order: List[Player], accessible_rooms: Optional[set] = None) -> None:
         """
         Evaluates all possible guesses using expected information gain (entropy),
         considering current knowledge about which cards each player could have.
         Picks the guess that, on average, leaves the smallest entropy in the answer space.
+        If accessible_rooms is provided, restrict guesses to those rooms.
+        If no valid guesses in accessible_rooms, suggest a guess in any accessible room (even if ruled out as a solution).
         """
-        possible_guesses = self.get_possible_guesses(list(self.game_state.possible_rooms))
-        possible_solutions = self.game_state.get_possible_solutions()
+        def get_guesses(rooms):
+            return self.get_possible_guesses(list(rooms))
 
+        # 1. Try with accessible rooms that are still possible solutions
+        if accessible_rooms:
+            possible_rooms = set(r for r in self.game_state.possible_rooms if r.name in accessible_rooms)
+            possible_guesses = get_guesses(possible_rooms)
+        else:
+            possible_guesses = self.get_possible_guesses(list(self.game_state.possible_rooms))
+
+        possible_solutions = self.game_state.get_possible_solutions()
         best_guess = None
         best_expected_entropy = float('inf')
 
+        if not possible_guesses and accessible_rooms:
+            # 2. If no valid guesses, allow guesses in any accessible room (even if ruled out)
+            all_room_objs = [r for r in self.game_state.all_rooms if r.name in accessible_rooms]
+            possible_guesses = get_guesses(all_room_objs)
+            stategic_info = True
+        else:
+            stategic_info = False
+
         print(f"Evaluating {len(possible_guesses)} possible guesses against {len(possible_solutions)} possible solutions")
-        
         if not possible_guesses:
             print("No valid guesses available!")
             self.game_state.best_guess = None
             return
-        
+
         for guess in possible_guesses:
             feedback_groups = {}
             for solution in possible_solutions:
@@ -253,25 +271,12 @@ class GameStateController:
                 p = count / total
                 if p > 0:
                     expected_entropy += p * math.log2(1 / p)
-            
-            print(f"Guess {[c.name for c in guess]}: entropy = {expected_entropy:.3f}, feedback groups = {len(feedback_groups)}")
-            
             if expected_entropy < best_expected_entropy:
                 best_expected_entropy = expected_entropy
                 best_guess = guess
-                print(f"  -> New best guess!")
 
         self.game_state.best_guess = best_guess
-        
-        # Clear best guess if it contains cards that are no longer possible
-        if best_guess:
-            suspect, weapon, room = best_guess
-            if (suspect not in self.game_state.possible_suspects or 
-                weapon not in self.game_state.possible_weapons or 
-                room not in self.game_state.possible_rooms):
-                print(f"Clearing best guess {[c.name for c in best_guess]} as it contains impossible cards")
-                self.game_state.best_guess = None
-        
+        self.game_state.best_guess_info = 'info' if stategic_info else 'solution'
         # Save knowledge state after evaluating guesses
         self.save_knowledge_state()
 
@@ -393,5 +398,46 @@ class GameStateController:
                 self.game_state.best_guess = None
                 return True
         return False
+
+    def get_accessible_rooms(self, movement_count: int, current_room: Optional[str], current_position: Optional[Tuple[int, int]]):
+        """
+        Returns a set of room names accessible from the current position/room within movement_count steps.
+        """
+        accessible_rooms = set()
+        visited = set()
+        queue = []
+        
+        # If in a room, can start from any entrance
+        if current_room:
+            for entrance in room_entrances.get(current_room, []):
+                queue.append((entrance, 0))
+            # Check for hatch
+            if current_room in room_hatch_map:
+                hatch_dest = room_hatch_map[current_room]
+                if movement_count >= 1:
+                    accessible_rooms.add(hatch_dest)
+        elif current_position:
+            queue.append((current_position, 0))
+        else:
+            return set()
+        
+        # BFS
+        while queue:
+            (row, col), dist = queue.pop(0)
+            if dist > movement_count:
+                continue
+            # Check if this is an entrance to a room
+            for room, entrances in room_entrances.items():
+                if (row, col) in entrances and dist <= movement_count:
+                    accessible_rooms.add(room)
+            # Explore neighbors
+            for nr, nc in get_neighbors((row, col)):
+                if (nr, nc) in visited:
+                    continue
+                cell = board_grid[nr][nc]
+                if is_hallway_or_entrance(cell):
+                    visited.add((nr, nc))
+                    queue.append(((nr, nc), dist+1))
+        return accessible_rooms
 
     # Add more methods as needed

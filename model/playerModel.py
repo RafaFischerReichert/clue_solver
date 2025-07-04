@@ -1,19 +1,13 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from model.cardModel import Card
 from model.knowledgeState import KnowledgeState
 
 class Player:
-    name: str
-    is_user: bool
-    cards: List[Card]
-    seen_cards: list[Card]
-    knowledge_table: Dict[Card, KnowledgeState]
-
     def __init__(self, name: str, is_user: bool = False) -> None:
         self.name: str = name
         self.is_user: bool = is_user
-        self.cards: List[Card] = [] if is_user else None  # Only the user's cards are tracked
-        self.seen_cards = []
+        self.cards: Optional[List[Card]] = [] if is_user else None  # Only the user's cards are tracked
+        self.seen_cards: List[Card] = []
         self.knowledge_table: Dict[Card, KnowledgeState] = {}
 
     def add_card(self, card: Card) -> None:

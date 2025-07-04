@@ -2,8 +2,10 @@ import streamlit as st
 from controller.gameStateController import GameStateController
 from model.gameStateModel import GameState
 from model.knowledgeState import KnowledgeState
+from model.boardModel import board_grid, room_entrances
 import csv
 import os
+import random
 
 st.title("Cluedo Solver Helper - Guess Input & Suggestions")
 
@@ -21,14 +23,57 @@ suspects = [c.name for c in game_state.all_suspects]
 weapons = [c.name for c in game_state.all_weapons]
 rooms = [c.name for c in game_state.all_rooms]
 user_name = game_state.players[game_state.user_index].name
-user_hand = [c.name for c in game_state.players[game_state.user_index].cards] if game_state.players[game_state.user_index].cards else []
+user_cards = game_state.players[game_state.user_index].cards
+user_hand = [c.name for c in user_cards] if user_cards is not None else []
 
 # Load knowledge state from JSON if it exists
 controller.load_knowledge_state()
 
+# --- Movement UI ---
+st.header("Movement & Position")
+
+# User inputs movement points (no dice roll in solver)
+if "movement_count" not in st.session_state:
+    st.session_state["movement_count"] = 0
+st.session_state["movement_count"] = st.number_input(
+    "Movement points this turn (enter your dice roll)", min_value=0, max_value=24, value=st.session_state["movement_count"], step=1
+)
+st.write(f"Movement points this turn: **{st.session_state['movement_count']}**")
+
+# Position selection
+room_options = list(room_entrances.keys())
+col1, col2 = st.columns(2)
+with col1:
+    in_room = st.checkbox("Are you in a room?", value=game_state.current_room is not None)
+if in_room:
+    with col2:
+        selected_room = st.selectbox("Current Room", room_options, index=room_options.index(game_state.current_room) if game_state.current_room else 0)
+    game_state.current_room = selected_room
+    game_state.current_position = None
+else:
+    with col2:
+        row = st.number_input("Current Row (0-9)", min_value=0, max_value=9, value=game_state.current_position[0] if game_state.current_position else 5)
+        col = st.number_input("Current Col (0-11)", min_value=0, max_value=11, value=game_state.current_position[1] if game_state.current_position else 5)
+    game_state.current_room = None
+    game_state.current_position = (row, col)
+
+# Compute accessible rooms
+accessible_rooms = controller.get_accessible_rooms(
+    st.session_state["movement_count"],
+    game_state.current_room,
+    game_state.current_position
+)
+
+st.write(f"**Rooms you can reach this turn:** {', '.join(accessible_rooms) if accessible_rooms else 'None'}")
+
+# After movement input, evaluate best guess for accessible rooms
+current_players = [p for p in game_state.players if p.name != user_name]
+controller.evaluate_guesses(current_players, accessible_rooms=accessible_rooms)
+
+# --- Guess Input ---
 st.header("Record a Guess")
 
-# Guess input
+# Restrict room choices to accessible rooms
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     guesser = st.selectbox("Guesser", players)
@@ -37,7 +82,7 @@ with col2:
 with col3:
     weapon = st.selectbox("Weapon", weapons)
 with col4:
-    room = st.selectbox("Room", rooms)
+    room = st.selectbox("Room", sorted(accessible_rooms) if accessible_rooms else rooms)
 
 guess_cards = [suspect, weapon, room]
 asked_order = st.multiselect("Order of players asked (excluding guesser)", [p for p in players if p != guesser])
@@ -195,15 +240,14 @@ with tab2:
 with tab3:
     st.write("**Best next guess (information gain):**")
     
-    # Get the current player order for suggestions
-    current_players = [p for p in game_state.players if p.name != user_name]
-    
     if hasattr(game_state, 'best_guess') and game_state.best_guess:
         suspect, weapon, room = game_state.best_guess
+        if getattr(game_state, 'best_guess_info', 'solution') == 'info':
+            st.warning(f"(No possible solution in accessible rooms. This guess is for information only.)")
         st.success(f"**{suspect.name}** with **{weapon.name}** in **{room.name}**")
         st.write("This guess is expected to provide the most information about the solution.")
     else:
-        st.info("No best guess calculated yet. Record a guess first to see suggestions.")
+        st.info("No best guess calculated yet. Enter movement and position to see suggestions.")
         
         # Auto-evaluate if we have knowledge but no best guess
         has_knowledge = any(

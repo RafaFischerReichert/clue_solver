@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project-specific files
+#  If you have project-specific files that should not be tracked, you can add them here
+user_inputs.json
+data/game_log.csv

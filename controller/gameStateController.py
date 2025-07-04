@@ -70,6 +70,8 @@ class GameStateController:
                     for card in guess:
                         player.set_card_knowledge(card, KnowledgeState.NOT_HAS)
                 else:
+                    if player.is_user:
+                        continue  # Skip updating our own table if we are the one showing
                     for card in guess:
                         player.set_card_knowledge(card, KnowledgeState.MIGHT_HAVE)
 

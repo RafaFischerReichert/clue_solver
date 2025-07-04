@@ -1,17 +1,9 @@
-from typing import List, Set
+from typing import List, Set, Optional, Tuple
 from model.cardModel import Card
 from model.playerModel import Player
 
 class GameState:
     _instance = None
-    possible_suspects: Set[Card]
-    possible_weapons: Set[Card]
-    possible_rooms: Set[Card]
-    players: List[Player]
-    user_index: int
-    all_suspects: List[Card]
-    all_weapons: List[Card]
-    all_rooms: List[Card]
 
     def __init__(self, possible_rooms: List[Card], players: List[Player], user_name: str, all_suspects: List[Card], all_weapons: List[Card], all_rooms: List[Card]) -> None:
         if GameState._instance is not None:
@@ -24,6 +16,7 @@ class GameState:
         self.all_suspects: List[Card] = all_suspects
         self.all_weapons: List[Card] = all_weapons
         self.all_rooms: List[Card] = all_rooms
+        self.best_guess: Optional[Tuple[Card, Card, Card]] = None
         GameState._instance = self
 
     @classmethod

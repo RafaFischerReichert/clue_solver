@@ -1,6 +1,7 @@
 import streamlit as st
 from controller.gameStateController import GameStateController
 from model.gameStateModel import GameState
+from model.knowledgeState import KnowledgeState
 import csv
 import os
 
@@ -21,6 +22,9 @@ weapons = [c.name for c in game_state.all_weapons]
 rooms = [c.name for c in game_state.all_rooms]
 user_name = game_state.players[game_state.user_index].name
 user_hand = [c.name for c in game_state.players[game_state.user_index].cards] if game_state.players[game_state.user_index].cards else []
+
+# Load knowledge state from JSON if it exists
+controller.load_knowledge_state()
 
 st.header("Record a Guess")
 
@@ -97,11 +101,175 @@ if st.button("Record Guess"):
                 row.append(str(state.name) if state else "UNKNOWN")
         writer.writerow(row)
     st.success(f"Guess recorded: {guesser} guessed {suspect}, {weapon}, {room}. Showed by: {showed_by}. Card: {card_shown if card_shown != 'Unknown' else 'Unknown'}.")
+    
+    # Trigger suggestion evaluation after recording guess
+    st.session_state["should_evaluate"] = True
 
 st.header("Suggestions & Current Knowledge")
 
-# Placeholder for suggestions (could use controller.evaluate_guesses, etc.)
-st.info("Suggestions and knowledge will appear here once logic is connected.")
+# Add refresh button
+col1, col2 = st.columns([1, 4])
+with col1:
+    if st.button("🔄 Refresh Analysis"):
+        current_players = [p for p in game_state.players if p.name != user_name]
+        controller.evaluate_guesses(current_players)
+        st.success("Analysis refreshed!")
+with col2:
+    st.write("Click to recalculate suggestions and update knowledge display")
+
+# Evaluate suggestions if needed
+if st.session_state.get("should_evaluate", False):
+    # Get the current player order (excluding the user for suggestions)
+    current_players = [p for p in game_state.players if p.name != user_name]
+    
+    # Evaluate best guess
+    controller.evaluate_guesses(current_players)
+    
+    # Clear the flag
+    st.session_state["should_evaluate"] = False
+
+# Also evaluate suggestions on page load if we have some knowledge
+if not hasattr(game_state, 'best_guess') or game_state.best_guess is None:
+    # Check if we have any knowledge to work with
+    has_knowledge = any(
+        any(state != KnowledgeState.UNKNOWN for state in player.knowledge_table.values())
+        for player in game_state.players
+    )
+    if has_knowledge:
+        current_players = [p for p in game_state.players if p.name != user_name]
+        controller.evaluate_guesses(current_players)
+
+# Display current knowledge
+st.subheader("Current Knowledge")
+
+# Create tabs for different views
+tab1, tab2, tab3 = st.tabs(["Player Knowledge", "Possible Solutions", "Best Next Guess"])
+
+with tab1:
+    st.write("**What we know about each player's cards:**")
+    
+    # Create a knowledge table
+    all_cards = game_state.all_suspects + game_state.all_weapons + game_state.all_rooms
+    knowledge_data = []
+    
+    for player in game_state.players:
+        for card in all_cards:
+            state = player.knowledge_table.get(card, KnowledgeState.UNKNOWN)
+            knowledge_data.append({
+                "Player": player.name,
+                "Card": f"{card.name} ({card.card_type})",
+                "Status": state.name.replace("_", " ").title()
+            })
+    
+    if knowledge_data:
+        import pandas as pd
+        df = pd.DataFrame(knowledge_data)
+        st.dataframe(df, use_container_width=True)
+    
+    # Show summary of known cards
+    st.write("**Summary of known cards:**")
+    for player in game_state.players:
+        known_cards = [card.name for card, state in player.knowledge_table.items() 
+                      if state == KnowledgeState.HAS]
+        if known_cards:
+            st.write(f"**{player.name}** has: {', '.join(known_cards)}")
+
+with tab2:
+    st.write("**Possible solutions remaining:**")
+    possible_solutions = game_state.get_possible_solutions()
+    
+    if possible_solutions:
+        st.write(f"**{len(possible_solutions)} possible solutions remain**")
+        
+        # Show first 10 solutions (to avoid overwhelming the UI)
+        if len(possible_solutions) <= 10:
+            for i, (suspect, weapon, room) in enumerate(possible_solutions, 1):
+                st.write(f"{i}. {suspect.name} with {weapon.name} in {room.name}")
+        else:
+            for i, (suspect, weapon, room) in enumerate(possible_solutions[:10], 1):
+                st.write(f"{i}. {suspect.name} with {weapon.name} in {room.name}")
+            st.write(f"... and {len(possible_solutions) - 10} more")
+    else:
+        st.warning("No possible solutions remain! Check your input data.")
+
+with tab3:
+    st.write("**Best next guess (information gain):**")
+    
+    # Get the current player order for suggestions
+    current_players = [p for p in game_state.players if p.name != user_name]
+    
+    if hasattr(game_state, 'best_guess') and game_state.best_guess:
+        suspect, weapon, room = game_state.best_guess
+        st.success(f"**{suspect.name}** with **{weapon.name}** in **{room.name}**")
+        st.write("This guess is expected to provide the most information about the solution.")
+    else:
+        st.info("No best guess calculated yet. Record a guess first to see suggestions.")
+        
+        # Auto-evaluate if we have knowledge but no best guess
+        has_knowledge = any(
+            any(state != KnowledgeState.UNKNOWN for state in player.knowledge_table.values())
+            for player in game_state.players
+        )
+        if has_knowledge:
+            if st.button("Calculate Best Guess"):
+                controller.evaluate_guesses(current_players)
+                st.rerun()
+
+# Add a "Show Most Likely Solution" button
+st.subheader("Solution Analysis")
+if st.button("Show Most Likely Solution"):
+    possible_solutions = game_state.get_possible_solutions()
+    if possible_solutions:
+        # Calculate most likely solution
+        from collections import Counter
+        suspects = [s for s, _, _ in possible_solutions]
+        weapons = [w for _, w, _ in possible_solutions]
+        rooms = [r for _, _, r in possible_solutions]
+
+        most_likely_suspect = Counter(suspects).most_common(1)[0][0]
+        most_likely_weapon = Counter(weapons).most_common(1)[0][0]
+        most_likely_room = Counter(rooms).most_common(1)[0][0]
+
+        st.success("**Most likely solution:**")
+        st.write(f"**Suspect:** {most_likely_suspect.name}")
+        st.write(f"**Weapon:** {most_likely_weapon.name}")
+        st.write(f"**Room:** {most_likely_room.name}")
+        st.write(f"*({len(possible_solutions)} possible solutions remain)*")
+    else:
+        st.warning("No possible solutions remain!")
+
+# Debug section
+with st.expander("🔧 Debug: Current Knowledge State"):
+    st.write("**Current knowledge state in JSON format:**")
+    import json
+    knowledge_data = {
+        "players": {},
+        "possible_solutions": {
+            "suspects": [card.name for card in game_state.possible_suspects],
+            "weapons": [card.name for card in game_state.possible_weapons],
+            "rooms": [card.name for card in game_state.possible_rooms]
+        }
+    }
+    
+    for player in game_state.players:
+        player_knowledge = {}
+        for card in game_state.all_suspects + game_state.all_weapons + game_state.all_rooms:
+            state = player.knowledge_table.get(card, KnowledgeState.UNKNOWN)
+            player_knowledge[f"{card.name} ({card.card_type})"] = state.name
+        knowledge_data["players"][player.name] = player_knowledge
+    
+    st.json(knowledge_data)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Save Current State"):
+            controller.save_knowledge_state()
+            st.success("Knowledge state saved!")
+    with col2:
+        if st.button("Clear Knowledge State"):
+            controller.clear_knowledge_state()
+            st.success("Knowledge state cleared!")
+            st.rerun()
 
 if st.button("Back to Setup"):
     st.switch_page("pages/home.py") 

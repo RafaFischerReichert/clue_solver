@@ -14,7 +14,7 @@ class Player:
         self.is_user: bool = is_user
         self.cards: List[Card] = [] if is_user else None  # Only the user's cards are tracked
         self.seen_cards = []
-        self.knowledge_table: Dict[Card, str] = {}
+        self.knowledge_table: Dict[Card, KnowledgeState] = {}
 
     def add_card(self, card: Card) -> None:
         """
@@ -48,8 +48,8 @@ class Player:
         type_count = defaultdict(int)
         for card, state in self.knowledge_table.items():
             if state == KnowledgeState.IS_SOLUTION:
-                # Assume Card has a 'type' attribute (e.g., 'suspect', 'weapon', 'room')
-                type_count[getattr(card, 'type', None)] += 1
+                # Use card.card_type for type
+                type_count[getattr(card, 'card_type', None)] += 1
         # We expect one of each: 'suspect', 'weapon', 'room'
         return all(type_count[t] == 1 for t in ('suspect', 'weapon', 'room'))
 

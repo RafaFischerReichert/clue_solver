@@ -1,72 +1,62 @@
 from model.cardModel import Card
 from model.playerModel import Player
 from model.gameStateModel import GameState
+from model.knowledgeState import KnowledgeState
 from typing import List
 
-def GameInitializer() -> bool:
-    # Example card names (replace with your actual game data)
-    suspect_names: List[str] = ["Green", "Mustard", "Peacock", "Plum", "Scarlet", "White"]
-    weapon_names: List[str] = ["Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench"]
-    room_names: List[str] = ["Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Lounge", "Hall", "Study"]
-
-    # Prompt for player names and user name
-    print("Enter player names in turn order, one per line. Enter a blank line to finish:")
-    player_names: List[str] = []
-    while True:
-        name = input(f"Player {len(player_names)+1} name: ").strip()
-        if not name:
-            break
-        player_names.append(name)
-
-    user_name = input("Enter your player name exactly as above: ").strip()
-
-    # Create all cards
-    suspects: List[Card] = [Card(name, 'suspect') for name in suspect_names]
-    weapons: List[Card] = [Card(name, 'weapon') for name in weapon_names]
-    rooms: List[Card] = [Card(name, 'room') for name in room_names]
-    all_cards: List[Card] = suspects + weapons + rooms
+def initialize_game_state(
+    player_names: List[str],
+    suspect_names: List[str],
+    weapon_names: List[str],
+    room_names: List[str],
+    user_name: str,
+    user_hand_names: List[str],
+    session_state: dict = None
+):
+    # Create Card objects
+    suspect_cards = [Card(name, 'suspect') for name in suspect_names]
+    weapon_cards = [Card(name, 'weapon') for name in weapon_names]
+    room_cards = [Card(name, 'room') for name in room_names]
+    all_cards = suspect_cards + weapon_cards + room_cards
 
     # Create Player objects
-    players: List[Player] = [Player(name, is_user=(name == user_name)) for name in player_names]
-    user_player: Player = next(p for p in players if p.is_user)
+    player_objs = [Player(name, is_user=(name == user_name)) for name in player_names]
+    user_player = next(p for p in player_objs if p.is_user)
 
-    # Prompt user for their hand
-    print("\nEnter the cards in your hand, one per line (format: <name> (<type>)). Enter a blank line to finish:")
-    for card in all_cards:
-        print(f"- {card.name} ({card.card_type})")
-    user_cards_input: List[Card] = []
-    while True:
-        card_input = input("Card (or blank to finish): ").strip()
-        if not card_input:
-            break
+    # Convert user hand names to Card objects
+    user_hand_cards = []
+    for name in user_hand_names:
         for card in all_cards:
-            if f"{card.name} ({card.card_type})".lower() == card_input.lower():
-                user_cards_input.append(card)
+            if card.name.lower() == name.lower():
+                user_hand_cards.append(card)
                 break
-        else:
-            print("Card not recognized, try again.")
 
-    # Remove user's cards from possible solutions and add to user hand
-    possible_suspects: List[Card] = [c for c in suspects if c not in user_cards_input]
-    possible_weapons: List[Card] = [c for c in weapons if c not in user_cards_input]
-    possible_rooms: List[Card] = [c for c in rooms if c not in user_cards_input]
+    # Remove user's cards from possible solutions
+    possible_suspects = [c for c in suspect_cards if c not in user_hand_cards]
+    possible_weapons = [c for c in weapon_cards if c not in user_hand_cards]
+    possible_rooms = [c for c in room_cards if c not in user_hand_cards]
 
-    for player in players:
+    # Set up knowledge tables
+    for player in player_objs:
         for card in all_cards:
-            if player.is_user and card in user_cards_input:
+            if player.is_user and card in user_hand_cards:
                 player.add_card(card)
                 player.see_card(card)
-                player.knowledge_table[card] = "HAS"
+                player.knowledge_table[card] = KnowledgeState.HAS
             else:
-                player.knowledge_table[card] = "UNKNOWN"
+                player.knowledge_table[card] = KnowledgeState.UNKNOWN
 
-    GameState(room_names, players, user_name, suspects, weapons, rooms)
-    GameState.get_instance().set_possible_suspects(possible_suspects)
-    GameState.get_instance().set_possible_weapons(possible_weapons)
-    GameState.get_instance().set_possible_rooms(possible_rooms)
-    for card in user_cards_input:
-        user_player.add_card(card)
-        user_player.see_card(card)
+    # Initialize GameState singleton
+    if session_state is None or not hasattr(session_state, "_game_state_initialized"):
+        GameState(room_cards, player_objs, user_name, suspect_cards, weapon_cards, room_cards)
+        GameState.get_instance().set_possible_suspects(possible_suspects)
+        GameState.get_instance().set_possible_weapons(possible_weapons)
+        GameState.get_instance().set_possible_rooms(possible_rooms)
+        for card in user_hand_cards:
+            user_player.add_card(card)
+            user_player.see_card(card)
+        if session_state is not None:
+            session_state["_game_state_initialized"] = True
 
     # Print summary
     print("\nGame initialized!")

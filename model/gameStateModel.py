@@ -20,7 +20,7 @@ class GameState:
         self.possible_weapons: Set[Card] = set()
         self.possible_rooms: Set[Card] = set(possible_rooms)
         self.players: List[Player] = players
-        self.user_index: int = players.index(user_name)
+        self.user_index: int = next(i for i, p in enumerate(players) if p.name == user_name)
         self.all_suspects: List[Card] = all_suspects
         self.all_weapons: List[Card] = all_weapons
         self.all_rooms: List[Card] = all_rooms
@@ -49,6 +49,3 @@ class GameState:
             for weapon in self.possible_weapons
             for room in self.possible_rooms
         ]
-    
-
-    # set player pos, 1-># of players, ask for info 1->player pos times

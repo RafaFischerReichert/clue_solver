@@ -1,3 +1,4 @@
+import math
 from typing import List, Tuple, Any, Optional
 from collections import Counter
 from model.cardModel import Card
@@ -73,42 +74,53 @@ class GameStateController:
                         player.set_card_knowledge(card, KnowledgeState.MIGHT_HAVE)
 
     def evaluate_guesses(self, asked_order: List[Player]) -> None:
-            """
-            Evaluates all possible guesses using expected information gain.
-            Picks the guess that, on average, leaves the smallest answer space.
-            """
-            possible_guesses = self.get_possible_guesses(self.game_state.all_rooms)
-            possible_solutions = self.game_state.get_possible_solutions()
+        """
+        Evaluates all possible guesses using expected information gain (entropy),
+        considering current knowledge about which cards each player could have.
+        Picks the guess that, on average, leaves the smallest entropy in the answer space.
+        """
+        possible_guesses = self.get_possible_guesses(self.game_state.all_rooms)
+        possible_solutions = self.game_state.get_possible_solutions()
 
-            best_guess = None
-            best_expected_size = float('inf')
+        best_guess = None
+        best_expected_entropy = float('inf')
 
-            for guess in possible_guesses:
-                feedback_groups = {}
-                for solution in possible_solutions:
-                    feedback = self.simulate_feedback(guess, solution, asked_order)
-                    if feedback not in feedback_groups:
-                        feedback_groups[feedback] = []
-                    feedback_groups[feedback].append(solution)
-                expected_size = sum(
-                    (len(group) ** 2) for group in feedback_groups.values()
-                ) / len(possible_solutions)
-                if expected_size < best_expected_size:
-                    best_expected_size = expected_size
-                    best_guess = guess
+        for guess in possible_guesses:
+            feedback_groups = {}
+            for solution in possible_solutions:
+                feedback = self.simulate_feedback(guess, solution, asked_order)
+                feedback_groups.setdefault(feedback, 0)
+                feedback_groups[feedback] += 1
+            total = len(possible_solutions)
+            expected_entropy = 0.0
+            for count in feedback_groups.values():
+                p = count / total
+                if p > 0:
+                    expected_entropy += p * math.log2(1 / p)
+            if expected_entropy < best_expected_entropy:
+                best_expected_entropy = expected_entropy
+                best_guess = guess
 
-            self.game_state.best_guess = best_guess
+        self.game_state.best_guess = best_guess
 
     def simulate_feedback(self, guess: Tuple[Card, Card, Card], solution: Tuple[Card, Card, Card], asked_order: List[Player]) -> str:
-        # Cards not in the solution are distributed among players
-        non_solution_cards = set(self.game_state.all_suspects + self.game_state.all_weapons + self.game_state.all_rooms) - set(solution)
+        """
+        Simulates the feedback for a guess given a solution and asked order,
+        using current knowledge about which cards each player could have.
+        Returns a string representing which player would show which card, or 'no one'.
+        """
         guess_cards = set(guess)
+        solution_cards = set(solution)
+        non_solution_cards = guess_cards - solution_cards
+
         for player in asked_order:
-            # For simulation, assume player could have any non-solution card
-            possible_cards = guess_cards & non_solution_cards
+            possible_cards = [
+                card for card in non_solution_cards
+                if player.knowledge_table.get(card, KnowledgeState.UNKNOWN) != KnowledgeState.NOT_HAS
+            ]
             if possible_cards:
-                # Optionally, return f"{player.name}:{possible_cards}" for even more detail
-                return player.name
+                card_names = tuple(sorted(card.name for card in possible_cards))
+                return f"{player.name}:{card_names}"
         return "no one"
 
     def killswitch(self) -> None:

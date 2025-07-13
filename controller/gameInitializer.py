@@ -2,7 +2,7 @@ from model.cardModel import Card
 from model.playerModel import Player
 from model.gameStateModel import GameState
 from model.knowledgeState import KnowledgeState
-from typing import List
+from typing import List, Optional, Union, Any
 
 def initialize_game_state(
     player_names: List[str],
@@ -11,7 +11,7 @@ def initialize_game_state(
     room_names: List[str],
     user_name: str,
     user_hand_names: List[str],
-    session_state: dict = None
+    session_state: Optional[Union[dict, Any]] = None
 ):
     # Create Card objects
     suspect_cards = [Card(name, 'suspect') for name in suspect_names]
@@ -62,7 +62,7 @@ def initialize_game_state(
     print("\nGame initialized!")
     print(f"Players: {', '.join(player_names)}")
     print(f"You are: {user_name}")
-    print(f"Your cards: {[f'{c.name} ({c.card_type})' for c in user_player.cards]}")
+    print(f"Your cards: {[f'{c.name} ({c.card_type})' for c in user_player.cards] if user_player.cards else []}")
     print(f"Possible suspects: {GameState.get_instance().possible_suspects}")
     print(f"Possible weapons: {GameState.get_instance().possible_weapons}")
     print(f"Possible rooms: {GameState.get_instance().possible_rooms}") 

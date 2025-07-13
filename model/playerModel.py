@@ -27,7 +27,17 @@ class Player:
     def set_card_knowledge(self, card: Card, value: KnowledgeState) -> None:
         """
         Set the knowledge state for a specific card in the player's knowledge table.
+        Prevents overriding more certain knowledge (HAS, NOT_HAS) with less certain knowledge.
         """
+        current_state = self.knowledge_table.get(card, KnowledgeState.UNKNOWN)
+        
+        # Define knowledge hierarchy: HAS, NOT_HAS, IS_SOLUTION are most certain
+        # UNKNOWN < MIGHT_HAVE < HAS/NOT_HAS/IS_SOLUTION
+        if current_state in [KnowledgeState.HAS, KnowledgeState.NOT_HAS, KnowledgeState.IS_SOLUTION]:
+            # Don't override certain knowledge with less certain knowledge
+            if value not in [KnowledgeState.HAS, KnowledgeState.NOT_HAS, KnowledgeState.IS_SOLUTION]:
+                return
+        
         self.knowledge_table[card] = value
 
     def has_card_in_hand(self, card: Card) -> bool:

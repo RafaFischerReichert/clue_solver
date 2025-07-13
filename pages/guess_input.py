@@ -152,15 +152,65 @@ if st.button("Record Guess"):
 
 st.header("Suggestions & Current Knowledge")
 
-# Add refresh button
-col1, col2 = st.columns([1, 4])
+# Add refresh and reset buttons
+col1, col2, col3 = st.columns([1, 1, 3])
 with col1:
     if st.button("🔄 Refresh Analysis"):
         current_players = [p for p in game_state.players if p.name != user_name]
         controller.evaluate_guesses(current_players)
         st.success("Analysis refreshed!")
 with col2:
-    st.write("Click to recalculate suggestions and update knowledge display")
+    if st.button("🔄 Reset Game", type="secondary"):
+        st.session_state["show_reset_confirmation"] = True
+
+# Confirmation dialog for reset
+if st.session_state.get("show_reset_confirmation", False):
+    st.warning("⚠️ **Reset Game Confirmation**")
+    st.write("This will permanently delete all game data including:")
+    st.write("• All recorded guesses and knowledge")
+    st.write("• Current game state and progress")
+    st.write("• Game log and analytics data")
+    st.write("")
+    st.write("**This action cannot be undone!**")
+    
+    col1, col2, col3 = st.columns([1, 1, 2])
+    with col1:
+        if st.button("✅ Confirm Reset", type="primary"):
+            # Clear all session state
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            
+            # Clear knowledge state file
+            try:
+                knowledge_file = os.path.join("data", "knowledge_state.json")
+                if os.path.exists(knowledge_file):
+                    os.remove(knowledge_file)
+            except Exception as e:
+                st.error(f"Could not clear knowledge file: {e}")
+            
+            # Clear game log file
+            try:
+                csv_path = os.path.join("data", "game_log.csv")
+                if os.path.exists(csv_path):
+                    os.remove(csv_path)
+            except Exception as e:
+                st.error(f"Could not clear game log: {e}")
+            
+            # Reset GameState singleton
+            GameState._instance = None
+            
+            st.success("Game reset! Redirecting to setup page...")
+            st.switch_page("pages/home.py")
+    
+    with col2:
+        if st.button("❌ Cancel"):
+            st.session_state["show_reset_confirmation"] = False
+            st.rerun()
+    
+    with col3:
+        st.write("")
+with col3:
+    st.write("Refresh analysis or reset the entire game")
 
 # Evaluate suggestions if needed
 if st.session_state.get("should_evaluate", False):

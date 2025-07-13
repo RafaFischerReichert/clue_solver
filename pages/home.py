@@ -1,5 +1,9 @@
 import streamlit as st
 from controller.gameInitializer import initialize_game_state
+from utils.validators import (
+    validate_player_names, validate_card_names, validate_user_hand, ValidationError, format_error_message
+)
+from collections import namedtuple
 
 st.title("Cluedo Solver Helper - Game Setup")
 
@@ -48,6 +52,8 @@ user_hand = st.text_area(
     placeholder="Kitchen\nCandlestick\nMiss Scarlet"
 )
 
+# Validation and initialization
+validation_error = None
 game_ready = all([
     players.strip(),
     suspects.strip(),
@@ -64,15 +70,33 @@ if game_ready and st.button("Initialize Game State", key="init_gamestate"):
     room_names = [r.strip() for r in rooms.splitlines() if r.strip()]
     user = user_name.strip()
     user_hand_names = [c.strip() for c in user_hand.splitlines() if c.strip()]
-    initialize_game_state(
-        player_names=player_names,
-        suspect_names=suspect_names,
-        weapon_names=weapon_names,
-        room_names=room_names,
-        user_name=user,
-        user_hand_names=user_hand_names,
-        session_state=st.session_state
-    )
+    all_card_names = suspect_names + weapon_names + room_names
+    CardStub = namedtuple('CardStub', ['name'])
+    all_card_objs = [CardStub(n) for n in all_card_names]
+    try:
+        validate_player_names(player_names)
+        validate_card_names(suspect_names, "suspect")
+        validate_card_names(weapon_names, "weapon")
+        validate_card_names(room_names, "room")
+        if user not in player_names:
+            raise ValidationError("Your player name must match one of the listed players.")
+        validate_user_hand(user_hand_names, all_card_objs)
+        initialize_game_state(
+            player_names=player_names,
+            suspect_names=suspect_names,
+            weapon_names=weapon_names,
+            room_names=room_names,
+            user_name=user,
+            user_hand_names=user_hand_names,
+            session_state=st.session_state
+        )
+    except ValidationError as e:
+        validation_error = format_error_message(e)
+    except Exception as e:
+        validation_error = format_error_message(e)
+
+if validation_error:
+    st.error(validation_error)
 
 start_game_disabled = not (game_ready and hasattr(st.session_state, "_game_state_initialized"))
 

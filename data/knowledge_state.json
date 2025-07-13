@@ -1,46 +1,46 @@
 {
   "players": {
-    "1": {
-      "Miss Scarlet (suspect)": "UNKNOWN",
-      "Colonel Mustard (suspect)": "IS_SOLUTION",
-      "Mrs. White (suspect)": "NOT_HAS",
-      "Mr. Green (suspect)": "NOT_HAS",
-      "Mrs. Peacock (suspect)": "NOT_HAS",
+    "a": {
+      "Miss Scarlet (suspect)": "IS_SOLUTION",
+      "Colonel Mustard (suspect)": "UNKNOWN",
+      "Mrs. White (suspect)": "UNKNOWN",
+      "Mr. Green (suspect)": "UNKNOWN",
+      "Mrs. Peacock (suspect)": "UNKNOWN",
       "Professor Plum (suspect)": "UNKNOWN",
-      "Candlestick (weapon)": "UNKNOWN",
-      "Dagger (weapon)": "IS_SOLUTION",
-      "Lead Pipe (weapon)": "NOT_HAS",
-      "Revolver (weapon)": "NOT_HAS",
+      "Candlestick (weapon)": "IS_SOLUTION",
+      "Dagger (weapon)": "UNKNOWN",
+      "Lead Pipe (weapon)": "UNKNOWN",
+      "Revolver (weapon)": "UNKNOWN",
       "Rope (weapon)": "UNKNOWN",
       "Wrench (weapon)": "UNKNOWN",
-      "Kitchen (room)": "UNKNOWN",
-      "Ballroom (room)": "NOT_HAS",
+      "Kitchen (room)": "HAS",
+      "Ballroom (room)": "IS_SOLUTION",
       "Conservatory (room)": "UNKNOWN",
-      "Dining Room (room)": "NOT_HAS",
-      "Billiard Room (room)": "IS_SOLUTION",
+      "Dining Room (room)": "UNKNOWN",
+      "Billiard Room (room)": "UNKNOWN",
       "Library (room)": "UNKNOWN",
       "Lounge (room)": "UNKNOWN",
       "Hall (room)": "UNKNOWN",
       "Study (room)": "UNKNOWN"
     },
-    "2": {
-      "Miss Scarlet (suspect)": "UNKNOWN",
-      "Colonel Mustard (suspect)": "HAS",
-      "Mrs. White (suspect)": "HAS",
-      "Mr. Green (suspect)": "HAS",
-      "Mrs. Peacock (suspect)": "NOT_HAS",
-      "Professor Plum (suspect)": "HAS",
-      "Candlestick (weapon)": "UNKNOWN",
-      "Dagger (weapon)": "NOT_HAS",
-      "Lead Pipe (weapon)": "MIGHT_HAVE",
-      "Revolver (weapon)": "NOT_HAS",
+    "b": {
+      "Miss Scarlet (suspect)": "NOT_HAS",
+      "Colonel Mustard (suspect)": "UNKNOWN",
+      "Mrs. White (suspect)": "UNKNOWN",
+      "Mr. Green (suspect)": "UNKNOWN",
+      "Mrs. Peacock (suspect)": "UNKNOWN",
+      "Professor Plum (suspect)": "UNKNOWN",
+      "Candlestick (weapon)": "NOT_HAS",
+      "Dagger (weapon)": "UNKNOWN",
+      "Lead Pipe (weapon)": "UNKNOWN",
+      "Revolver (weapon)": "UNKNOWN",
       "Rope (weapon)": "UNKNOWN",
       "Wrench (weapon)": "UNKNOWN",
       "Kitchen (room)": "UNKNOWN",
       "Ballroom (room)": "NOT_HAS",
-      "Conservatory (room)": "NOT_HAS",
-      "Dining Room (room)": "NOT_HAS",
-      "Billiard Room (room)": "NOT_HAS",
+      "Conservatory (room)": "UNKNOWN",
+      "Dining Room (room)": "UNKNOWN",
+      "Billiard Room (room)": "UNKNOWN",
       "Library (room)": "UNKNOWN",
       "Lounge (room)": "UNKNOWN",
       "Hall (room)": "UNKNOWN",
@@ -49,32 +49,35 @@
   },
   "possible_solutions": {
     "suspects": [
+      "Professor Plum",
+      "Mrs. White",
+      "Mr. Green",
+      "Miss Scarlet",
       "Mrs. Peacock",
-      "Miss Scarlet"
+      "Colonel Mustard"
     ],
     "weapons": [
-      "Revolver",
       "Candlestick",
-      "Lead Pipe",
+      "Revolver",
       "Wrench",
-      "Dagger",
-      "Rope"
+      "Rope",
+      "Lead Pipe",
+      "Dagger"
     ],
     "rooms": [
-      "Library",
-      "Kitchen",
-      "Conservatory",
-      "Study",
       "Dining Room",
-      "Hall",
-      "Ballroom",
+      "Library",
+      "Study",
       "Lounge",
-      "Billiard Room"
+      "Ballroom",
+      "Conservatory",
+      "Billiard Room",
+      "Hall"
     ]
   },
   "best_guess": {
-    "suspect": "Mrs. Peacock",
-    "weapon": "Revolver",
-    "room": "Conservatory"
+    "suspect": "Miss Scarlet",
+    "weapon": "Candlestick",
+    "room": "Ballroom"
   }
 }

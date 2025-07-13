@@ -1,44 +1,74 @@
 # Cluedo Solver Desktop App
 
-A modern desktop application for solving Cluedo/Clue mysteries, built with Tauri and React.
+A desktop application for solving Cluedo/Clue board games using React, TypeScript, and Tauri. This app helps players track game information, analyze clues, and deduce the solution through logical reasoning.
 
-## Features
+## 🎯 Features
 
-- **Game Setup**: Configure players, suspects, weapons, and rooms
-- **Room Access Control**: Directly specify which rooms you can access (no more roll-based logic!)
-- **Guess Recording**: Record guesses and their outcomes
-- **Knowledge Tracking**: Track what you know about each player's cards
-- **Solution Analysis**: See possible solutions and best next guesses
-- **Modern UI**: Beautiful, responsive interface with tabbed navigation
+### ✅ Implemented
+- **Game Setup**: Configure players, your hand, and game elements
+- **Knowledge Tracking**: Track which cards are in which players' hands
+- **Deduction Engine**: Advanced logic to deduce card locations based on game events
+- **Three-State Knowledge System**: Distinguish between "definitely has", "definitely doesn't have", and "unknown"
+- **Guess Response Tracking**: Record and analyze player responses to suggestions
+- **Solution Detection**: Automatically identify when cards must be in the solution
+- **Comprehensive Testing**: Full test coverage with TDD approach
 
-## Prerequisites
+### 🚧 In Progress / Planned
+- **Suggestion AI**: Intelligent suggestions for optimal gameplay
+- **Response Tracker UI**: Interface for recording player responses
+- **Solution Display**: Clear presentation of deduced solution
+- **Game State Persistence**: Save and load game progress
+- **Export/Import**: Share game states with other players
+- **Advanced Analytics**: Statistical analysis of deduction accuracy
 
-Before you begin, ensure you have the following installed:
+## 🛠️ Technology Stack
 
-- **Node.js** (v16 or higher)
-- **Rust** (latest stable version)
-- **Tauri CLI**
+- **Frontend**: React 18 + TypeScript
+- **Desktop Framework**: Tauri (Rust + Web Technologies)
+- **Build Tool**: Vite
+- **Testing**: Vitest + React Testing Library
+- **Styling**: CSS Modules
+- **Icons**: Lucide React
 
-### Installing Prerequisites
+## 📁 Project Structure
 
-1. **Node.js**: Download from [nodejs.org](https://nodejs.org/)
+```
+clue_solver/
+├── src/                    # React application source
+│   ├── components/         # React components
+│   │   ├── GameSetup.tsx   # Game initialization
+│   │   ├── HandInput.tsx   # Player hand selection
+│   │   ├── KnowledgeTable.tsx # Knowledge display
+│   │   ├── GameLogic.tsx   # Core deduction logic
+│   │   ├── SuggestionForm.tsx # Suggestion interface
+│   │   ├── ResponseTracker.tsx # Response recording
+│   │   └── ...            # Other components
+│   ├── App.tsx            # Main application component
+│   ├── main.tsx           # Application entry point
+│   └── index.css          # Global styles
+├── src-tauri/             # Tauri backend (Rust)
+│   ├── src/               # Rust source code
+│   ├── Cargo.toml         # Rust dependencies
+│   └── tauri.conf.json    # Tauri configuration
+├── package.json           # Node.js dependencies
+├── tsconfig.json          # TypeScript configuration
+├── vite.config.ts         # Vite configuration
+└── README.md              # This file
+```
 
-2. **Rust**: Install via [rustup.rs](https://rustup.rs/)
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- Rust (for Tauri)
+- Git
+
+### Installation
+
+1. **Clone the repository**
    ```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
-
-3. **Tauri CLI**: Install globally
-   ```bash
-   npm install -g @tauri-apps/cli
-   ```
-
-## Installation & Setup
-
-1. **Clone the repository** (if not already done)
-   ```bash
-   git clone <your-repo-url>
-   cd clue_solver/desktop-app
+   git clone https://github.com/RafaFischerReichert/clue_solver.git
+   cd clue_solver
    ```
 
 2. **Install dependencies**
@@ -46,130 +76,95 @@ Before you begin, ensure you have the following installed:
    npm install
    ```
 
-3. **Run the development server**
+3. **Run in development mode**
    ```bash
-   npm run tauri dev
+   npm run dev
    ```
 
-This will start both the React development server and the Tauri application.
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
 
-## Building for Production
-
-To create a distributable application:
+### Development Commands
 
 ```bash
-npm run tauri build
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run test         # Run tests
+npm run test:ui      # Run tests with UI
+npm run test:run     # Run tests once
+npm run tauri        # Tauri CLI commands
 ```
 
-This will create platform-specific installers in the `src-tauri/target/release/bundle/` directory.
+## 🧠 Core Logic
 
-## Usage
+### Knowledge Base System
+The app uses a sophisticated three-state knowledge system:
+- **`true`**: Player definitely has this card
+- **`false`**: Player definitely does not have this card  
+- **`null`**: Unknown whether player has this card
 
-### 1. Game Setup
-- Enter player names (one per line)
-- Configure suspects, weapons, and rooms (or use defaults)
-- Enter your player name and the cards in your hand
-- Click "Initialize Game State" to start
+### Deduction Engine
+The `GameLogic.tsx` module contains the core deduction algorithms:
+- **`analyzePlayerTuples`**: Analyzes guess responses to deduce card locations
+- **`updatedKnowledgeBaseFromTuples`**: Applies deductions to knowledge base
+- **`checkForSolution`**: Identifies cards that must be in the solution
 
-### 2. Room Access Setup
-- Select which rooms you currently have access to
-- This replaces the old roll-based system with direct input
-- Only accessible rooms will be available for guessing
+### Key Functions
+- `initializeKnowledgeBase()`: Sets up initial game state
+- `markCardInPlayerHand()`: Marks a card as definitely in a player's hand
+- `markCardNotInPlayerHand()`: Marks a card as definitely not in a player's hand
+- `recordGuessResponse()`: Records and analyzes player responses
+- `analyzePlayerTuples()`: Deduces new information from recorded responses
 
-### 3. Recording Guesses
-- Select the guesser, suspect, weapon, and room
-- Choose the order of players asked
-- Record who showed a card (if any) and which card
-- Click "Record Guess" to save
+## 🧪 Testing
 
-### 4. Analysis
-- **Knowledge Tab**: See what you know about each player's cards
-- **Solutions Tab**: View remaining possible solutions
-- **Suggestions Tab**: Get recommendations for your next guess
+The project follows Test-Driven Development (TDD) principles with comprehensive test coverage:
 
-## Key Improvements Over Streamlit Version
-
-### 1. Room Access Logic
-- **Before**: Roll-based system that was complex and error-prone
-- **After**: Direct selection of accessible rooms - much more intuitive!
-
-### 2. Desktop Experience
-- **Before**: Web-based Streamlit app
-- **After**: Native desktop application with better performance and offline capability
-
-### 3. Modern UI
-- **Before**: Basic Streamlit widgets
-- **After**: Modern React components with tabbed navigation and better UX
-
-## Architecture
-
-```
-desktop-app/
-├── src/                    # React frontend
-│   ├── components/         # React components
-│   │   ├── GameSetup.tsx   # Game setup interface
-│   │   └── GamePlay.tsx    # Main game interface
-│   ├── App.tsx            # Main app component
-│   └── main.tsx           # Entry point
-├── src-tauri/             # Rust backend
-│   ├── src/main.rs        # Main Rust code
-│   ├── Cargo.toml         # Rust dependencies
-│   └── tauri.conf.json    # Tauri configuration
-└── package.json           # Node.js dependencies
+```bash
+npm test              # Run all tests
+npm run test:ui       # Interactive test UI
+npm run test:run      # Run tests once
 ```
 
-## Development
+Tests cover:
+- ✅ Core logic functions
+- ✅ Component rendering and interactions
+- ✅ Edge cases and error handling
+- ✅ Three-state knowledge system
+- ✅ Deduction algorithms
 
-### Frontend (React)
-- Located in `src/`
-- Uses TypeScript for type safety
-- Styled with CSS modules
-- Uses Lucide React for icons
-
-### Backend (Rust/Tauri)
-- Located in `src-tauri/`
-- Handles file system operations
-- Provides native desktop capabilities
-
-### Adding New Features
-1. **Frontend**: Add React components in `src/components/`
-2. **Backend**: Add Rust functions in `src-tauri/src/main.rs`
-3. **Communication**: Use Tauri commands for frontend-backend communication
-
-## Troubleshooting
-
-### Common Issues
-
-1. **"Command not found: tauri"**
-   - Install Tauri CLI: `npm install -g @tauri-apps/cli`
-
-2. **Rust compilation errors**
-   - Update Rust: `rustup update`
-   - Check Rust version: `rustc --version`
-
-3. **Node.js version issues**
-   - Use Node.js v16 or higher
-   - Check version: `node --version`
-
-4. **Build failures**
-   - Clear cache: `npm run tauri clean`
-   - Reinstall dependencies: `rm -rf node_modules && npm install`
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+### Development Guidelines
+- Follow TDD: Write tests first, then implement
+- Use TypeScript for type safety
+- Follow React best practices
+- Maintain comprehensive test coverage
+- Document complex logic
 
-This project is licensed under the same terms as the main Cluedo Solver project.
+## 📄 License
 
-## Support
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-For issues and questions:
-1. Check the troubleshooting section above
-2. Review the main project documentation
-3. Open an issue on GitHub 
+## 👨‍💻 Author
+
+**RafaFischerReichert** - [GitHub Profile](https://github.com/RafaFischerReichert)
+
+## 🙏 Acknowledgments
+
+- Cluedo/Clue board game creators
+- Tauri team for the excellent desktop framework
+- React and TypeScript communities
+- All contributors and testers
+
+---
+
+**Happy deducing! 🕵️‍♂️**

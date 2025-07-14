@@ -31,11 +31,48 @@ export const initializeKnowledgeBase = (
 ): CardKnowledge[] => {
   // Cards in my hand should not be in the solution, and not in any other player's hand, and cards not in my hand should be marked as so.
   const knowledgeBase: CardKnowledge[] = [];
+
+  // Check that allCards has all three keys: suspects, weapons, and rooms
+  const requiredKeys = ["suspects", "weapons", "rooms"];
+  const missingKeys = requiredKeys.filter(
+    (key) => !(key in allCards) || !Array.isArray((allCards as any)[key])
+  );
+  if (missingKeys.length > 0) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `Warning: allCards is missing the following keys: ${missingKeys.join(", ")}. Knowledge base will not be created.`
+    );
+    return [];
+  }
+
   const allCardNames = [
     ...allCards.suspects,
     ...allCards.weapons,
     ...allCards.rooms,
   ];
+
+  yourHand.forEach((card) => {
+    if (
+      !allCards.suspects.includes(card) &&
+      !allCards.weapons.includes(card) &&
+      !allCards.rooms.includes(card)
+    ) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Warning: Card "${card}" in yourHand is not present in allCards. Knowledge base will not be created.`
+      );
+      return [];
+    }
+  });
+
+  if (!players || players.length === 0) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "Warning: No players provided. Knowledge base will not be created."
+    );
+    return [];
+  }
+
   allCardNames.forEach((cardName) => {
     const isInYourHand = yourHand.includes(cardName);
     const inPlayersHand: Record<string, boolean | null> = {};
@@ -64,7 +101,29 @@ export const markCardInPlayerHand = (
   cardName: string,
   playerName: string
 ): CardKnowledge[] => {
-  return knowledge.map(card => {
+  // Check if the cardName exists in the knowledge base
+  const cardExists = knowledge.some((card) => card.cardName === cardName);
+  if (!cardExists) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `Warning: Tried to mark card "${cardName}" in player "${playerName}"'s hand, but that card does not exist in the game.`
+    );
+    return knowledge;
+  }
+
+  // Check if the playerName exists in the knowledge base (i.e., inPlayersHand keys)
+  const playerExists = knowledge.some((card) =>
+    Object.prototype.hasOwnProperty.call(card.inPlayersHand, playerName)
+  );
+  if (!playerExists) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `Warning: Tried to mark card "${cardName}" in player "${playerName}"'s hand, but that player does not exist in the game.`
+    );
+    return knowledge;
+  }
+
+  return knowledge.map((card) => {
     if (card.cardName === cardName) {
       const updatedInPlayersHand = { ...card.inPlayersHand };
       // Mark the card as in this player's hand
@@ -75,12 +134,12 @@ export const markCardInPlayerHand = (
           updatedInPlayersHand[otherPlayer] = false;
         }
       });
-      
+
       return {
         ...card,
         inPlayersHand: updatedInPlayersHand,
         inSolution: false, // It can't be in the solution if it's in a player's hand
-        eliminatedFromSolution: true // It is eliminated from the solution
+        eliminatedFromSolution: true, // It is eliminated from the solution
       };
     }
     return card;
@@ -92,14 +151,36 @@ export const markCardNotInPlayerHand = (
   cardName: string,
   playerName: string
 ): CardKnowledge[] => {
-  return knowledge.map(card => {
+  // Check if the card exists in the knowledge base
+  const cardExists = knowledge.some((card) => card.cardName === cardName);
+  if (!cardExists) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `Warning: Tried to mark card "${cardName}" as not in player "${playerName}"'s hand, but that card does not exist in the game.`
+    );
+    return knowledge;
+  }
+
+  // Check if the playerName exists in the knowledge base (i.e., inPlayersHand keys)
+  const playerExists = knowledge.some((card) =>
+    Object.prototype.hasOwnProperty.call(card.inPlayersHand, playerName)
+  );
+  if (!playerExists) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `Warning: Tried to mark card "${cardName}" as not in player "${playerName}"'s hand, but that player does not exist in the game.`
+    );
+    return knowledge;
+  }
+
+  return knowledge.map((card) => {
     if (card.cardName === cardName) {
       return {
         ...card,
         inPlayersHand: {
           ...card.inPlayersHand,
-          [playerName]: false
-        }
+          [playerName]: false,
+        },
       };
     }
     return card;
@@ -137,6 +218,54 @@ export const recordGuessResponse = (
     timestamp: Date.now(),
   };
 
+  // Always get allPlayers for validation
+  const allPlayers =
+    knowledge.length > 0 ? Object.keys(knowledge[0].inPlayersHand) : [];
+
+  // Validate guessedBy
+  let invalid = false;
+  if (!allPlayers.includes(guessedBy)) {
+    console.warn(
+      `Warning: Tried to record a guess response for player "${guessedBy}" (guessedBy), but that player does not exist in the game.`
+    );
+    invalid = true;
+  }
+
+  // Validate askedPlayers
+  askedPlayers.forEach((player) => {
+    if (!allPlayers.includes(player)) {
+      console.warn(
+        `Warning: Tried to record a guess response for asked player "${player}", but that player does not exist in the game.`
+      );
+      invalid = true;
+    }
+  });
+
+  // Validate shownBy (if present)
+  if (shownBy && !allPlayers.includes(shownBy)) {
+    console.warn(
+      `Warning: Tried to record a guess response for player "${shownBy}", but that player does not exist in the game.`
+    );
+    invalid = true;
+  }
+
+  // Validate that the guessed cards are valid (exist in the knowledge base)
+  const allCardNames = knowledge.map((k) => k.cardName);
+  ["suspect", "weapon", "room"].forEach((field) => {
+    const card = guess[field as keyof typeof guess];
+    if (!allCardNames.includes(card)) {
+      console.warn(
+        `Warning: Tried to record a guess response with invalid card "${card}" for field "${field}".`
+      );
+      invalid = true;
+    }
+  });
+
+  if (invalid) {
+    // If any player is invalid, do not record or update knowledge
+    return { tuples, knowledge };
+  }
+
   if (shownBy) {
     const playerIndex = tuples.findIndex((t) => t.player === shownBy);
     if (playerIndex !== -1) {
@@ -160,26 +289,26 @@ export const recordGuessResponse = (
   }
   // After recording the tuple, analyze and update knowledge
   const analysis = analyzePlayerTuples(tuples, knowledge);
-  
+
   // Apply definite conclusions to knowledge base
   analysis.definitelyHas.forEach(({ playerName, cardName }) => {
     knowledge = markCardInPlayerHand(knowledge, cardName, playerName);
   });
-  
+
   analysis.definitelyDoesNotHave.forEach(({ playerName, cardName }) => {
     knowledge = markCardNotInPlayerHand(knowledge, cardName, playerName);
   });
-  
+
   return { tuples, knowledge };
 };
 
 export const analyzePlayerTuples = (
   tuples: PlayerCardTuples[],
   knowledge: CardKnowledge[] // Add knowledge parameter
-): { 
-  likelyHas: string[]; 
-  definitelyHas: { playerName: string; cardName: string }[]; 
-  definitelyDoesNotHave: { playerName: string; cardName: string }[] 
+): {
+  likelyHas: string[];
+  definitelyHas: { playerName: string; cardName: string }[];
+  definitelyDoesNotHave: { playerName: string; cardName: string }[];
 } => {
   const likelyHas: string[] = [];
   const definitelyHas: { playerName: string; cardName: string }[] = [];
@@ -203,27 +332,30 @@ export const analyzePlayerTuples = (
         if (tuple.shownBy === player.player) {
           // This player showed a card, so they have one of the three
           const threeCards = [tuple.suspect, tuple.weapon, tuple.room];
-          
+
           // Check if we know they don't have 2 of the 3
-          const cardsTheyDontHave = threeCards.filter(cardName => {
-            const card = knowledge.find(k => k.cardName === cardName);
+          const cardsTheyDontHave = threeCards.filter((cardName) => {
+            const card = knowledge.find((k) => k.cardName === cardName);
             return card && card.inPlayersHand[player.player] === false; // Only false means definitely don't have
           });
-          
+
           if (cardsTheyDontHave.length === 2) {
             // They must have the third card
-            const cardTheyMustHave = threeCards.find(cardName => 
-              !cardsTheyDontHave.includes(cardName)
+            const cardTheyMustHave = threeCards.find(
+              (cardName) => !cardsTheyDontHave.includes(cardName)
             );
             if (cardTheyMustHave) {
-              definitelyHas.push({ playerName: player.player, cardName: cardTheyMustHave });
+              definitelyHas.push({
+                playerName: player.player,
+                cardName: cardTheyMustHave,
+              });
             }
           } else {
             // Add to likely has only if we don't have definite information
-            threeCards.forEach(cardName => {
-              const card = knowledge.find(k => k.cardName === cardName);
+            threeCards.forEach((cardName) => {
+              const card = knowledge.find((k) => k.cardName === cardName);
               const playerHasCard = card?.inPlayersHand[player.player];
-              
+
               // Only add to likelyHas if we don't already know they definitely have or don't have it
               if (playerHasCard === null && !likelyHas.includes(cardName)) {
                 likelyHas.push(cardName);
@@ -247,20 +379,27 @@ export const updatedKnowledgeBaseFromTuples = (
 
   // Apply definite has
   analysis.definitelyHas.forEach(({ playerName, cardName }) => {
-    updatedKnowledge = markCardInPlayerHand(updatedKnowledge, cardName, playerName);
+    updatedKnowledge = markCardInPlayerHand(
+      updatedKnowledge,
+      cardName,
+      playerName
+    );
   });
 
   // Apply definite does not have
   analysis.definitelyDoesNotHave.forEach(({ playerName, cardName }) => {
-    updatedKnowledge = markCardNotInPlayerHand(updatedKnowledge, cardName, playerName);
+    updatedKnowledge = markCardNotInPlayerHand(
+      updatedKnowledge,
+      cardName,
+      playerName
+    );
   });
 
   return updatedKnowledge;
 };
 
 export const checkForSolution = (
-  knowledge: CardKnowledge[],
-  players: string[]
+  knowledge: CardKnowledge[]
 ): CardKnowledge[] => {
   knowledge.forEach((card) => {
     // If card is not in your hand and not in any player's hand, it's in the solution

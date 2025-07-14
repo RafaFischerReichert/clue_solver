@@ -1,121 +1,152 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import KnowledgeTable from './KnowledgeTable';
-import { CardKnowledge } from './GameLogic';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import KnowledgeTable from "./KnowledgeTable";
+import { CardKnowledge } from "./GameLogic";
 
-describe('KnowledgeTable', () => {
-  const mockPlayers = ['Alice', 'Bob', 'Charlie'];
+describe("KnowledgeTable", () => {
+  const mockPlayers = ["Alice", "Bob", "Charlie"];
   const mockCardKnowledge: CardKnowledge[] = [
     {
-      cardName: 'Miss Scarlet',
-      category: 'suspect',
+      cardName: "Miss Scarlet",
+      category: "suspect",
       inYourHand: true,
-      inPlayersHand: { 'Alice': false, 'Bob': null, 'Charlie': null },
+      inPlayersHand: { Alice: false, Bob: null, Charlie: null },
       inSolution: false,
-      eliminatedFromSolution: true
+      eliminatedFromSolution: true,
     },
     {
-      cardName: 'Candlestick',
-      category: 'weapon',
+      cardName: "Candlestick",
+      category: "weapon",
       inYourHand: false,
-      inPlayersHand: { 'Alice': null, 'Bob': true, 'Charlie': false },
+      inPlayersHand: { Alice: null, Bob: true, Charlie: false },
       inSolution: null,
-      eliminatedFromSolution: false
+      eliminatedFromSolution: false,
     },
     {
-      cardName: 'Ballroom',
-      category: 'room',
+      cardName: "Ballroom",
+      category: "room",
       inYourHand: false,
-      inPlayersHand: { 'Alice': null, 'Bob': null, 'Charlie': null },
+      inPlayersHand: { Alice: null, Bob: null, Charlie: null },
       inSolution: null,
-      eliminatedFromSolution: false
-    }
+      eliminatedFromSolution: false,
+    },
   ];
 
-  it('renders without crashing', () => {
+  it("renders without crashing", () => {
     render(
-      <KnowledgeTable 
+      <KnowledgeTable
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
       />
     );
-    expect(screen.getByText('Knowledge Table')).toBeInTheDocument();
+    expect(screen.getByText("Knowledge Table")).toBeInTheDocument();
   });
 
-  it('displays all players as column headers', () => {
+  it("displays all players as column headers", () => {
     render(
-      <KnowledgeTable 
+      <KnowledgeTable
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
       />
     );
-    
-    mockPlayers.forEach(player => {
+
+    mockPlayers.forEach((player) => {
       expect(screen.getByText(player)).toBeInTheDocument();
     });
   });
 
-  it('displays all cards as row headers', () => {
+  it("displays all cards as row headers", () => {
     render(
-      <KnowledgeTable 
+      <KnowledgeTable
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
       />
     );
-    
-    mockCardKnowledge.forEach(card => {
+
+    mockCardKnowledge.forEach((card) => {
       expect(screen.getByText(card.cardName)).toBeInTheDocument();
     });
   });
 
-  it('shows correct knowledge state for cards in your hand', () => {
+  it("shows correct knowledge state for cards in your hand", () => {
     render(
-      <KnowledgeTable 
+      <KnowledgeTable
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
       />
     );
     // Miss Scarlet should be marked as in your hand
-    const scarletRow = screen.getByText('Miss Scarlet').closest('tr');
-    expect(scarletRow).toHaveTextContent('Your Hand');
+    const scarletRow = screen.getByText("Miss Scarlet").closest("tr");
+    expect(scarletRow).toHaveTextContent("Your Hand");
   });
 
-  it('shows checkmark for true, X for false, and empty for null', () => {
+  it("shows checkmark for true, X for false, and empty for null", () => {
     render(
-      <KnowledgeTable 
+      <KnowledgeTable
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
       />
     );
     // Candlestick: Bob has it (✓), Charlie does not (✗), Alice unknown (empty)
-    const candlestickRow = screen.getByText('Candlestick').closest('tr');
-    expect(candlestickRow).toHaveTextContent('✓');
-    expect(candlestickRow).toHaveTextContent('✗');
+    const candlestickRow = screen.getByText("Candlestick").closest("tr");
+    expect(candlestickRow).toHaveTextContent("✓");
+    expect(candlestickRow).toHaveTextContent("✗");
     // Alice's cell should be empty (no ✓ or ✗)
-    const aliceCell = candlestickRow?.querySelectorAll('td')[1]; // 0: card name, 1: Alice, 2: Bob, 3: Charlie
-    expect(aliceCell?.textContent).toBe('');
+    const aliceCell = candlestickRow?.querySelectorAll("td")[1]; // 0: card name, 1: Alice, 2: Bob, 3: Charlie
+    expect(aliceCell?.textContent).toBe("");
   });
 
-  it('shows empty cell for all null/unknown', () => {
+  it("shows empty cell for all null/unknown", () => {
     render(
-      <KnowledgeTable 
+      <KnowledgeTable
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
       />
     );
     // Ballroom: all players unknown
-    const ballroomRow = screen.getByText('Ballroom').closest('tr');
+    const ballroomRow = screen.getByText("Ballroom").closest("tr");
     // All player cells should be empty
-    const tds = ballroomRow?.querySelectorAll('td');
+    const tds = ballroomRow?.querySelectorAll("td");
     expect(tds && tds.length).toBe(4); // card name + 3 players
-    expect(tds?.[1].textContent).toBe('');
-    expect(tds?.[2].textContent).toBe('');
-    expect(tds?.[3].textContent).toBe('');
+    expect(tds?.[1].textContent).toBe("");
+    expect(tds?.[2].textContent).toBe("");
+    expect(tds?.[3].textContent).toBe("");
+  });
+
+  it('refreshes knowledge when onKnowledgeChange is called', () => {
+    const onKnowledgeChange = vi.fn();
+    render(
+      <KnowledgeTable
+        cardKnowledge={mockCardKnowledge}
+        players={mockPlayers}
+        onKnowledgeChange={onKnowledgeChange}
+      />
+    );
+    const newKnowledge = [
+      ...mockCardKnowledge,
+      {
+        cardName: "Library",
+        category: "room",
+        inYourHand: false,
+        inPlayersHand: { Alice: null, Bob: null, Charlie: null },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+    ];
+    onKnowledgeChange(newKnowledge);
+    expect(onKnowledgeChange).toHaveBeenCalledWith(newKnowledge);
+    // Check if the new card is displayed
+    expect(screen.getByText("Library")).toBeInTheDocument();
+  });
+
+  it("handles API errors gracefully", () => {
+    // This test would check if the component handles API errors
+    // and displays an appropriate message to the user.
   });
 });

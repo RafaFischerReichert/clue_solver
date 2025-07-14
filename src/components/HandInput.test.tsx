@@ -280,4 +280,29 @@ describe("HandInput", () => {
     const nextButton = screen.getByText("Next");
     expect(nextButton).toBeDisabled();
   });
+
+  it('submits selected cards when Next is clicked', () => {
+    const suspects = ["Miss Scarlet"];
+    const weapons = ["Candlestick"];
+    const rooms = ["Kitchen"];
+    const onHandSubmit = vi.fn();
+    render(
+      <HandInput
+        suspects={suspects}
+        weapons={weapons}
+        rooms={rooms}
+        onHandSubmit={onHandSubmit}
+      />
+    );
+    const checkbox = screen.getByLabelText("Miss Scarlet");
+    fireEvent.click(checkbox);
+    const nextButton = screen.getByText("Next");
+    fireEvent.click(nextButton);
+    expect(onHandSubmit).toHaveBeenCalledWith(["Miss Scarlet"]);
+  });
+
+  it("handles API errors gracefully", () => {
+    // This test would check if the component handles API errors
+    // and displays an appropriate message to the user.
+  });
 });

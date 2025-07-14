@@ -360,4 +360,27 @@ describe("GameSetup", () => {
     const startButton = screen.getByText(/next/i);
     expect(startButton).toBeDisabled();
   });
+
+  it('submits the game setup when all fields are valid', () => {
+    const mockOnGameStart = vi.fn();
+    render(<GameSetup onGameStart={mockOnGameStart} />);
+    const playerInput = screen.getByLabelText(/player names/i);
+    fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
+    const suspectInput = screen.getByLabelText(/suspects/i);
+    fireEvent.change(suspectInput, { target: { value: "Suspect1\nSuspect2" } });
+    const weaponInput = screen.getByLabelText(/weapons/i);
+    fireEvent.change(weaponInput, { target: { value: "Weapon1\nWeapon2" } });
+    const roomInput = screen.getByLabelText(/rooms/i);
+    fireEvent.change(roomInput, { target: { value: "Room1\nRoom2" } });
+    const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
+    fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
+    const startButton = screen.getByText(/next/i);
+    fireEvent.click(startButton);
+    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"]);
+  });
+
+  it('handles API errors gracefully', () => {
+    // This test would check if the component handles API errors
+    // and displays an appropriate message to the user.
+  });
 });

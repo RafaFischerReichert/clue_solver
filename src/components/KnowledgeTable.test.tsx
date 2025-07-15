@@ -85,7 +85,7 @@ describe("KnowledgeTable", () => {
     );
     // Miss Scarlet should be marked as in your hand
     const scarletRow = screen.getByText("Miss Scarlet").closest("tr");
-    expect(scarletRow).toHaveTextContent("Your Hand");
+    expect(scarletRow).toHaveTextContent("Hand");
   });
 
   it("shows checkmark when player has the card", () => {
@@ -389,10 +389,10 @@ describe("KnowledgeTable", () => {
 
     // Colonel Mustard should show "Your Hand" for all players
     const mustardRow = screen.getByText("Colonel Mustard").closest("tr");
-    expect(mustardRow).toHaveTextContent("Your Hand");
+    expect(mustardRow).toHaveTextContent("Hand");
     
     // Should have "Your Hand" text 3 times (once for each player)
-    const yourHandTexts = mustardRow?.textContent?.match(/Your Hand/g);
+    const yourHandTexts = mustardRow?.textContent?.match(/Hand/g);
     expect(yourHandTexts).toHaveLength(3);
 
     // Rope should still follow constraint logic

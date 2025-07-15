@@ -345,7 +345,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
           Submit Guess
         </button>
       </form>
-      <button type="button" onClick={props.onAbort} style={{ marginTop: 12 }}>
+      <button type="button" onClick={props.onAbort} className="backtrack-button" style={{ marginTop: 12 }}>
         Abort
       </button>
     </div>

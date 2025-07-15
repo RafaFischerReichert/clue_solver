@@ -33,7 +33,7 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
   return (
     <div>
       <h2>Knowledge Table</h2>
-      <table>
+      <table className="knowledge-table">
         <thead>
           <tr>
             <th>Cards</th>
@@ -47,9 +47,9 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
             <tr key={card.cardName}>
               <td>{card.cardName}</td>
               {players.map((player) => {
-                // If card is in your hand, show "Your Hand"
+                // If card is in your hand, show "Hand"
                 if (card.inYourHand) {
-                  return <td key={player}>Your Hand</td>;
+                  return <td key={player}>Hand</td>;
                 }
                 // If card is in this player's hand, show checkmark
                 if (card.inPlayersHand[player]) {

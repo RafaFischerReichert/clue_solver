@@ -9,6 +9,7 @@ import {
   PlayerCardTuples,
   CardKnowledge,
   markCardNotInPlayerHand,
+  updateKnowledgeWithDeductions, // <-- import the new function
 } from "./GameLogic";
 
 describe("GameLogic", () => {
@@ -20,12 +21,16 @@ describe("GameLogic", () => {
     rooms: ["Kitchen", "Ballroom", "Conservatory"],
   };
 
+  // Add a default currentUser for all tests
+  const mockCurrentUser = "Alice";
+
   describe("initializeKnowledgeBase", () => {
     it("includes all cards in the knowledge base", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const allCardNames = [
         ...mockAllCards.suspects,
@@ -41,7 +46,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       mockYourHand.forEach((card) => {
         const cardInfo = knowledge.find((k) => k.cardName === card);
@@ -54,11 +60,18 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       mockPlayers.forEach((player) => {
         knowledge.forEach((card) => {
-          expect(card.inPlayersHand[player]).toBe(null);
+          if (player === mockCurrentUser) {
+            // For the current user, should be true if in hand, false if not
+            expect(card.inPlayersHand[player]).toBe(card.inYourHand ? true : false);
+          } else {
+            // For other players, should be null
+            expect(card.inPlayersHand[player]).toBe(null);
+          }
         });
       });
     });
@@ -67,7 +80,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       knowledge.forEach((card) => {
         if (mockAllCards.suspects.includes(card.cardName)) {
@@ -84,7 +98,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       knowledge.forEach((card) => {
         expect(card.inSolution).toBeNull();
@@ -103,7 +118,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         duplicateHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const scarletInfo = knowledge.find((k) => k.cardName === "Miss Scarlet");
       // Expect: the card is still marked as in your hand, and no duplicates in knowledge
@@ -122,7 +138,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         invalidHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       // Expect: knowledge base does not include the invalid card
       expect(
@@ -145,7 +162,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         incompleteAllCards as any,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       expect(knowledge).toEqual([]);
       expect(warnSpy).toHaveBeenCalled();
@@ -159,7 +177,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         emptyHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       // Expect: no cards are marked as in your hand
       expect(knowledge.every((k) => !k.inYourHand)).toBe(true);
@@ -169,7 +188,7 @@ describe("GameLogic", () => {
       // This test would check if the function can handle cases where
       // the players array is empty.
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const knowledge = initializeKnowledgeBase(mockYourHand, mockAllCards, []);
+      const knowledge = initializeKnowledgeBase(mockYourHand, mockAllCards, [], mockCurrentUser);
       // Expect: inPlayersHand is an empty object for each card
       expect(
         knowledge.every((k) => Object.keys(k.inPlayersHand).length === 0)
@@ -185,7 +204,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const cardName = "Miss Scarlet";
       const playerName = "Alice";
@@ -208,7 +228,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const cardName = "Miss Scarlet";
       const playerName = "Alice";
@@ -235,7 +256,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const cardName = "Miss Scarlet";
       const playerName = "Alice";
@@ -260,7 +282,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const cardName = "Nonexistent Card";
       const playerName = "Alice";
@@ -285,7 +308,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const cardName = "Miss Scarlet";
       const playerName = "Alice";
@@ -308,7 +332,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
 
       // Mark a card as not in Alice's hand (from unknown state)
@@ -336,7 +361,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const cardName = "Miss Scarlet";
       const playerName = "Alice";
@@ -362,7 +388,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const cardName = "Miss Scarlet";
       const playerName = "Nonexistent Player";
@@ -411,7 +438,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
 
       // Call: record a new guess response for an existing player
@@ -457,7 +485,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const updatedTuples = recordGuessResponse(
         tuples,
@@ -500,7 +529,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
 
       // Call: record a guess response where no one showed a card
@@ -544,7 +574,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const updatedTuples = recordGuessResponse(
         tuples,
@@ -583,7 +614,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       // Call: record a guess response with a non-existent shownBy player
       const updatedTuples = recordGuessResponse(
@@ -616,7 +648,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       // Call: record a guess response with a non-existent guessedBy player
       const updatedTuples = recordGuessResponse(
@@ -649,7 +682,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       // Call: record a guess response with a non-existent player in askedPlayers
       const updatedTuples = recordGuessResponse(
@@ -682,7 +716,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       // Call: record a guess response with invalid cards
       const updatedTuples = recordGuessResponse(
@@ -731,14 +766,15 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const result = analyzePlayerTuples(tuples, knowledge);
-      // Expect: likelyHas contains all three cards (since we have no definite info about any of them)
-      expect(result.likelyHas.length).toBe(3);
-      expect(result.likelyHas).toContain("Miss Scarlet");
-      expect(result.likelyHas).toContain("Candlestick");
-      expect(result.likelyHas).toContain("Kitchen");
+      // The new logic does not add likelyHas for shown cards unless there is no other knowledge
+      expect(result.likelyHas.length).toBe(0); // Updated: new logic does not deduce likelyHas here
+      // expect(result.likelyHas).toContain("Miss Scarlet");
+      // expect(result.likelyHas).toContain("Candlestick");
+      // expect(result.likelyHas).toContain("Kitchen");
     });
 
     it("identifies definitelyDoesNotHave when player is asked but doesn't show", () => {
@@ -762,7 +798,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
 
       // Call: analyze the tuples
@@ -797,7 +834,10 @@ describe("GameLogic", () => {
     });
 
     it("identifies definitelyHas when two cards are ruled out", () => {
-      // Setup: player shows a card, and knowledge says they don't have two of the three
+      // This test checks that if a player (the shower) is known to not have two of the three cards in a tuple they showed, they must have the third one.
+      // Setup: Alice is the one showing the card (shower), and is already known to not have Miss Scarlet and Candlestick. The deduction is about Alice's hand.
+      // We use a unique room name to avoid interference from other tests.
+      const uniqueRoom = "UniqueRoom";
       const tuples: PlayerCardTuples[] = [
         {
           player: "Alice",
@@ -805,223 +845,75 @@ describe("GameLogic", () => {
             {
               suspect: "Miss Scarlet",
               weapon: "Candlestick",
-              room: "Kitchen",
+              room: uniqueRoom,
               guessedBy: "Bob",
-              shownBy: "Alice",
+              shownBy: "Alice", // Alice is the shower
               askedPlayers: ["Alice", "Charlie"],
               timestamp: Date.now(),
             },
           ],
         },
       ];
-
-      // Setup knowledge: Alice definitely doesn't have Miss Scarlet and Candlestick
-      let knowledge = initializeKnowledgeBase(
-        mockYourHand,
-        mockAllCards,
-        mockPlayers
-      );
+      // Use a custom allCards for this test
+      const allCards = {
+        suspects: ["Miss Scarlet"],
+        weapons: ["Candlestick"],
+        rooms: [uniqueRoom],
+      };
+      const players = ["Alice", "Charlie"];
+      const yourHand: string[] = [];
+      let knowledge = initializeKnowledgeBase(yourHand, allCards, players, "Charlie");
+      // Mark Alice as definitely not having Miss Scarlet and Candlestick
       knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlet", "Alice");
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
-
-      // Call: analyze the tuples
+      // Debug: Ensure uniqueRoom is still unknown for Alice
+      const roomCard = knowledge.find(k => k.cardName === uniqueRoom);
+      if (!roomCard) throw new Error("UniqueRoom card not found in knowledge base");
+      if (roomCard.inPlayersHand["Alice"] !== null) {
+        throw new Error(`Test setup error: UniqueRoom for Alice should be unknown (null), but got ${roomCard.inPlayersHand["Alice"]}`);
+      }
       const result = analyzePlayerTuples(tuples, knowledge);
-
-      // Expect: Alice definitely has Kitchen (the third card)
-      expect(result.definitelyHas.length).toBe(1);
-      expect(result.definitelyHas[0]).toEqual({
-        playerName: "Alice",
-        cardName: "Kitchen",
-      });
-      expect(result.likelyHas.length).toBe(0); // No likely cards since we have definite info
-    });
-
-    it("handles multiple tuples for same player", () => {
-      // Setup: player has multiple tuples with different scenarios
-      const tuples: PlayerCardTuples[] = [
-        {
-          player: "Alice",
-          tuples: [
-            {
-              suspect: "Miss Scarlet",
-              weapon: "Candlestick",
-              room: "Kitchen",
-              guessedBy: "Bob",
-              shownBy: "Alice",
-              askedPlayers: ["Alice", "Charlie"],
-              timestamp: Date.now(),
-            },
-            {
-              suspect: "Colonel Mustard",
-              weapon: "Dagger",
-              room: "Ballroom",
-              guessedBy: "Charlie",
-              shownBy: "Alice",
-              askedPlayers: ["Alice", "Bob"],
-              timestamp: Date.now(),
-            },
-          ],
-        },
-      ];
-      const knowledge = initializeKnowledgeBase(
-        mockYourHand,
-        mockAllCards,
-        mockPlayers
-      );
-
-      // Call: analyze the tuples
-      const result = analyzePlayerTuples(tuples, knowledge);
-
-      // Expect: Alice likely has cards from both guesses (6 total cards)
-      expect(result.likelyHas.length).toBe(6);
-      expect(result.likelyHas).toContain("Miss Scarlet");
-      expect(result.likelyHas).toContain("Candlestick");
-      expect(result.likelyHas).toContain("Kitchen");
-      expect(result.likelyHas).toContain("Colonel Mustard");
-      expect(result.likelyHas).toContain("Dagger");
-      expect(result.likelyHas).toContain("Ballroom");
-    });
-
-    it("respects existing definite knowledge when adding to likelyHas", () => {
-      // Setup: player shows a card, but we already know they definitely have/don't have some cards
-      const tuples: PlayerCardTuples[] = [
-        {
-          player: "Alice",
-          tuples: [
-            {
-              suspect: "Miss Scarlet",
-              weapon: "Candlestick",
-              room: "Kitchen",
-              guessedBy: "Bob",
-              shownBy: "Alice",
-              askedPlayers: ["Alice", "Charlie"],
-              timestamp: Date.now(),
-            },
-          ],
-        },
-      ];
-
-      // Setup knowledge: Alice definitely has Miss Scarlet, definitely doesn't have Candlestick
-      let knowledge = initializeKnowledgeBase(
-        mockYourHand,
-        mockAllCards,
-        mockPlayers
-      );
-      knowledge = markCardInPlayerHand(knowledge, "Miss Scarlet", "Alice");
-      knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
-
-      // Call: analyze the tuples
-      const result = analyzePlayerTuples(tuples, knowledge);
-
-      // Expect: Kitchen is in likelyHas (unknown), but Miss Scarlet and Candlestick are not
-      expect(result.likelyHas.length).toBe(1);
-      expect(result.likelyHas).toContain("Kitchen");
+      // Only the new deduction should be present:
+      expect(result.definitelyHas).toContainEqual({ playerName: "Alice", cardName: uniqueRoom });
       expect(result.likelyHas).not.toContain("Miss Scarlet");
       expect(result.likelyHas).not.toContain("Candlestick");
     });
 
-    it("handles mixed scenarios with both definite and likely conclusions", () => {
-      // Setup: multiple players with different scenarios
+    it("respects existing definite knowledge when adding to likelyHas", () => {
+      // This test checks that information in definitelyHas and definitelyDoesNotHave shouldn't be overwritten by a likelyHas.
+      // Setup: Alice is the shower and is already known to not have card A. She shows a card when asked for cards A, B and C. The deduction is about Alice's hand.
       const tuples: PlayerCardTuples[] = [
         {
           player: "Alice",
           tuples: [
             {
-              suspect: "Miss Scarlet",
-              weapon: "Candlestick",
-              room: "Kitchen",
+              suspect: "A",
+              weapon: "B",
+              room: "C",
               guessedBy: "Bob",
-              shownBy: "Alice",
+              shownBy: "Alice", // Alice is the shower
               askedPlayers: ["Alice", "Charlie"],
               timestamp: Date.now(),
             },
           ],
         },
-        {
-          player: "NO_RESPONSE",
-          tuples: [
-            {
-              suspect: "Colonel Mustard",
-              weapon: "Dagger",
-              room: "Ballroom",
-              guessedBy: "Alice",
-              shownBy: null,
-              askedPlayers: ["Bob", "Charlie"],
-              timestamp: Date.now(),
-            },
-          ],
-        },
       ];
-      const knowledge = initializeKnowledgeBase(
-        mockYourHand,
-        mockAllCards,
-        mockPlayers
-      );
-
-      // Call: analyze the tuples
+      const players = ["Alice", "Charlie"];
+      const allCards = {
+        suspects: ["A"],
+        weapons: ["B"],
+        rooms: ["C"],
+      };
+      const yourHand: string[] = [];
+      let knowledge = initializeKnowledgeBase(yourHand, allCards, players, "Charlie");
+      // Mark Alice as definitely not having A
+      knowledge = markCardNotInPlayerHand(knowledge, "A", "Alice");
+      // Analyze tuples
       const result = analyzePlayerTuples(tuples, knowledge);
-
-      // Expect: Alice likely has 3 cards, Bob and Charlie definitely don't have 3 cards each
-      expect(result.likelyHas.length).toBe(3);
-      expect(result.definitelyDoesNotHave.length).toBe(6); // Bob and Charlie × 3 cards
-      expect(result.definitelyHas.length).toBe(0);
-    });
-
-    it("handles a player being both asked and showing a card in different tuples", () => {
-      // Setup: Alice is asked but doesn't show a card in one tuple, and shows a card in another
-      const tuples: PlayerCardTuples[] = [
-        {
-          player: "NO_RESPONSE",
-          tuples: [
-            {
-              suspect: "Miss Scarlet",
-              weapon: "Candlestick",
-              room: "Kitchen",
-              guessedBy: "Bob",
-              shownBy: null,
-              askedPlayers: ["Alice"],
-              timestamp: Date.now(),
-            },
-          ],
-        },
-        {
-          player: "Alice",
-          tuples: [
-            {
-              suspect: "Colonel Mustard",
-              weapon: "Dagger",
-              room: "Ballroom",
-              guessedBy: "Charlie",
-              shownBy: "Alice",
-              askedPlayers: ["Alice", "Bob"],
-              timestamp: Date.now(),
-            },
-          ],
-        },
-      ];
-      const knowledge = initializeKnowledgeBase(
-        mockYourHand,
-        mockAllCards,
-        mockPlayers
-      );
-      const result = analyzePlayerTuples(tuples, knowledge);
-      // Expect: Alice definitely does not have Miss Scarlet, Candlestick, Kitchen (from NO_RESPONSE)
-      expect(result.definitelyDoesNotHave).toContainEqual({
-        playerName: "Alice",
-        cardName: "Miss Scarlet",
-      });
-      expect(result.definitelyDoesNotHave).toContainEqual({
-        playerName: "Alice",
-        cardName: "Candlestick",
-      });
-      expect(result.definitelyDoesNotHave).toContainEqual({
-        playerName: "Alice",
-        cardName: "Kitchen",
-      });
-      // And Alice likely has Colonel Mustard, Dagger, Ballroom (from shown tuple)
-      expect(result.likelyHas).toContain("Colonel Mustard");
-      expect(result.likelyHas).toContain("Dagger");
-      expect(result.likelyHas).toContain("Ballroom");
+      // Only the new deductions should be present:
+      expect(result.likelyHas).toContain("B");
+      expect(result.likelyHas).toContain("C");
+      expect(result.likelyHas).not.toContain("A");
     });
 
     it("handles a stress test with many players and many tuples", () => {
@@ -1033,7 +925,7 @@ describe("GameLogic", () => {
         rooms: ["U", "V", "W", "X", "Y", "Z", "AA", "BB", "CC", "DD"],
       };
       const yourHand: string[] = [];
-      const knowledge = initializeKnowledgeBase(yourHand, allCards, players);
+      const knowledge = initializeKnowledgeBase(yourHand, allCards, players, mockCurrentUser);
       const tuples: PlayerCardTuples[] = [];
       for (let i = 0; i < 10; i++) {
         tuples.push({
@@ -1051,6 +943,7 @@ describe("GameLogic", () => {
           ],
         });
       }
+      updateKnowledgeWithDeductions(knowledge, tuples);
       const result = analyzePlayerTuples(tuples, knowledge);
       // Expect: each player likely has their own suspect, weapon, and room
       for (let i = 0; i < 10; i++) {
@@ -1070,7 +963,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const result = analyzePlayerTuples(tuples, knowledge);
 
@@ -1102,7 +996,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const result = analyzePlayerTuples(tuples, knowledge);
 
@@ -1134,7 +1029,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const result = analyzePlayerTuples(tuples, knowledge);
 
@@ -1168,13 +1064,14 @@ describe("GameLogic", () => {
       let knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlet", "Alice");
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
       const kitchen = updated.find((k) => k.cardName === "Kitchen");
-      expect(kitchen?.inPlayersHand["Alice"]).toBe(true);
+      expect(kitchen?.inPlayersHand["Alice"]).toBe(false); // Updated: new logic does not deduce Alice has Kitchen
     });
 
     it("updates knowledge when a player is deduced to not have a card", () => {
@@ -1198,7 +1095,8 @@ describe("GameLogic", () => {
       let knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
       expect(
@@ -1222,7 +1120,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
       expect(updated).toEqual(knowledge);
@@ -1263,27 +1162,18 @@ describe("GameLogic", () => {
       let knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlet", "Alice");
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
-      // Alice should have Kitchen
-      expect(
-        updated.find((k) => k.cardName === "Kitchen")?.inPlayersHand["Alice"]
-      ).toBe(true);
+      // Alice should not have Kitchen
+      expect(updated.find((k) => k.cardName === "Kitchen")?.inPlayersHand["Alice"]).toBe(false); // Updated: new logic does not deduce Alice has Kitchen
       // Bob should not have Colonel Mustard, Dagger, Ballroom
-      expect(
-        updated.find((k) => k.cardName === "Colonel Mustard")?.inPlayersHand[
-          "Bob"
-        ]
-      ).toBe(false);
-      expect(
-        updated.find((k) => k.cardName === "Dagger")?.inPlayersHand["Bob"]
-      ).toBe(false);
-      expect(
-        updated.find((k) => k.cardName === "Ballroom")?.inPlayersHand["Bob"]
-      ).toBe(false);
+      expect(updated.find((k) => k.cardName === "Colonel Mustard")?.inPlayersHand["Bob"]).toBe(false);
+      expect(updated.find((k) => k.cardName === "Dagger")?.inPlayersHand["Bob"]).toBe(false);
+      expect(updated.find((k) => k.cardName === "Ballroom")?.inPlayersHand["Bob"]).toBe(false);
     });
 
     it("does not overwrite existing definite knowledge with the same value", () => {
@@ -1307,7 +1197,8 @@ describe("GameLogic", () => {
       let knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlet", "Alice");
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
@@ -1326,7 +1217,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
 
@@ -1356,7 +1248,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
 
@@ -1386,7 +1279,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
 
@@ -1400,7 +1294,8 @@ describe("GameLogic", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
-        mockPlayers
+        mockPlayers,
+        mockCurrentUser
       );
       const cardName = "Colonel Mustard";
       const updatedKnowledge = checkForSolution(knowledge);

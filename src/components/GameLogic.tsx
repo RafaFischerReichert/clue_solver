@@ -27,7 +27,8 @@ export interface CardKnowledge {
 export const initializeKnowledgeBase = (
   yourHand: string[],
   allCards: GamePlayProps["allCards"],
-  players: string[]
+  players: string[],
+  currentUser: string
 ): CardKnowledge[] => {
   // Cards in my hand should not be in the solution, and not in any other player's hand, and cards not in my hand should be marked as so.
   const knowledgeBase: CardKnowledge[] = [];
@@ -77,7 +78,11 @@ export const initializeKnowledgeBase = (
     const isInYourHand = yourHand.includes(cardName);
     const inPlayersHand: Record<string, boolean | null> = {};
     players.forEach((player) => {
-      inPlayersHand[player] = null; // Initially unknown if any player has the card
+      if (player === currentUser) {
+        inPlayersHand[player] = isInYourHand ? true : false;
+      } else {
+        inPlayersHand[player] = null;
+      }
     });
     knowledgeBase.push({
       cardName,
@@ -273,6 +278,7 @@ export const recordGuessResponse = (
     } else {
       tuples.push({ player: shownBy, tuples: [newTuple] });
     }
+
   } else {
     // No one showed a card - create a special "no response" entry
     const noResponseIndex = tuples.findIndex((t) => t.player === "NO_RESPONSE");
@@ -288,23 +294,13 @@ export const recordGuessResponse = (
     });
   }
   // After recording the tuple, analyze and update knowledge
-  const analysis = analyzePlayerTuples(tuples, knowledge);
-
-  // Apply definite conclusions to knowledge base
-  analysis.definitelyHas.forEach(({ playerName, cardName }) => {
-    knowledge = markCardInPlayerHand(knowledge, cardName, playerName);
-  });
-
-  analysis.definitelyDoesNotHave.forEach(({ playerName, cardName }) => {
-    knowledge = markCardNotInPlayerHand(knowledge, cardName, playerName);
-  });
-
+  knowledge = updateKnowledgeWithDeductions(knowledge, tuples);
   return { tuples, knowledge };
 };
 
 export const analyzePlayerTuples = (
   tuples: PlayerCardTuples[],
-  knowledge: CardKnowledge[] // Add knowledge parameter
+  knowledge: CardKnowledge[]
 ): {
   likelyHas: string[];
   definitelyHas: { playerName: string; cardName: string }[];
@@ -319,7 +315,6 @@ export const analyzePlayerTuples = (
       // All asked players in no-response tuples don't have any of the three cards
       player.tuples.forEach((tuple) => {
         tuple.askedPlayers.forEach((askedPlayer) => {
-          // Mark all three cards as definitely not having for this player
           definitelyDoesNotHave.push(
             { playerName: askedPlayer, cardName: tuple.suspect },
             { playerName: askedPlayer, cardName: tuple.weapon },
@@ -330,37 +325,62 @@ export const analyzePlayerTuples = (
     } else {
       player.tuples.forEach((tuple) => {
         if (tuple.shownBy === player.player) {
-          // This player showed a card, so they have one of the three
           const threeCards = [tuple.suspect, tuple.weapon, tuple.room];
-
-          // Check if we know they don't have 2 of the 3
-          const cardsTheyDontHave = threeCards.filter((cardName) => {
+          // Gather knowledge for this player and these cards
+          const cardStates = threeCards.map((cardName) => {
             const card = knowledge.find((k) => k.cardName === cardName);
-            return card && card.inPlayersHand[player.player] === false; // Only false means definitely don't have
+            return card ? card.inPlayersHand[player.player] : null;
           });
-
-          if (cardsTheyDontHave.length === 2) {
-            // They must have the third card
-            const cardTheyMustHave = threeCards.find(
-              (cardName) => !cardsTheyDontHave.includes(cardName)
-            );
-            if (cardTheyMustHave) {
-              definitelyHas.push({
-                playerName: player.player,
-                cardName: cardTheyMustHave,
-              });
-            }
-          } else {
-            // Add to likely has only if we don't have definite information
+          // If the player is known to have any of the cards, skip deduction for this tuple
+          if (cardStates.some((state) => state === true)) {
+            return;
+          }
+          // Count how many are definitely not in hand
+          const dontHaveIndices = cardStates
+            .map((state, idx) => (state === false ? idx : -1))
+            .filter((idx) => idx !== -1);
+          const unknownIndices = cardStates
+            .map((state, idx) => (state === null ? idx : -1))
+            .filter((idx) => idx !== -1);
+          if (dontHaveIndices.length === 0 && unknownIndices.length === 3) {
+            // All three are unknown: all are likelyHas
             threeCards.forEach((cardName) => {
-              const card = knowledge.find((k) => k.cardName === cardName);
-              const playerHasCard = card?.inPlayersHand[player.player];
-
-              // Only add to likelyHas if we don't already know they definitely have or don't have it
-              if (playerHasCard === null && !likelyHas.includes(cardName)) {
+              if (
+                !definitelyHas.some((d) => d.playerName === player.player && d.cardName === cardName) &&
+                !definitelyDoesNotHave.some((d) => d.playerName === player.player && d.cardName === cardName) &&
+                !likelyHas.includes(cardName)
+              ) {
                 likelyHas.push(cardName);
               }
             });
+          } else if (dontHaveIndices.length === 1 && unknownIndices.length === 2) {
+            // One is ruled out, other two are likelyHas
+            unknownIndices.forEach((idx) => {
+              const cardName = threeCards[idx];
+              if (
+                !definitelyHas.some((d) => d.playerName === player.player && d.cardName === cardName) &&
+                !definitelyDoesNotHave.some((d) => d.playerName === player.player && d.cardName === cardName) &&
+                !likelyHas.includes(cardName)
+              ) {
+                likelyHas.push(cardName);
+              }
+            });
+          } else if (dontHaveIndices.length === 2 && unknownIndices.length === 1) {
+            // Two are ruled out, last is definitelyHas
+            const idx = unknownIndices[0];
+            const cardName = threeCards[idx];
+            if (!definitelyHas.some((d) => d.playerName === player.player && d.cardName === cardName)) {
+              definitelyHas.push({ playerName: player.player, cardName });
+            }
+          } else if (dontHaveIndices.length === 3) {
+            // Contradiction: all three are ruled out
+            // eslint-disable-next-line no-console
+            console.warn(
+              `Contradiction detected: Player "${player.player}" is marked as not having any of the cards (${threeCards.join(", ")}) in this tuple. This should not happen.`
+            );
+            if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+              window.alert(`Contradiction detected: Player "${player.player}" is marked as not having any of the cards (${threeCards.join(", ")}) in this tuple. This should not happen.`);
+            }
           }
         }
       });
@@ -395,6 +415,23 @@ export const updatedKnowledgeBaseFromTuples = (
     );
   });
 
+  return updatedKnowledge;
+};
+
+export const updateKnowledgeWithDeductions = (
+  knowledge: CardKnowledge[],
+  playerTuples: PlayerCardTuples[]
+): CardKnowledge[] => {
+  const analysis = analyzePlayerTuples(playerTuples, knowledge);
+  let updatedKnowledge = knowledge;
+  // Apply definite has
+  analysis.definitelyHas.forEach(({ playerName, cardName }) => {
+    updatedKnowledge = markCardInPlayerHand(updatedKnowledge, cardName, playerName);
+  });
+  // Apply definite does not have
+  analysis.definitelyDoesNotHave.forEach(({ playerName, cardName }) => {
+    updatedKnowledge = markCardNotInPlayerHand(updatedKnowledge, cardName, playerName);
+  });
   return updatedKnowledge;
 };
 

@@ -119,7 +119,7 @@ describe("GameSetup", () => {
       "Miss Scarlet",
       "Colonel Mustard",
       "Mrs. White",
-    ]);
+    ], "Miss Scarlet");
   });
 
   it("shows error message when your player name does not match any player", () => {
@@ -312,7 +312,7 @@ describe("GameSetup", () => {
     const startButton = screen.getByText(/next/i);
     fireEvent.click(startButton);
 
-    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"]);
+    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"], "Alice");
   });
 
   it("does not allow starting the game if your player name is empty", () => {
@@ -406,7 +406,7 @@ describe("GameSetup", () => {
     const startButton = screen.getByText(/next/i);
     fireEvent.click(startButton);
 
-    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"]);
+    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"], "Alice");
   });
 
   it("does not allow starting the game if there are duplicate suspects", () => {

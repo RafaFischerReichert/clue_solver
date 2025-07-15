@@ -3,6 +3,8 @@ import "./App.css";
 import GameSetup from "./components/GameSetup";
 import HandInput from "./components/HandInput";
 import GuessForm from "./components/GuessForm";
+import KnowledgeTable from "./components/KnowledgeTable";
+import { initializeKnowledgeBase, CardKnowledge, recordGuessResponse, PlayerCardTuples, markCardInPlayerHand, markCardNotInPlayerHand } from "./components/GameLogic";
 
 /**
  * Represents the complete game data including players and all card types
@@ -40,6 +42,8 @@ function App() {
     shownCard: '',
   });
   const [currentUser, setCurrentUser] = useState<string>("");
+  const [cardKnowledge, setCardKnowledge] = useState<CardKnowledge[]>([]);
+  const [playerTuples, setPlayerTuples] = useState<PlayerCardTuples[]>([]);
 
   /**
    * Handles completion of the game setup step
@@ -102,6 +106,14 @@ function App() {
     console.log("Current game data:", gameData);
 
     setUserHand(selectedCards);
+    if (gameData) {
+      const allCards = {
+        suspects: gameData.suspects,
+        weapons: gameData.weapons,
+        rooms: gameData.rooms,
+      };
+      setCardKnowledge(initializeKnowledgeBase(selectedCards, allCards, gameData.players, currentUser));
+    }
     setCurrentStep("gameplay");
     console.log("Moving to gameplay step");
   };
@@ -153,7 +165,49 @@ function App() {
    */
   const handleGuessSubmit = (guessData: any) => {
     console.log("Guess submitted:", guessData);
-    // TODO: Process the guess and update game state
+    // Special case: current user is the guesser and knows the shown card
+    if (
+      guessData.guessedBy === currentUser &&
+      guessData.showedBy &&
+      guessData.shownCard
+    ) {
+      let updatedKnowledge = markCardInPlayerHand(
+        cardKnowledge,
+        guessData.shownCard,
+        guessData.showedBy
+      );
+      if (gameData) {
+        gameData.players.forEach((player) => {
+          if (player !== guessData.showedBy) {
+            updatedKnowledge = markCardNotInPlayerHand(
+              updatedKnowledge,
+              guessData.shownCard,
+              player
+            );
+          }
+        });
+      }
+      setCardKnowledge([...updatedKnowledge]);
+      alert("Guess submitted! Processing...");
+      return;
+    }
+    // Update knowledge and tuples (default case)
+    const askedPlayers = gameData ? gameData.players.filter(p => p !== guessData.guessedBy) : [];
+    const result = recordGuessResponse(
+      playerTuples,
+      {
+        suspect: guessData.suspect || guessData.selectedSuspect,
+        weapon: guessData.weapon || guessData.selectedWeapon,
+        room: guessData.room || guessData.selectedRoom,
+      },
+      guessData.showedBy || guessData.showedBy || null,
+      guessData.guessedBy,
+      askedPlayers,
+      cardKnowledge
+    );
+    // Ensure new arrays are set for state
+    setPlayerTuples([...result.tuples]);
+    setCardKnowledge([...result.knowledge]);
     alert("Guess submitted! Processing...");
   };
 
@@ -161,6 +215,9 @@ function App() {
   const handleBackToSetup = () => {
     setCurrentStep("setup");
   };
+
+  // Debug printout for cardKnowledge
+  console.log("cardKnowledge", cardKnowledge);
 
   return (
     <div className="App">
@@ -179,29 +236,38 @@ function App() {
       )}
 
       {currentStep === "gameplay" && gameData && (
-        <div>
-          <h2>Gameplay</h2>
-          <p>Your hand: {userHand.join(', ')}</p>
-          <GuessForm
-            suspects={gameData.suspects}
-            weapons={gameData.weapons}
-            rooms={gameData.rooms}
-            selectedSuspect={guessState.selectedSuspect}
-            selectedWeapon={guessState.selectedWeapon}
-            selectedRoom={guessState.selectedRoom}
-            guessedBy={guessState.guessedBy}
-            showedBy={guessState.showedBy}
-            shownCard={guessState.shownCard}
-            answeringPlayers={gameData.players}
-            currentUser={currentUser}
-            onGuessChange={handleGuessChange}
-            onGuessedByChange={handleGuessedByChange}
-            onShowedByChange={handleShowedByChange}
-            onShownCardChange={handleShownCardChange}
-            onGuessSubmit={handleGuessSubmit}
-            onResetForm={() => {}}
-            onAbort={handleBackToSetup}
-          />
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          <div style={{ flex: '0 0 350px', marginRight: '24px' }}>
+            <KnowledgeTable
+              cardKnowledge={cardKnowledge}
+              players={gameData.players}
+              onKnowledgeChange={setCardKnowledge}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <h2>Gameplay</h2>
+            <p>Your hand: {userHand.join(', ')}</p>
+            <GuessForm
+              suspects={gameData.suspects}
+              weapons={gameData.weapons}
+              rooms={gameData.rooms}
+              selectedSuspect={guessState.selectedSuspect}
+              selectedWeapon={guessState.selectedWeapon}
+              selectedRoom={guessState.selectedRoom}
+              guessedBy={guessState.guessedBy}
+              showedBy={guessState.showedBy}
+              shownCard={guessState.shownCard}
+              answeringPlayers={gameData.players}
+              currentUser={currentUser}
+              onGuessChange={handleGuessChange}
+              onGuessedByChange={handleGuessedByChange}
+              onShowedByChange={handleShowedByChange}
+              onShownCardChange={handleShownCardChange}
+              onGuessSubmit={handleGuessSubmit}
+              onResetForm={() => {}}
+              onAbort={handleBackToSetup}
+            />
+          </div>
         </div>
       )}
     </div>

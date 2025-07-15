@@ -176,7 +176,7 @@ const HandInput: React.FC<HandInputProps> = ({
       <button onClick={handleSubmit} disabled={!hasSelectedCards}>
         Next
       </button>
-      <button type="button" onClick={onBack} style={{ marginLeft: 8 }}>
+      <button type="button" onClick={onBack} className="backtrack-button" style={{ marginLeft: 8 }}>
         Back
       </button>
     </div>

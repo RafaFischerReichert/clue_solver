@@ -4,16 +4,19 @@ import GameSetup from "./GameSetup";
 
 describe("GameSetup", () => {
   it("renders the game setup form", () => {
+    // Expects: The component should render with the main heading
     render(<GameSetup />);
     expect(screen.getByText("Game Setup")).toBeInTheDocument();
   });
 
   it("has a field for entering player names", () => {
+    // Expects: The component should have a textarea for player names with proper label
     render(<GameSetup />);
     expect(screen.getByLabelText(/player names/i)).toBeInTheDocument();
   });
 
   it("allows entering player names", () => {
+    // Expects: The player names textarea should accept and display user input
     render(<GameSetup />);
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
@@ -21,11 +24,13 @@ describe("GameSetup", () => {
   });
 
   it("has a field for entering suspects", () => {
+    // Expects: The component should have a textarea for suspects with proper label
     render(<GameSetup />);
     expect(screen.getByLabelText(/suspects/i)).toBeInTheDocument();
   });
 
   it("allows entering suspects", () => {
+    // Expects: The suspects textarea should accept and display user input
     render(<GameSetup />);
     const suspectInput = screen.getByLabelText(/suspects/i);
     fireEvent.change(suspectInput, { target: { value: "Suspect1\nSuspect2" } });
@@ -33,11 +38,13 @@ describe("GameSetup", () => {
   });
 
   it("has a field for entering weapons", () => {
+    // Expects: The component should have a textarea for weapons with proper label
     render(<GameSetup />);
     expect(screen.getByLabelText(/weapons/i)).toBeInTheDocument();
   });
 
   it("allows entering weapons", () => {
+    // Expects: The weapons textarea should accept and display user input
     render(<GameSetup />);
     const weaponInput = screen.getByLabelText(/weapons/i);
     fireEvent.change(weaponInput, { target: { value: "Weapon1\nWeapon2" } });
@@ -45,11 +52,13 @@ describe("GameSetup", () => {
   });
 
   it("has a field for entering rooms", () => {
+    // Expects: The component should have a textarea for rooms with proper label
     render(<GameSetup />);
     expect(screen.getByLabelText(/rooms/i)).toBeInTheDocument();
   });
 
   it("allows entering rooms", () => {
+    // Expects: The rooms textarea should accept and display user input
     render(<GameSetup />);
     const roomInput = screen.getByLabelText(/rooms/i);
     fireEvent.change(roomInput, { target: { value: "Room1\nRoom2" } });
@@ -57,6 +66,7 @@ describe("GameSetup", () => {
   });
 
   it("has default values for suspects, weapons, and rooms", () => {
+    // Expects: The component should have default Cluedo values pre-filled in the textareas
     render(<GameSetup />);
     const suspectInput = screen.getByLabelText(/suspects/i);
     const weaponInput = screen.getByLabelText(/weapons/i);
@@ -74,11 +84,13 @@ describe("GameSetup", () => {
   });
 
   it("has a field for entering your player name", () => {
+    // Expects: The component should have an input field for the user's player name with proper label
     render(<GameSetup />);
     expect(screen.getByLabelText(/your player name/i)).toBeInTheDocument();
   });
 
   it("allows entering your player name", () => {
+    // Expects: The your player name input should accept and display user input
     render(<GameSetup />);
     const playerNameInput = screen.getByLabelText(/your player name/i);
     fireEvent.change(playerNameInput, { target: { value: "Miss Scarlet" } });
@@ -86,6 +98,7 @@ describe("GameSetup", () => {
   });
 
   it("validates your player name against the list of players", () => {
+    // Expects: When a valid player name is entered and form is submitted, onGameStart should be called with the player list
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -110,6 +123,7 @@ describe("GameSetup", () => {
   });
 
   it("shows error message when your player name does not match any player", () => {
+    // Expects: When an invalid player name is entered, an error message should be displayed
     render(<GameSetup />);
 
     const playerInput = screen.getByLabelText(/player names/i);
@@ -130,6 +144,7 @@ describe("GameSetup", () => {
   });
 
   it("hides error message when your player name becomes valid", () => {
+    // Expects: When an invalid player name is changed to a valid one, the error message should disappear
     render(<GameSetup />);
 
     const playerInput = screen.getByLabelText(/player names/i);
@@ -161,6 +176,7 @@ describe("GameSetup", () => {
   });
 
   it("enables start button when your player name becomes valid", () => {
+    // Expects: When an invalid player name is changed to a valid one, the start button should become enabled
     render(<GameSetup />);
 
     const playerInput = screen.getByLabelText(/player names/i);
@@ -185,6 +201,7 @@ describe("GameSetup", () => {
   });
 
   it("disables the start button if your player name is invalid", () => {
+    // Expects: When the player name is invalid, the start button should be disabled
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -203,6 +220,7 @@ describe("GameSetup", () => {
   });
 
   it("does not call onGameStart if the button is clicked when your player name is invalid", () => {
+    // Expects: When the start button is clicked with an invalid player name, onGameStart should not be called
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -223,6 +241,7 @@ describe("GameSetup", () => {
   });
 
   it("validates there are at least three players before starting the game", () => {
+    // Expects: When there are fewer than 3 players, onGameStart should not be called
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -239,6 +258,7 @@ describe("GameSetup", () => {
   });
 
   it("shows an error message if there are less than three players", () => {
+    // Expects: When there are fewer than 3 players, an error message should be displayed
     render(<GameSetup />);
 
     const playerInput = screen.getByLabelText(/player names/i);
@@ -250,6 +270,7 @@ describe("GameSetup", () => {
   });
 
   it("does not allow starting the game if there are duplicate player names", () => {
+    // Expects: When there are duplicate player names, the start button should be disabled
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -263,7 +284,20 @@ describe("GameSetup", () => {
     expect(startButton).toBeDisabled();
   });
 
+  it("shows error message when there are duplicate player names", () => {
+    // Expects: When there are duplicate player names, an error message should be displayed
+    render(<GameSetup />);
+
+    const playerInput = screen.getByLabelText(/player names/i);
+    fireEvent.change(playerInput, { target: { value: "Alice\nBob\nAlice" } });
+
+    expect(
+      screen.getByText(/player names must be unique. please remove duplicates/i)
+    ).toBeInTheDocument();
+  });
+
   it("validates player names to ensure they are trimmed", () => {
+    // Expects: Player names with leading/trailing whitespace should be trimmed when passed to onGameStart
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -282,6 +316,7 @@ describe("GameSetup", () => {
   });
 
   it("does not allow starting the game if your player name is empty", () => {
+    // Expects: When the player name field is empty, onGameStart should not be called
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -297,7 +332,8 @@ describe("GameSetup", () => {
     expect(mockOnGameStart).not.toHaveBeenCalled();
   });
 
-  it("does not allow starting the game if suspects, weapons, or rooms are empty", () => {
+  it("does not allow starting the game if suspects are empty", () => {
+    // Expects: When the suspects field is empty, onGameStart should not be called
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -307,11 +343,45 @@ describe("GameSetup", () => {
     const suspectInput = screen.getByLabelText(/suspects/i);
     fireEvent.change(suspectInput, { target: { value: "" } });
 
+    const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
+    fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
+
+    const startButton = screen.getByText(/next/i);
+    fireEvent.click(startButton);
+
+    expect(mockOnGameStart).not.toHaveBeenCalled();
+  });
+
+  it("does not allow starting the game if weapons are empty", () => {
+    // Expects: When the weapons field is empty, onGameStart should not be called
+    const mockOnGameStart = vi.fn();
+    render(<GameSetup onGameStart={mockOnGameStart} />);
+
+    const playerInput = screen.getByLabelText(/player names/i);
+    fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
+
     const weaponInput = screen.getByLabelText(/weapons/i);
-    fireEvent.change(weaponInput, { target: { value: "Weapon1\nWeapon2" } });
+    fireEvent.change(weaponInput, { target: { value: "" } });
+
+    const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
+    fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
+
+    const startButton = screen.getByText(/next/i);
+    fireEvent.click(startButton);
+
+    expect(mockOnGameStart).not.toHaveBeenCalled();
+  });
+
+  it("does not allow starting the game if rooms are empty", () => {
+    // Expects: When the rooms field is empty, onGameStart should not be called
+    const mockOnGameStart = vi.fn();
+    render(<GameSetup onGameStart={mockOnGameStart} />);
+
+    const playerInput = screen.getByLabelText(/player names/i);
+    fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
 
     const roomInput = screen.getByLabelText(/rooms/i);
-    fireEvent.change(roomInput, { target: { value: "Room1\nRoom2" } });
+    fireEvent.change(roomInput, { target: { value: "" } });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
     fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
@@ -323,6 +393,7 @@ describe("GameSetup", () => {
   });
 
   it("allows starting the game if all fields are valid", () => {
+    // Expects: When all validation passes, onGameStart should be called with the player list
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -338,7 +409,8 @@ describe("GameSetup", () => {
     expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"]);
   });
 
-  it("does not allow duplicate suspects, weapons, or rooms", () => {
+  it("does not allow starting the game if there are duplicate suspects", () => {
+    // Expects: When there are duplicate suspects, the start button should be disabled
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
 
@@ -346,13 +418,7 @@ describe("GameSetup", () => {
     fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
 
     const suspectInput = screen.getByLabelText(/suspects/i);
-    fireEvent.change(suspectInput, { target: { value: "Alice\nBob\nAlice" } });
-
-    const weaponInput = screen.getByLabelText(/weapons/i);
-    fireEvent.change(weaponInput, { target: { value: "Weapon1\nWeapon2" } });
-
-    const roomInput = screen.getByLabelText(/rooms/i);
-    fireEvent.change(roomInput, { target: { value: "Room1\nRoom2" } });
+    fireEvent.change(suspectInput, { target: { value: "Suspect1\nSuspect2\nSuspect1" } });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
     fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
@@ -361,26 +427,99 @@ describe("GameSetup", () => {
     expect(startButton).toBeDisabled();
   });
 
-  it('submits the game setup when all fields are valid', () => {
+  it("does not allow starting the game if there are duplicate weapons", () => {
+    // Expects: When there are duplicate weapons, the start button should be disabled
     const mockOnGameStart = vi.fn();
     render(<GameSetup onGameStart={mockOnGameStart} />);
+
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
-    const suspectInput = screen.getByLabelText(/suspects/i);
-    fireEvent.change(suspectInput, { target: { value: "Suspect1\nSuspect2" } });
+
     const weaponInput = screen.getByLabelText(/weapons/i);
-    fireEvent.change(weaponInput, { target: { value: "Weapon1\nWeapon2" } });
-    const roomInput = screen.getByLabelText(/rooms/i);
-    fireEvent.change(roomInput, { target: { value: "Room1\nRoom2" } });
+    fireEvent.change(weaponInput, { target: { value: "Weapon1\nWeapon2\nWeapon1" } });
+
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
     fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
+
     const startButton = screen.getByText(/next/i);
-    fireEvent.click(startButton);
-    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"]);
+    expect(startButton).toBeDisabled();
   });
 
-  it('handles API errors gracefully', () => {
-    // This test would check if the component handles API errors
-    // and displays an appropriate message to the user.
+  it("does not allow starting the game if there are duplicate rooms", () => {
+    // Expects: When there are duplicate rooms, the start button should be disabled
+    const mockOnGameStart = vi.fn();
+    render(<GameSetup onGameStart={mockOnGameStart} />);
+
+    const playerInput = screen.getByLabelText(/player names/i);
+    fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
+
+    const roomInput = screen.getByLabelText(/rooms/i);
+    fireEvent.change(roomInput, { target: { value: "Room1\nRoom2\nRoom1" } });
+
+    const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
+    fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
+
+    const startButton = screen.getByText(/next/i);
+    expect(startButton).toBeDisabled();
+  });
+
+  it("does not call onGameStart when there are duplicate suspects", () => {
+    // Expects: When there are duplicate suspects, onGameStart should not be called even if button is clicked
+    const mockOnGameStart = vi.fn();
+    render(<GameSetup onGameStart={mockOnGameStart} />);
+
+    const playerInput = screen.getByLabelText(/player names/i);
+    fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
+
+    const suspectInput = screen.getByLabelText(/suspects/i);
+    fireEvent.change(suspectInput, { target: { value: "Suspect1\nSuspect2\nSuspect1" } });
+
+    const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
+    fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
+
+    const startButton = screen.getByText(/next/i);
+    fireEvent.click(startButton);
+
+    expect(mockOnGameStart).not.toHaveBeenCalled();
+  });
+
+  it("does not call onGameStart when there are duplicate weapons", () => {
+    // Expects: When there are duplicate weapons, onGameStart should not be called even if button is clicked
+    const mockOnGameStart = vi.fn();
+    render(<GameSetup onGameStart={mockOnGameStart} />);
+
+    const playerInput = screen.getByLabelText(/player names/i);
+    fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
+
+    const weaponInput = screen.getByLabelText(/weapons/i);
+    fireEvent.change(weaponInput, { target: { value: "Weapon1\nWeapon2\nWeapon1" } });
+
+    const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
+    fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
+
+    const startButton = screen.getByText(/next/i);
+    fireEvent.click(startButton);
+
+    expect(mockOnGameStart).not.toHaveBeenCalled();
+  });
+
+  it("does not call onGameStart when there are duplicate rooms", () => {
+    // Expects: When there are duplicate rooms, onGameStart should not be called even if button is clicked
+    const mockOnGameStart = vi.fn();
+    render(<GameSetup onGameStart={mockOnGameStart} />);
+
+    const playerInput = screen.getByLabelText(/player names/i);
+    fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
+
+    const roomInput = screen.getByLabelText(/rooms/i);
+    fireEvent.change(roomInput, { target: { value: "Room1\nRoom2\nRoom1" } });
+
+    const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
+    fireEvent.change(yourPlayerNameInput, { target: { value: "Alice" } });
+
+    const startButton = screen.getByText(/next/i);
+    fireEvent.click(startButton);
+
+    expect(mockOnGameStart).not.toHaveBeenCalled();
   });
 });

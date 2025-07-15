@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 /**
  * Props for the HandInput component
@@ -24,24 +24,78 @@ const HandInput: React.FC<HandInputProps> = ({
   rooms,
   onHandSubmit,
 }) => {
+  // Validate original props first
+  if (!Array.isArray(suspects)) {
+    console.warn(
+      "HandInput: Invalid props - suspects must be an array, received:",
+      suspects
+    );
+    suspects = [];
+  }
+  if (!Array.isArray(weapons)) {
+    console.warn(
+      "HandInput: Invalid props - weapons must be an array, received:",
+      weapons
+    );
+    weapons = [];
+  }
+  if (!Array.isArray(rooms)) {
+    console.warn(
+      "HandInput: Invalid props - rooms must be an array, received:",
+      rooms
+    );
+    rooms = [];
+  }
+
   /** Deduplicated arrays to prevent duplicate checkboxes */
   const uniqueSuspects = Array.from(new Set(suspects));
   const uniqueWeapons = Array.from(new Set(weapons));
   const uniqueRooms = Array.from(new Set(rooms));
 
+  if (uniqueSuspects.length > 100) {
+    console.warn(
+      `HandInput: Large suspects array (${uniqueSuspects.length} items) may cause performance issues`
+    );
+  }
+  if (uniqueWeapons.length > 100) {
+    console.warn(
+      `HandInput: Large weapons array (${uniqueWeapons.length} items) may cause performance issues`
+    );
+  }
+  if (uniqueRooms.length > 100) {
+    console.warn(
+      `HandInput: Large rooms array (${uniqueRooms.length} items) may cause performance issues`
+    );
+  }
+
   /** Currently selected card names */
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
+  const lastClickTimes = useRef<Record<string, number>>({});
 
   /**
    * Toggles a card in/out of the selected cards array
    * @param cardName - Name of the card to toggle
    */
   const handleCardToggle = (cardName: string) => {
-    setSelectedCards((prev) =>
-      prev.includes(cardName)
-        ? prev.filter((card) => card !== cardName)
-        : [...prev, cardName]
-    );
+    const now = Date.now();
+    const lastClickTime = lastClickTimes.current[cardName] || 0;
+    const timeSinceLastClick = now - lastClickTime;
+
+    // Throttle per checkbox
+    if (timeSinceLastClick < 100) {
+      return;
+    }
+
+    lastClickTimes.current[cardName] = now;
+    try {
+      setSelectedCards((prev) =>
+        prev.includes(cardName)
+          ? prev.filter((card) => card !== cardName)
+          : [...prev, cardName]
+      );
+    } catch (error) {
+      console.error("Error in card selection:", error);
+    }
   };
 
   /**
@@ -52,11 +106,17 @@ const HandInput: React.FC<HandInputProps> = ({
       "HandInput handleSubmit called, hasSelectedCards:",
       hasSelectedCards
     );
-    if (hasSelectedCards) {
-      console.log("Calling onHandSubmit with selectedCards:", selectedCards);
-      onHandSubmit(selectedCards);
-    } else {
-      console.log("No cards selected, not calling onHandSubmit");
+    try {
+      if (hasSelectedCards) {
+        console.log("Calling onHandSubmit with selectedCards:", selectedCards);
+        onHandSubmit(selectedCards);
+      } else {
+        console.log("No cards selected, not calling onHandSubmit");
+      }
+    } catch (error) {
+      // Log the error to the console and warn the user
+      console.error("Error submitting hand:", error);
+      alert("An error occurred while submitting your hand. Please try again.");
     }
   };
 

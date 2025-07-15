@@ -21,6 +21,7 @@ describe('GuessForm', () => {
     onShownCardChange: () => {},
     onGuessSubmit: () => {},
     onResetForm: () => {},
+    onAbort: () => {},
   };
 
   it('renders without crashing', () => {

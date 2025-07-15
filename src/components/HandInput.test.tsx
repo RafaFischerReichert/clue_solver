@@ -11,6 +11,7 @@ describe("HandInput", () => {
         weapons={[]}
         rooms={[]}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
     expect(screen.getByText("Select Your Cards")).toBeInTheDocument();
@@ -31,6 +32,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -53,6 +55,7 @@ describe("HandInput", () => {
         weapons={["Candlestick"]}
         rooms={["Kitchen"]}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -69,6 +72,7 @@ describe("HandInput", () => {
         weapons={[]}
         rooms={[]}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -90,6 +94,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -111,6 +116,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -132,6 +138,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -153,6 +160,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -180,6 +188,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
+        onBack={()=>{}}
       />
     );
 
@@ -205,6 +214,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
+        onBack={()=>{}}
       />
     );
 
@@ -227,6 +237,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
+        onBack={()=>{}}
       />
     );
 
@@ -258,6 +269,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
+        onBack={()=>{}}
       />
     );
 
@@ -286,6 +298,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
+        onBack={()=>{}}
       />
     );
 
@@ -314,6 +327,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
+        onBack={()=>{}}
       />
     );
 
@@ -347,6 +361,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -365,6 +380,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -384,6 +400,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -403,6 +420,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -425,6 +443,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -447,6 +466,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -475,6 +495,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
+        onBack={()=>{}}
       />
     );
 
@@ -514,6 +535,7 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
+        onBack={()=>{}}
       />
     );
 
@@ -551,6 +573,7 @@ describe("HandInput", () => {
         weapons={["Candlestick"]}
         rooms={["Kitchen"]}
         onHandSubmit={mockOnHandSubmit}
+        onBack={()=>{}}
       />
     );
 
@@ -582,6 +605,7 @@ describe("HandInput", () => {
         weapons={undefined as any}
         rooms={"not an array" as any}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -620,6 +644,7 @@ describe("HandInput", () => {
         weapons={["Candlestick"]}
         rooms={["Kitchen"]}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -660,6 +685,7 @@ describe("HandInput", () => {
         weapons={largeWeapons}
         rooms={largeRooms}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 
@@ -706,6 +732,7 @@ describe("HandInput", () => {
         weapons={weaponsWithInvalid as any}
         rooms={roomsWithInvalid as any}
         onHandSubmit={() => {}}
+        onBack={()=>{}}
       />
     );
 

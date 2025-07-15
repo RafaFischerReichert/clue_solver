@@ -278,7 +278,14 @@ export const recordGuessResponse = (
     } else {
       tuples.push({ player: shownBy, tuples: [newTuple] });
     }
-
+    // Mark all other askedPlayers as definitely not having any of the cards
+    askedPlayers.forEach((player) => {
+      if (player !== shownBy) {
+        knowledge = markCardNotInPlayerHand(knowledge, guess.suspect, player);
+        knowledge = markCardNotInPlayerHand(knowledge, guess.weapon, player);
+        knowledge = markCardNotInPlayerHand(knowledge, guess.room, player);
+      }
+    });
   } else {
     // No one showed a card - create a special "no response" entry
     const noResponseIndex = tuples.findIndex((t) => t.player === "NO_RESPONSE");

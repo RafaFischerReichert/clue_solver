@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import GameSetup from "./components/GameSetup";
 import HandInput from "./components/HandInput";
+import GuessForm from "./components/GuessForm";
 
 /**
  * Represents the complete game data including players and all card types
@@ -22,11 +23,22 @@ interface GameData {
  */
 function App() {
   /** Current step in the game setup process */
-  const [currentStep, setCurrentStep] = useState<"setup" | "hand-input">(
+  const [currentStep, setCurrentStep] = useState<"setup" | "hand-input" | "gameplay">(
     "setup"
   );
   /** Complete game data including players and cards */
   const [gameData, setGameData] = useState<GameData | null>(null);
+  /** User's hand cards */
+  const [userHand, setUserHand] = useState<string[]>([]);
+  /** Current guess form state */
+  const [guessState, setGuessState] = useState({
+    selectedSuspect: '',
+    selectedWeapon: '',
+    selectedRoom: '',
+    guessedBy: '',
+    showedBy: null as string | null,
+    shownCard: '',
+  });
 
   /**
    * Handles completion of the game setup step
@@ -86,9 +98,60 @@ function App() {
     console.log("handleHandSubmit called with selectedCards:", selectedCards);
     console.log("Current game data:", gameData);
 
-    // TODO: Move to gameplay step
-    console.log("Ready to move to gameplay step");
-    alert("Hand submitted! Ready for gameplay.");
+    setUserHand(selectedCards);
+    setCurrentStep("gameplay");
+    console.log("Moving to gameplay step");
+  };
+
+  /**
+   * Handles guess form changes
+   */
+  const handleGuessChange = (suspect: string, weapon: string, room: string) => {
+    setGuessState(prev => ({
+      ...prev,
+      selectedSuspect: suspect,
+      selectedWeapon: weapon,
+      selectedRoom: room,
+    }));
+  };
+
+  /**
+   * Handles guessed by changes
+   */
+  const handleGuessedByChange = (player: string) => {
+    setGuessState(prev => ({
+      ...prev,
+      guessedBy: player,
+    }));
+  };
+
+  /**
+   * Handles showed by changes
+   */
+  const handleShowedByChange = (player: string | null) => {
+    setGuessState(prev => ({
+      ...prev,
+      showedBy: player,
+    }));
+  };
+
+  /**
+   * Handles shown card changes
+   */
+  const handleShownCardChange = (card: string) => {
+    setGuessState(prev => ({
+      ...prev,
+      shownCard: card,
+    }));
+  };
+
+  /**
+   * Handles guess form submission
+   */
+  const handleGuessSubmit = (guessData: any) => {
+    console.log("Guess submitted:", guessData);
+    // TODO: Process the guess and update game state
+    alert("Guess submitted! Processing...");
   };
 
   return (
@@ -104,6 +167,32 @@ function App() {
           rooms={gameData.rooms}
           onHandSubmit={handleHandSubmit}
         />
+      )}
+
+      {currentStep === "gameplay" && gameData && (
+        <div>
+          <h2>Gameplay</h2>
+          <p>Your hand: {userHand.join(', ')}</p>
+          <GuessForm
+            suspects={gameData.suspects}
+            weapons={gameData.weapons}
+            rooms={gameData.rooms}
+            selectedSuspect={guessState.selectedSuspect}
+            selectedWeapon={guessState.selectedWeapon}
+            selectedRoom={guessState.selectedRoom}
+            guessedBy={guessState.guessedBy}
+            showedBy={guessState.showedBy}
+            shownCard={guessState.shownCard}
+            answeringPlayers={gameData.players}
+            currentUser="You"
+            onGuessChange={handleGuessChange}
+            onGuessedByChange={handleGuessedByChange}
+            onShowedByChange={handleShowedByChange}
+            onShownCardChange={handleShownCardChange}
+            onGuessSubmit={handleGuessSubmit}
+            onResetForm={() => {}}
+          />
+        </div>
       )}
     </div>
   );

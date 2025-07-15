@@ -5,7 +5,7 @@ import React, { useState } from "react";
  */
 interface GameSetupProps {
   /** Callback function called when game setup is complete */
-  onGameStart?: (players: string[]) => void;
+  onGameStart: (players: string[], yourPlayerName: string) => void;
 }
 
 /**
@@ -157,7 +157,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
         "All validation passed, calling onGameStart with players:",
         players
       );
-      onGameStart(players);
+      onGameStart(players, yourPlayerName);
     } else {
       console.log("Validation failed, not calling onGameStart");
     }

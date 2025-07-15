@@ -5,19 +5,19 @@ import GameSetup from "./GameSetup";
 describe("GameSetup", () => {
   it("renders the game setup form", () => {
     // Expects: The component should render with the main heading
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     expect(screen.getByText("Game Setup")).toBeInTheDocument();
   });
 
   it("has a field for entering player names", () => {
     // Expects: The component should have a textarea for player names with proper label
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     expect(screen.getByLabelText(/player names/i)).toBeInTheDocument();
   });
 
   it("allows entering player names", () => {
     // Expects: The player names textarea should accept and display user input
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, { target: { value: "Alice\nBob\nCharlie" } });
     expect(playerInput).toHaveValue("Alice\nBob\nCharlie");
@@ -25,13 +25,13 @@ describe("GameSetup", () => {
 
   it("has a field for entering suspects", () => {
     // Expects: The component should have a textarea for suspects with proper label
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     expect(screen.getByLabelText(/suspects/i)).toBeInTheDocument();
   });
 
   it("allows entering suspects", () => {
     // Expects: The suspects textarea should accept and display user input
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     const suspectInput = screen.getByLabelText(/suspects/i);
     fireEvent.change(suspectInput, { target: { value: "Suspect1\nSuspect2" } });
     expect(suspectInput).toHaveValue("Suspect1\nSuspect2");
@@ -39,13 +39,13 @@ describe("GameSetup", () => {
 
   it("has a field for entering weapons", () => {
     // Expects: The component should have a textarea for weapons with proper label
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     expect(screen.getByLabelText(/weapons/i)).toBeInTheDocument();
   });
 
   it("allows entering weapons", () => {
     // Expects: The weapons textarea should accept and display user input
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     const weaponInput = screen.getByLabelText(/weapons/i);
     fireEvent.change(weaponInput, { target: { value: "Weapon1\nWeapon2" } });
     expect(weaponInput).toHaveValue("Weapon1\nWeapon2");
@@ -53,13 +53,13 @@ describe("GameSetup", () => {
 
   it("has a field for entering rooms", () => {
     // Expects: The component should have a textarea for rooms with proper label
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     expect(screen.getByLabelText(/rooms/i)).toBeInTheDocument();
   });
 
   it("allows entering rooms", () => {
     // Expects: The rooms textarea should accept and display user input
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     const roomInput = screen.getByLabelText(/rooms/i);
     fireEvent.change(roomInput, { target: { value: "Room1\nRoom2" } });
     expect(roomInput).toHaveValue("Room1\nRoom2");
@@ -67,7 +67,7 @@ describe("GameSetup", () => {
 
   it("has default values for suspects, weapons, and rooms", () => {
     // Expects: The component should have default Cluedo values pre-filled in the textareas
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     const suspectInput = screen.getByLabelText(/suspects/i);
     const weaponInput = screen.getByLabelText(/weapons/i);
     const roomInput = screen.getByLabelText(/rooms/i);
@@ -85,13 +85,13 @@ describe("GameSetup", () => {
 
   it("has a field for entering your player name", () => {
     // Expects: The component should have an input field for the user's player name with proper label
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     expect(screen.getByLabelText(/your player name/i)).toBeInTheDocument();
   });
 
   it("allows entering your player name", () => {
     // Expects: The your player name input should accept and display user input
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
     const playerNameInput = screen.getByLabelText(/your player name/i);
     fireEvent.change(playerNameInput, { target: { value: "Miss Scarlet" } });
     expect(playerNameInput).toHaveValue("Miss Scarlet");
@@ -124,7 +124,7 @@ describe("GameSetup", () => {
 
   it("shows error message when your player name does not match any player", () => {
     // Expects: When an invalid player name is entered, an error message should be displayed
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
@@ -145,7 +145,7 @@ describe("GameSetup", () => {
 
   it("hides error message when your player name becomes valid", () => {
     // Expects: When an invalid player name is changed to a valid one, the error message should disappear
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
@@ -177,7 +177,7 @@ describe("GameSetup", () => {
 
   it("enables start button when your player name becomes valid", () => {
     // Expects: When an invalid player name is changed to a valid one, the start button should become enabled
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
@@ -259,7 +259,7 @@ describe("GameSetup", () => {
 
   it("shows an error message if there are less than three players", () => {
     // Expects: When there are fewer than 3 players, an error message should be displayed
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, { target: { value: "Alice\nBob" } });
@@ -286,7 +286,7 @@ describe("GameSetup", () => {
 
   it("shows error message when there are duplicate player names", () => {
     // Expects: When there are duplicate player names, an error message should be displayed
-    render(<GameSetup />);
+    render(<GameSetup onGameStart={() => {}} />);
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, { target: { value: "Alice\nBob\nAlice" } });

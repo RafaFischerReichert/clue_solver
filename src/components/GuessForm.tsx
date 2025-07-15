@@ -191,6 +191,16 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
     !isSamePlayerGuesserAndShower &&
     !requiresShownCard;
 
+  // Debug printout for validation troubleshooting
+  console.log({
+    guessedBy: props.guessedBy,
+    currentUser: props.currentUser,
+    showedBy: props.showedBy,
+    shownCard: props.shownCard,
+    requiresShownCard,
+    isFormValid
+  });
+
   return (
     <div>
       <h2>Guess Form</h2>

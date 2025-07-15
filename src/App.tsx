@@ -39,12 +39,14 @@ function App() {
     showedBy: null as string | null,
     shownCard: '',
   });
+  const [currentUser, setCurrentUser] = useState<string>("");
 
   /**
    * Handles completion of the game setup step
    * @param players - Array of player names from GameSetup
+   * @param yourPlayerName - The current user's player name
    */
-  const handleGameSetup = (players: string[]) => {
+  const handleGameSetup = (players: string[], yourPlayerName: string) => {
     console.log("handleGameSetup called with players:", players);
 
     // For now, we'll use default Cluedo cards
@@ -88,6 +90,7 @@ function App() {
     setGameData(newGameData);
     setCurrentStep("hand-input");
     console.log("Moving to hand-input step");
+    if (yourPlayerName) setCurrentUser(yourPlayerName);
   };
 
   /**
@@ -184,7 +187,7 @@ function App() {
             showedBy={guessState.showedBy}
             shownCard={guessState.shownCard}
             answeringPlayers={gameData.players}
-            currentUser="You"
+            currentUser={currentUser}
             onGuessChange={handleGuessChange}
             onGuessedByChange={handleGuessedByChange}
             onShowedByChange={handleShowedByChange}

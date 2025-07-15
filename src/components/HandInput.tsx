@@ -12,6 +12,7 @@ interface HandInputProps {
   rooms: string[];
   /** Callback function called when hand selection is complete */
   onHandSubmit: (selectedCards: string[]) => void;
+  onBack: () => void;
 }
 
 /**
@@ -23,6 +24,7 @@ const HandInput: React.FC<HandInputProps> = ({
   weapons,
   rooms,
   onHandSubmit,
+  onBack,
 }) => {
   // Validate original props first
   if (!Array.isArray(suspects)) {
@@ -173,6 +175,9 @@ const HandInput: React.FC<HandInputProps> = ({
       )}
       <button onClick={handleSubmit} disabled={!hasSelectedCards}>
         Next
+      </button>
+      <button type="button" onClick={onBack} style={{ marginLeft: 8 }}>
+        Back
       </button>
     </div>
   );

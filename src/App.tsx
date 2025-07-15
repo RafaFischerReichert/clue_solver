@@ -157,6 +157,11 @@ function App() {
     alert("Guess submitted! Processing...");
   };
 
+  // Handler to go back to setup
+  const handleBackToSetup = () => {
+    setCurrentStep("setup");
+  };
+
   return (
     <div className="App">
       <h1>Cluedo Solver</h1>
@@ -169,6 +174,7 @@ function App() {
           weapons={gameData.weapons}
           rooms={gameData.rooms}
           onHandSubmit={handleHandSubmit}
+          onBack={handleBackToSetup}
         />
       )}
 
@@ -194,6 +200,7 @@ function App() {
             onShownCardChange={handleShownCardChange}
             onGuessSubmit={handleGuessSubmit}
             onResetForm={() => {}}
+            onAbort={handleBackToSetup}
           />
         </div>
       )}

@@ -36,6 +36,7 @@ interface GuessFormProps {
   onGuessSubmit: (guess: GuessData) => void;
   // Reset callbacks
   onResetForm: () => void;
+  onAbort: () => void;
 }
 
 const GuessForm: React.FC<GuessFormProps> = (props) => {
@@ -344,6 +345,9 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
           Submit Guess
         </button>
       </form>
+      <button type="button" onClick={props.onAbort} style={{ marginTop: 12 }}>
+        Abort
+      </button>
     </div>
   );
 };

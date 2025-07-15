@@ -1,10 +1,14 @@
 import React from 'react';
+import { Guess, GameState } from './GuessEvaluator';
 
-interface SuggestionAIProps {
-  // TODO: Add props interface
+export interface SuggestionAI {
+  evaluateGuess(
+    guess: Guess,
+    gameState: GameState
+  ): number; // returns expected entropy gain
 }
 
-const SuggestionAI: React.FC<SuggestionAIProps> = (props) => {
+const SuggestionAI: React.FC<SuggestionAI> = (props) => {
   return (
     <div>
       <h2>Suggestion AI</h2>

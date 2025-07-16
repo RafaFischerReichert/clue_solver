@@ -338,6 +338,9 @@ function App() {
   return (
     <div className="App">
       <h1>Cluedo Solver</h1>
+      <div style={{ fontSize: '0.8em', color: '#666', marginBottom: '20px' }}>
+        Version 1.0.0
+      </div>
 
       {currentStep === "setup" && <GameSetup onGameStart={handleGameSetup} />}
 

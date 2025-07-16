@@ -14,6 +14,7 @@ describe('GuessForm', () => {
     showedBy: null,
     shownCard: '',
     answeringPlayers: ['Alice', 'Bob', 'Charlie'],
+    allPlayers: ['Alice', 'Bob', 'Charlie'], // <-- add this
     currentUser: 'Alice',
     onGuessChange: () => {},
     onGuessedByChange: () => {},

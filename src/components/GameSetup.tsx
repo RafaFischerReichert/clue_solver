@@ -13,7 +13,7 @@ interface GameSetupProps {
  * Collects player names, suspects, weapons, and rooms
  */
 const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
-  /** Player names entered by user (newline-separated) */
+  /** Player names entered by user (newline-separated, order matters for player order) */
   const [playerNames, setPlayerNames] = useState("");
   /** Suspect names (newline-separated) */
   const [suspects, setSuspects] = useState(
@@ -125,26 +125,27 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
    * Handles form submission when Next button is clicked
    */
   const handleSubmit = () => {
-    console.log("GameSetup handleSubmit called");
+    // console.log("GameSetup handleSubmit called");
 
     const players = playerNames
       .split("\n")
       .map((name) => name.trim())
       .filter((name) => name !== "");
 
-    console.log("Processed players:", players);
-    console.log("Validation - isYourPlayerNameValid:", isYourPlayerNameValid());
-    console.log(
-      "Validation - areThereThreeOrMorePlayers:",
-      areThereThreeOrMorePlayers()
-    );
-    console.log(
-      "Validation - hasDuplicatePlayerNames:",
-      hasDuplicatePlayerNames()
-    );
-    console.log("Validation - areGameElementsValid:", areGameElementsValid());
-    console.log("Validation - hasDuplicateElements:", hasDuplicateElements());
+    // console.log("Processed players:", players);
+    // console.log("Validation - isYourPlayerNameValid:", isYourPlayerNameValid());
+    // console.log(
+    //   "Validation - areThereThreeOrMorePlayers:",
+    //   areThereThreeOrMorePlayers()
+    // );
+    // console.log(
+    //   "Validation - hasDuplicatePlayerNames:",
+    //   hasDuplicatePlayerNames()
+    // );
+    // console.log("Validation - areGameElementsValid:", areGameElementsValid());
+    // console.log("Validation - hasDuplicateElements:", hasDuplicateElements());
 
+    // The order of players as entered is preserved and used for player order in the game.
     if (
       onGameStart &&
       isYourPlayerNameValid() &&
@@ -154,12 +155,12 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
       !hasDuplicateElements()
     ) {
       console.log(
-        "All validation passed, calling onGameStart with players:",
+        // "All validation passed, calling onGameStart with players:",
         players
       );
-      onGameStart(players, yourPlayerName);
+      onGameStart(players, yourPlayerName); // order is preserved
     } else {
-      console.log("Validation failed, not calling onGameStart");
+      console.warn("Validation failed, not calling onGameStart");
     }
   };
 

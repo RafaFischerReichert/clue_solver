@@ -26,6 +26,7 @@ interface GuessFormProps {
   showedBy: string | null;
   shownCard: string;
   answeringPlayers: string[];
+  allPlayers: string[]; // <-- add this
   currentUser: string;
 
   // Callbacks
@@ -34,9 +35,8 @@ interface GuessFormProps {
   onShowedByChange: (player: string | null) => void;
   onShownCardChange: (card: string) => void;
   onGuessSubmit: (guess: GuessData) => void;
-  // Reset callbacks
+  // Reset callback
   onResetForm: () => void;
-  onAbort: () => void;
 }
 
 const GuessForm: React.FC<GuessFormProps> = (props) => {
@@ -98,7 +98,8 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
     console.warn("Expected string for currentUser, got:", props.currentUser);
   }
 
-  const [answeringPlayers, setAnsweringPlayers] = React.useState<string[]>([]);
+  // Remove answeringPlayers state and checkbox logic
+  // const [answeringPlayers, setAnsweringPlayers] = React.useState<string[]>([]);
 
   const handleSuspectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     props.onGuessChange(
@@ -144,13 +145,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
     props.onShownCardChange(event.target.value);
   };
 
-  const handlePlayerCheckboxChange = (player: string, checked: boolean) => {
-    if (checked) {
-      setAnsweringPlayers([...answeringPlayers, player]);
-    } else {
-      setAnsweringPlayers(answeringPlayers.filter((p) => p !== player));
-    }
-  };
+  // Remove handlePlayerCheckboxChange
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -163,14 +158,14 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
         guessedBy: props.guessedBy,
         showedBy: props.showedBy,
         shownCard: props.shownCard || undefined,
-        answeringPlayers: answeringPlayers,
+        answeringPlayers: props.answeringPlayers, // Now always inferred
       };
 
       props.onGuessSubmit(guessData);
       console.log("SubmitGuess called!", guessData);
 
       // Reset form after successful submission
-      setAnsweringPlayers([]);
+      // setAnsweringPlayers([]); // Remove
       props.onResetForm();
     } catch (error) {
       console.error("Error submitting guess:", error);
@@ -191,16 +186,6 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
     props.guessedBy &&
     !isSamePlayerGuesserAndShower &&
     !requiresShownCard;
-
-  // Debug printout for validation troubleshooting
-  console.log({
-    guessedBy: props.guessedBy,
-    currentUser: props.currentUser,
-    showedBy: props.showedBy,
-    shownCard: props.shownCard,
-    requiresShownCard,
-    isFormValid
-  });
 
   return (
     <div>
@@ -266,7 +251,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
             required
           >
             <option value="">Select who made the guess</option>
-            {validAnsweringPlayers.map((player) => (
+            {props.allPlayers.map((player) => (
               <option key={player} value={player}>
                 {player}
               </option>
@@ -282,7 +267,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
             onChange={handleShowedByChange}
           >
             <option value="">No one showed a card</option>
-            {validAnsweringPlayers.map((player) => (
+            {props.allPlayers.map((player) => (
               <option key={player} value={player}>
                 {player}
               </option>
@@ -324,30 +309,18 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
         )}
 
         <div>
-          <label>Players who answered:</label>
-          {validAnsweringPlayers.map((player) => (
-            <div key={player}>
-              <input
-                type="checkbox"
-                id={`player-${player}`}
-                checked={answeringPlayers.includes(player)}
-                onChange={(e) =>
-                  handlePlayerCheckboxChange(player, e.target.checked)
-                }
-                disabled={player === props.guessedBy} // Disable if player is the guesser
-              />
-              <label htmlFor={`player-${player}`}>{player}</label>
-            </div>
-          ))}
+          <label>Players who were asked (inferred):</label>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            {validAnsweringPlayers.map((player) => (
+              <li key={player}>{player}</li>
+            ))}
+          </ul>
         </div>
 
         <button type="submit" disabled={!isFormValid}>
           Submit Guess
         </button>
       </form>
-      <button type="button" onClick={props.onAbort} className="backtrack-button" style={{ marginTop: 12 }}>
-        Abort
-      </button>
     </div>
   );
 };

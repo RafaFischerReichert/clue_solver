@@ -1,30 +1,24 @@
 import React, { useState, useRef } from "react";
+import { getPossibleHandSizes } from "./GameLogic";
 
-/**
- * Props for the HandInput component
- */
+// Props for HandInput
 interface HandInputProps {
-  /** Array of suspect names to display as options */
-  suspects: string[];
-  /** Array of weapon names to display as options */
-  weapons: string[];
-  /** Array of room names to display as options */
-  rooms: string[];
-  /** Callback function called when hand selection is complete */
-  onHandSubmit: (selectedCards: string[]) => void;
-  onBack: () => void;
+  suspects: string[]; // Suspect card names
+  weapons: string[];  // Weapon card names
+  rooms: string[];    // Room card names
+  onHandSubmit: (selectedCards: string[]) => void; // Called when hand is submitted
+  onBack: () => void; // Called when back button is pressed
+  players: string[];  // Player names
 }
 
-/**
- * Component for selecting cards that are in the user's hand
- * Displays suspects, weapons, and rooms as checkboxes for selection
- */
+// HandInput: lets user select their cards
 const HandInput: React.FC<HandInputProps> = ({
   suspects,
   weapons,
   rooms,
   onHandSubmit,
   onBack,
+  players,
 }) => {
   // Validate original props first
   if (!Array.isArray(suspects)) {
@@ -123,9 +117,13 @@ const HandInput: React.FC<HandInputProps> = ({
   };
 
   const hasSelectedCards = selectedCards.length > 0;
+  // Find the correct source for players
+  const playerList = Array.isArray(players) ? players : [];
+  const possibleHandSizes = getPossibleHandSizes(playerList.length);
+  const isValidHandSize = possibleHandSizes.includes(selectedCards.length);
 
   return (
-    <div>
+    <form onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
       <h2>Select Your Cards</h2>
       <p>Check the cards that are in your hand:</p>
 
@@ -173,13 +171,24 @@ const HandInput: React.FC<HandInputProps> = ({
       {!hasSelectedCards && (
         <div style={{ color: "red" }}>Please select at least one card.</div>
       )}
-      <button onClick={handleSubmit} disabled={!hasSelectedCards}>
-        Next
-      </button>
+      <div style={{ marginBottom: 12 }}>
+        <strong>Possible hand sizes per player:</strong> {possibleHandSizes.join(" or ")}
+        <br />
+        <span>
+          You have selected {selectedCards.length} card{selectedCards.length !== 1 ? 's' : ''}.
+          {isValidHandSize ? ' ✅' : ' ❌'}
+        </span>
+        {!isValidHandSize && (
+          <div style={{ color: 'red' }}>
+            Please select a valid number of cards ({possibleHandSizes.join(' or ')}).
+          </div>
+        )}
+      </div>
+      <button type="submit" disabled={!isValidHandSize}>Submit</button>
       <button type="button" onClick={onBack} className="backtrack-button" style={{ marginLeft: 8 }}>
         Back
       </button>
-    </div>
+    </form>
   );
 };
 

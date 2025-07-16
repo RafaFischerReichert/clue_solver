@@ -2,18 +2,59 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import HandInput from "./HandInput";
 
+// Canonical Clue/Cluedo cards for the classic game
+const ALL_SUSPECTS = [
+  "Miss Scarlet",
+  "Colonel Mustard",
+  "Mrs. White",
+  "Mr. Green",
+  "Mrs. Peacock",
+  "Professor Plum",
+];
+
+const ALL_WEAPONS = [
+  "Candlestick",
+  "Dagger",
+  "Lead Pipe",
+  "Revolver",
+  "Rope",
+  "Wrench",
+];
+
+const ALL_ROOMS = [
+  "Kitchen",
+  "Ballroom",
+  "Conservatory",
+  "Dining Room",
+  "Billiard Room",
+  "Library",
+  "Lounge",
+  "Hall",
+  "Study",
+];
+
+/**
+ * Renders HandInput with default props for testing.
+ * Allows overrides for any prop.
+ */
+const DEFAULT_RENDER = (overrides = {}) =>
+  render(
+    <HandInput
+      suspects={ALL_SUSPECTS}
+      weapons={ALL_WEAPONS}
+      rooms={ALL_ROOMS}
+      onHandSubmit={() => {}}
+      onBack={() => {}}
+      players={["A", "B", "C"]}
+      {...overrides}
+    />
+  );
+
 describe("HandInput", () => {
   it("renders without crashing", () => {
     // Expects: The component should render with the main heading and instruction text
-    render(
-      <HandInput
-        suspects={[]}
-        weapons={[]}
-        rooms={[]}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
+    DEFAULT_RENDER();
+
     expect(screen.getByText("Select Your Cards")).toBeInTheDocument();
     expect(screen.getByText("Suspects")).toBeInTheDocument();
     expect(screen.getByText("Weapons")).toBeInTheDocument();
@@ -22,9 +63,9 @@ describe("HandInput", () => {
 
   it("displays suspects, weapons, and rooms", () => {
     // Expects: The component should display all provided suspects, weapons, and rooms as checkboxes
-    const suspects = ["Miss Scarlet", "Colonel Mustard"];
-    const weapons = ["Candlestick", "Revolver"];
-    const rooms = ["Kitchen", "Library"];
+    const suspects = ALL_SUSPECTS;
+    const weapons = ALL_WEAPONS;
+    const rooms = ALL_ROOMS;
 
     render(
       <HandInput
@@ -32,7 +73,8 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
@@ -49,19 +91,18 @@ describe("HandInput", () => {
 
   it("displays section headers for suspects, weapons, and rooms", () => {
     // Expects: The component should display section headers for each card type
-    render(
-      <HandInput
-        suspects={["Miss Scarlet"]}
-        weapons={["Candlestick"]}
-        rooms={["Kitchen"]}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
+    DEFAULT_RENDER();
 
     expect(screen.getByText("Suspects")).toBeInTheDocument();
     expect(screen.getByText("Weapons")).toBeInTheDocument();
     expect(screen.getByText("Rooms")).toBeInTheDocument();
+  });
+
+  it("renders the Submit button", () => {
+    // Expects: The component should display a Submit button
+    DEFAULT_RENDER();
+
+    expect(screen.getByText("Submit")).toBeInTheDocument();
   });
 
   it("handles empty arrays gracefully", () => {
@@ -72,7 +113,8 @@ describe("HandInput", () => {
         weapons={[]}
         rooms={[]}
         onHandSubmit={() => {}}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
@@ -94,7 +136,8 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
@@ -116,7 +159,8 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
@@ -138,7 +182,8 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={() => {}}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
@@ -150,19 +195,7 @@ describe("HandInput", () => {
 
   it("toggles card selection on checkbox click", async () => {
     // Expects: Clicking a checkbox should toggle its checked state
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
-
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
+    DEFAULT_RENDER();
 
     const checkbox = screen.getByLabelText("Miss Scarlet");
     fireEvent.click(checkbox);
@@ -175,11 +208,11 @@ describe("HandInput", () => {
     expect(checkbox).not.toBeChecked();
   });
 
-  it("calls onHandSubmit with selected cards on submit", async () => {
-    // Expects: When cards are selected and Next is clicked, onHandSubmit should be called with the selected cards
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
+  it("calls onHandSubmit with multiple selected cards on submit", async () => {
+    // Use the full constants for suspects, weapons, and rooms as in the main app
+    const suspects = ALL_SUSPECTS;
+    const weapons = ALL_WEAPONS;
+    const rooms = ALL_ROOMS;
     const onHandSubmit = vi.fn();
 
     render(
@@ -188,24 +221,45 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
-    const checkbox = screen.getByLabelText("Miss Scarlet");
-    fireEvent.click(checkbox);
+    // Select 6 cards (all available)
+    const checkboxes = [
+      screen.getByLabelText("Miss Scarlet"),
+      screen.getByLabelText("Colonel Mustard"),
+      screen.getByLabelText("Candlestick"),
+      screen.getByLabelText("Revolver"),
+      screen.getByLabelText("Kitchen"),
+      screen.getByLabelText("Library"),
+    ];
+    checkboxes.forEach((cb) => fireEvent.click(cb));
 
-    const submitButton = screen.getByText("Next");
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).not.toBeDisabled();
     fireEvent.click(submitButton);
 
-    expect(onHandSubmit).toHaveBeenCalledWith(["Miss Scarlet"]);
+    // Should call onHandSubmit with the selected cards
+    expect(onHandSubmit).toHaveBeenCalledWith([
+      "Miss Scarlet",
+      "Colonel Mustard",
+      "Candlestick",
+      "Revolver",
+      "Kitchen",
+      "Library",
+    ]);
   });
 
   it("does not submit if no cards are selected", () => {
-    // Expects: When no cards are selected and Next is clicked, onHandSubmit should not be called
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
+    // Expects: When no cards are selected and Submit is clicked, onHandSubmit should not be called
+    const suspects = ALL_SUSPECTS;
+    const weapons = ALL_WEAPONS;
+    const rooms = ALL_ROOMS;
     const onHandSubmit = vi.fn();
 
     render(
@@ -214,215 +268,35 @@ describe("HandInput", () => {
         weapons={weapons}
         rooms={rooms}
         onHandSubmit={onHandSubmit}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
-    const submitButton = screen.getByText("Next");
+    const submitButton = screen.getByText("Submit");
     fireEvent.click(submitButton);
 
     expect(onHandSubmit).not.toHaveBeenCalled();
   });
 
-  it("handles multiple suspect selections correctly", () => {
-    // Expects: Multiple suspects can be selected and submitted together
-    const suspects = ["Miss Scarlet", "Colonel Mustard"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
-    const onHandSubmit = vi.fn();
+  it("disables the Submit button when no cards are selected", () => {
+    // Expects: The Submit button should be disabled when no cards are selected
+    DEFAULT_RENDER();
 
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={onHandSubmit}
-        onBack={()=>{}}
-      />
-    );
-
-    const scarletCheckbox = screen.getByLabelText("Miss Scarlet");
-    const mustardCheckbox = screen.getByLabelText("Colonel Mustard");
-
-    fireEvent.click(scarletCheckbox);
-    fireEvent.click(mustardCheckbox);
-
-    const submitButton = screen.getByText("Next");
-    fireEvent.click(submitButton);
-
-    expect(onHandSubmit).toHaveBeenCalledWith([
-      "Miss Scarlet",
-      "Colonel Mustard",
-    ]);
-  });
-
-  it("handles multiple weapon selections correctly", () => {
-    // Expects: Multiple weapons can be selected and submitted together
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick", "Revolver"];
-    const rooms = ["Kitchen"];
-    const onHandSubmit = vi.fn();
-
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={onHandSubmit}
-        onBack={()=>{}}
-      />
-    );
-
-    const candlestickCheckbox = screen.getByLabelText("Candlestick");
-    const revolverCheckbox = screen.getByLabelText("Revolver");
-
-    fireEvent.click(candlestickCheckbox);
-    fireEvent.click(revolverCheckbox);
-
-    const submitButton = screen.getByText("Next");
-    fireEvent.click(submitButton);
-
-    expect(onHandSubmit).toHaveBeenCalledWith(["Candlestick", "Revolver"]);
-  });
-
-  it("handles multiple room selections correctly", () => {
-    // Expects: Multiple rooms can be selected and submitted together
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen", "Library"];
-    const onHandSubmit = vi.fn();
-
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={onHandSubmit}
-        onBack={()=>{}}
-      />
-    );
-
-    const kitchenCheckbox = screen.getByLabelText("Kitchen");
-    const libraryCheckbox = screen.getByLabelText("Library");
-
-    fireEvent.click(kitchenCheckbox);
-    fireEvent.click(libraryCheckbox);
-
-    const submitButton = screen.getByText("Next");
-    fireEvent.click(submitButton);
-
-    expect(onHandSubmit).toHaveBeenCalledWith(["Kitchen", "Library"]);
-  });
-
-  it("handles selections across different card types", () => {
-    // Expects: Cards from different types (suspects, weapons, rooms) can be selected together
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
-    const onHandSubmit = vi.fn();
-
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={onHandSubmit}
-        onBack={()=>{}}
-      />
-    );
-
-    const scarletCheckbox = screen.getByLabelText("Miss Scarlet");
-    const candlestickCheckbox = screen.getByLabelText("Candlestick");
-    const kitchenCheckbox = screen.getByLabelText("Kitchen");
-
-    fireEvent.click(scarletCheckbox);
-    fireEvent.click(candlestickCheckbox);
-    fireEvent.click(kitchenCheckbox);
-
-    const submitButton = screen.getByText("Next");
-    fireEvent.click(submitButton);
-
-    expect(onHandSubmit).toHaveBeenCalledWith([
-      "Miss Scarlet",
-      "Candlestick",
-      "Kitchen",
-    ]);
-  });
-
-  it("renders the Next button", () => {
-    // Expects: The component should display a Next button
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
-
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
-
-    expect(screen.getByText("Next")).toBeInTheDocument();
-  });
-
-  it("disables the Next button when no cards are selected", () => {
-    // Expects: The Next button should be disabled when no cards are selected
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
-
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
-
-    const nextButton = screen.getByText("Next");
-    expect(nextButton).toBeDisabled();
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).toBeDisabled();
   });
 
   it("displays a message when no cards are selected", () => {
     // Expects: When no cards are selected, an error message should be displayed
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
-
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
+    DEFAULT_RENDER();
 
     const message = screen.getByText("Please select at least one card.");
     expect(message).toBeInTheDocument();
   });
 
   it("does not display the message when cards are selected", () => {
-    // Expects: When cards are selected, the error message should not be displayed
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
-
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
+    DEFAULT_RENDER();
 
     const checkbox = screen.getByLabelText("Miss Scarlet");
     fireEvent.click(checkbox);
@@ -431,129 +305,223 @@ describe("HandInput", () => {
     expect(message).not.toBeInTheDocument();
   });
 
-  it("enables button when at least one card is selected", () => {
-    // Expects: When at least one card is selected, the Next button should be enabled
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
+  it("enables button when the correct number of cards is selected", () => {
+    // Expects: Button should become enabled in a three-player game when 6 cards are selected
+    DEFAULT_RENDER();
 
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
+    // Select 6 cards
+    [
+      "Miss Scarlet",
+      "Colonel Mustard",
+      "Candlestick",
+      "Revolver",
+      "Kitchen",
+      "Library",
+    ].forEach((card) => {
+      const checkbox = screen.getByLabelText(card);
+      fireEvent.click(checkbox);
+    });
 
-    const checkbox = screen.getByLabelText("Miss Scarlet");
-    fireEvent.click(checkbox);
-
-    const nextButton = screen.getByText("Next");
-    expect(nextButton).not.toBeDisabled();
+    // Wait for throttling to ensure state updates
+    // (HandInput throttles checkbox clicks)
+    // eslint-disable-next-line no-promise-executor-return
+    return new Promise((resolve) => setTimeout(resolve, 150)).then(() => {
+      const submitButton = screen.getByText("Submit");
+      expect(submitButton).not.toBeDisabled();
+    });
   });
 
-  it("disables button when all cards are deselected", async () => {
-    // Expects: When all cards are deselected, the Next button should be disabled
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
+  it("disables button when less than the expected number of cards is selected", async () => {
+    // Expects: button should become disabled in a three-player game when the number of selected cards goes from 6 to 5
+    DEFAULT_RENDER();
 
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
+    // Select 6 cards
+    [
+      "Miss Scarlet",
+      "Colonel Mustard",
+      "Candlestick",
+      "Revolver",
+      "Kitchen",
+      "Library",
+    ].forEach((card) => {
+      const checkbox = screen.getByLabelText(card);
+      fireEvent.click(checkbox);
+    });
 
-    const checkbox = screen.getByLabelText("Miss Scarlet");
-    fireEvent.click(checkbox); // Select the card
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    // Deselect one card (now 5 selected)
+    const checkboxToDeselect = screen.getByLabelText("Library");
+    fireEvent.click(checkboxToDeselect);
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("disables button when more than the expected number of cards is selected", async () => {
+    // Expects: button should become disabled in a three-player game when the number of selected cards goes from 6 to 7
+    DEFAULT_RENDER();
+
+    // Select all 7 cards
+    [
+      "Miss Scarlet",
+      "Colonel Mustard",
+      "Professor Plum",
+      "Candlestick",
+      "Revolver",
+      "Kitchen",
+      "Library",
+    ].forEach((card) => {
+      const checkbox = screen.getByLabelText(card);
+      fireEvent.click(checkbox);
+    });
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("maintains selection state when toggling other cards", async () => {
+    // Expects: Selecting/deselecting one card should not affect the selection state of other cards,
+    // but submit should only be enabled if exactly 6 cards are selected in a three-player game.
+    // This test verifies that selection state is independent.
+    const onHandSubmit = vi.fn();
+    DEFAULT_RENDER({ onHandSubmit });
+
+    // Select all 6 cards
+    const scarletCheckbox = screen.getByLabelText("Miss Scarlet");
+    const mustardCheckbox = screen.getByLabelText("Colonel Mustard");
+    const candlestickCheckbox = screen.getByLabelText("Candlestick");
+    const revolverCheckbox = screen.getByLabelText("Revolver");
+    const kitchenCheckbox = screen.getByLabelText("Kitchen");
+    const libraryCheckbox = screen.getByLabelText("Library");
+    const plumCheckbox = screen.getByLabelText("Professor Plum");
+
+    fireEvent.click(scarletCheckbox);
+    fireEvent.click(mustardCheckbox);
+    fireEvent.click(candlestickCheckbox);
+    fireEvent.click(revolverCheckbox);
+    fireEvent.click(kitchenCheckbox);
+    fireEvent.click(libraryCheckbox);
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    // All clicked ones should be checked
+    expect(scarletCheckbox).toBeChecked();
+    expect(mustardCheckbox).toBeChecked();
+    expect(candlestickCheckbox).toBeChecked();
+    expect(revolverCheckbox).toBeChecked();
+    expect(kitchenCheckbox).toBeChecked();
+    expect(libraryCheckbox).toBeChecked();
+    expect(plumCheckbox).not.toBeChecked();
+
+    // Deselect one card
+    fireEvent.click(scarletCheckbox);
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    expect(scarletCheckbox).not.toBeChecked();
+    // The rest should still be checked
+    expect(mustardCheckbox).toBeChecked();
+    expect(candlestickCheckbox).toBeChecked();
+    expect(revolverCheckbox).toBeChecked();
+    expect(kitchenCheckbox).toBeChecked();
+    expect(libraryCheckbox).toBeChecked();
+
+    // Submit should be disabled because only 5 cards are selected
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).toBeDisabled();
+
+    // Select another card to make 6 again
+    fireEvent.click(plumCheckbox);
 
     // Wait for throttling
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    fireEvent.click(checkbox); // Deselect the card
+    // Now all 6 should be checked and submit enabled
+    expect(plumCheckbox).toBeChecked();
+    expect(submitButton).not.toBeDisabled();
 
-    const nextButton = screen.getByText("Next");
-    expect(nextButton).toBeDisabled();
+    // Submit should call onHandSubmit with all 6 cards
+    fireEvent.click(submitButton);
+    expect(onHandSubmit).toHaveBeenCalledWith([
+      "Colonel Mustard",
+      "Candlestick",
+      "Revolver",
+      "Kitchen",
+      "Library",
+      "Professor Plum",
+    ]);
   });
 
-  it("maintains selection state when toggling other cards", async () => {
-    // Expects: Selecting/deselecting one card should not affect the selection state of other cards
-    const suspects = ["Miss Scarlet", "Colonel Mustard"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
+  it("handles rapid checkbox clicks correctly", async () => {
+    // Expects: Rapid clicking on checkboxes should maintain correct selection state,
+    // but submit should only be enabled when exactly 6 cards are selected.
+    // This test now verifies that rapid clicks do not allow submit unless 6 cards are selected.
     const onHandSubmit = vi.fn();
+    DEFAULT_RENDER({ onHandSubmit });
 
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={onHandSubmit}
-        onBack={()=>{}}
-      />
-    );
+    // Rapidly click all checkboxes in sequence, then again to toggle off, then on again
+    const checkboxes = [
+      screen.getByLabelText("Miss Scarlet"),
+      screen.getByLabelText("Colonel Mustard"),
+      screen.getByLabelText("Mrs. White"),
+      screen.getByLabelText("Candlestick"),
+      screen.getByLabelText("Revolver"),
+      screen.getByLabelText("Kitchen"),
+    ];
 
-    const scarletCheckbox = screen.getByLabelText("Miss Scarlet");
-    const mustardCheckbox = screen.getByLabelText("Colonel Mustard");
+    // Rapidly select all
+    checkboxes.forEach((cb) => fireEvent.click(cb));
 
-    // Select both cards
-    fireEvent.click(scarletCheckbox);
-    fireEvent.click(mustardCheckbox);
-    expect(scarletCheckbox).toBeChecked();
-    expect(mustardCheckbox).toBeChecked();
-
-    // Wait for throttling before deselecting
+    // Wait for throttling to ensure state updates
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    // Deselect one card
-    fireEvent.click(scarletCheckbox);
-    expect(scarletCheckbox).not.toBeChecked();
-    expect(mustardCheckbox).toBeChecked(); // Should still be selected
+    // All should be checked
+    checkboxes.forEach((cb) => expect(cb).toBeChecked());
 
-    const submitButton = screen.getByText("Next");
+    // Submit should now be enabled (6 selected)
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).not.toBeDisabled();
+
+    // Rapidly deselect all
+    checkboxes.forEach((cb) => fireEvent.click(cb));
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    // All should be unchecked
+    checkboxes.forEach((cb) => expect(cb).not.toBeChecked());
+    // Submit should be disabled
+    expect(submitButton).toBeDisabled();
+
+    // Rapidly select all again
+    checkboxes.forEach((cb) => fireEvent.click(cb));
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    checkboxes.forEach((cb) => expect(cb).toBeChecked());
+    expect(submitButton).not.toBeDisabled();
+
+    // Submit should call onHandSubmit with all 6 cards
     fireEvent.click(submitButton);
-
-    expect(onHandSubmit).toHaveBeenCalledWith(["Colonel Mustard"]);
-  });
-
-  it("handles rapid checkbox clicks correctly", () => {
-    // Expects: Rapid clicking on checkboxes should maintain correct selection state
-    const suspects = ["Miss Scarlet"];
-    const weapons = ["Candlestick"];
-    const rooms = ["Kitchen"];
-    const onHandSubmit = vi.fn();
-
-    render(
-      <HandInput
-        suspects={suspects}
-        weapons={weapons}
-        rooms={rooms}
-        onHandSubmit={onHandSubmit}
-        onBack={()=>{}}
-      />
-    );
-
-    const checkbox = screen.getByLabelText("Miss Scarlet");
-
-    // Rapid clicks
-    fireEvent.click(checkbox);
-    fireEvent.click(checkbox);
-    fireEvent.click(checkbox);
-    fireEvent.click(checkbox);
-
-    // Should end up selected (even number of clicks = deselected, odd = selected)
-    expect(checkbox).toBeChecked();
-
-    const submitButton = screen.getByText("Next");
-    fireEvent.click(submitButton);
-
-    expect(onHandSubmit).toHaveBeenCalledWith(["Miss Scarlet"]);
+    expect(onHandSubmit).toHaveBeenCalledWith([
+      "Miss Scarlet",
+      "Colonel Mustard",
+      "Mrs. White",
+      "Candlestick",
+      "Revolver",
+      "Kitchen",
+    ]);
   });
 
   it("logs an error and warns the user if onHandSubmit throws an error", () => {
@@ -569,19 +537,30 @@ describe("HandInput", () => {
 
     render(
       <HandInput
-        suspects={["Miss Scarlet", "Colonel Mustard"]}
-        weapons={["Candlestick"]}
-        rooms={["Kitchen"]}
+        suspects={ALL_SUSPECTS}
+        weapons={ALL_WEAPONS}
+        rooms={ALL_ROOMS}
         onHandSubmit={mockOnHandSubmit}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
     // Select Miss Scarlet
     const scarletCheckbox = screen.getByLabelText("Miss Scarlet");
+    const mustardCheckbox = screen.getByLabelText("Colonel Mustard");
+    const candlestickCheckbox = screen.getByLabelText("Candlestick");
+    const daggerCheckbox = screen.getByLabelText("Dagger");
+    const kitchenCheckbox = screen.getByLabelText("Kitchen");
+    const libraryCheckbox = screen.getByLabelText("Library");
     fireEvent.click(scarletCheckbox);
+    fireEvent.click(mustardCheckbox);
+    fireEvent.click(candlestickCheckbox);
+    fireEvent.click(daggerCheckbox);
+    fireEvent.click(kitchenCheckbox);
+    fireEvent.click(libraryCheckbox);
 
-    const submitButton = screen.getByText("Next");
+    const submitButton = screen.getByText("Submit");
     fireEvent.click(submitButton);
 
     expect(errorSpy).toHaveBeenCalledWith(
@@ -605,7 +584,8 @@ describe("HandInput", () => {
         weapons={undefined as any}
         rooms={"not an array" as any}
         onHandSubmit={() => {}}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
@@ -632,37 +612,6 @@ describe("HandInput", () => {
     warnSpy.mockRestore();
   });
 
-  it("throws an error if card selection fails for any reason", () => {
-    // Expects: When card selection state management fails (e.g., memory issues, invalid card names),
-    // the component should catch the error, log it, and handle it gracefully without crashing
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    // Create a component with a problematic card name that might cause issues
-    render(
-      <HandInput
-        suspects={["Miss Scarlet"]}
-        weapons={["Candlestick"]}
-        rooms={["Kitchen"]}
-        onHandSubmit={() => {}}
-        onBack={()=>{}}
-      />
-    );
-
-    const checkbox = screen.getByLabelText("Miss Scarlet");
-
-    // Test that the component handles card selection gracefully
-    // The try-catch block in handleCardToggle should prevent any errors from crashing the component
-    fireEvent.click(checkbox);
-
-    // Component should still be functional even if there were any internal errors
-    expect(screen.getByText("Select Your Cards")).toBeInTheDocument();
-    expect(checkbox).toBeInTheDocument();
-
-    // The error handling is defensive - it should prevent crashes even if errors occur
-    // We're testing that the component remains stable, not that errors are thrown
-    errorSpy.mockRestore();
-  });
-
   it("warns the user when arrays are too large", () => {
     // Expects: When suspects, weapons, or rooms arrays are very large (e.g., >100 items),
     // the component should log a warning about potential performance issues but still function
@@ -685,7 +634,8 @@ describe("HandInput", () => {
         weapons={largeWeapons}
         rooms={largeRooms}
         onHandSubmit={() => {}}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
@@ -732,7 +682,8 @@ describe("HandInput", () => {
         weapons={weaponsWithInvalid as any}
         rooms={roomsWithInvalid as any}
         onHandSubmit={() => {}}
-        onBack={()=>{}}
+        onBack={() => {}}
+        players={["A", "B", "C"]}
       />
     );
 
@@ -749,5 +700,104 @@ describe("HandInput", () => {
     // This test documents the current behavior until invalid card name filtering is implemented
 
     warnSpy.mockRestore();
+  });
+
+  it("allows valid hand size for 4 players (4 or 5 cards)", async () => {
+    const onHandSubmit = vi.fn();
+    DEFAULT_RENDER({ players: ["A", "B", "C", "D"], onHandSubmit });
+
+    // Select 4 cards (valid)
+    ["Miss Scarlet", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
+      (card) => {
+        fireEvent.click(screen.getByLabelText(card));
+      }
+    );
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).not.toBeDisabled();
+    fireEvent.click(submitButton);
+    expect(onHandSubmit).toHaveBeenCalled();
+
+    // Clear previous selections and select 5 cards (also valid)
+    // First deselect the 4 cards we just selected
+    ["Miss Scarlet", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
+      (card) => {
+        fireEvent.click(screen.getByLabelText(card));
+      }
+    );
+
+    // Wait for throttling
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    // Now select 5 different cards
+    [
+      "Miss Scarlet",
+      "Colonel Mustard",
+      "Candlestick",
+      "Kitchen",
+      "Library",
+    ].forEach((card) => {
+      fireEvent.click(screen.getByLabelText(card));
+    });
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(submitButton).not.toBeDisabled();
+  });
+
+  it("allows valid hand size for 5 players (3 or 4 cards)", async () => {
+    const onHandSubmit = vi.fn();
+    DEFAULT_RENDER({ players: ["A", "B", "C", "D", "E"], onHandSubmit });
+
+    // Select 3 cards (valid)
+    ["Miss Scarlet", "Candlestick", "Kitchen"].forEach((card) => {
+      fireEvent.click(screen.getByLabelText(card));
+    });
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).not.toBeDisabled();
+    fireEvent.click(submitButton);
+    expect(onHandSubmit).toHaveBeenCalled();
+
+    // Clear previous selections and select 4 cards (also valid)
+    // First deselect the 3 cards we just selected
+    ["Miss Scarlet", "Candlestick", "Kitchen"].forEach((card) => {
+      fireEvent.click(screen.getByLabelText(card));
+    });
+
+    // Wait for throttling
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    // Now select 4 different cards
+    ["Miss Scarlet", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
+      (card) => {
+        fireEvent.click(screen.getByLabelText(card));
+      }
+    );
+
+    // Wait for throttling to ensure state updates
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(submitButton).not.toBeDisabled();
+  });
+
+  it("allows valid hand size for 6 players (3 cards)", async () => {
+    const onHandSubmit = vi.fn();
+    DEFAULT_RENDER({ players: ["A", "B", "C", "D", "E", "F"], onHandSubmit });
+
+    // Select 3 cards (valid)
+    ["Miss Scarlet", "Candlestick", "Kitchen"].forEach((card) => {
+      fireEvent.click(screen.getByLabelText(card));
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).not.toBeDisabled();
+    fireEvent.click(submitButton);
+    expect(onHandSubmit).toHaveBeenCalled();
   });
 });

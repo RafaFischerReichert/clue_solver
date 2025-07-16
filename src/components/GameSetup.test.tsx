@@ -522,4 +522,20 @@ describe("GameSetup", () => {
 
     expect(mockOnGameStart).not.toHaveBeenCalled();
   });
+
+  it("preserves player order as entered and passes it to onGameStart", () => {
+    const mockOnGameStart = vi.fn();
+    render(<GameSetup onGameStart={mockOnGameStart} />);
+    const playerInput = screen.getByLabelText(/player names/i);
+    fireEvent.change(playerInput, { target: { value: "Charlie\nAlice\nBob" } });
+    const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
+    fireEvent.change(yourPlayerNameInput, { target: { value: "Charlie" } });
+    const startButton = screen.getByText(/next/i);
+    fireEvent.click(startButton);
+    expect(mockOnGameStart).toHaveBeenCalledWith([
+      "Charlie",
+      "Alice",
+      "Bob"
+    ], "Charlie");
+  });
 });

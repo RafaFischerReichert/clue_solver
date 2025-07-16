@@ -56,7 +56,7 @@ describe("GameLogic", () => {
       });
     });
 
-    it("initalizes all other players as unknown", () => {
+    it("initializes all other players as false for cards in our hand, otherwise unknown", () => {
       const knowledge = initializeKnowledgeBase(
         mockYourHand,
         mockAllCards,
@@ -67,10 +67,14 @@ describe("GameLogic", () => {
         knowledge.forEach((card) => {
           if (player === mockCurrentUser) {
             // For the current user, should be true if in hand, false if not
-            expect(card.inPlayersHand[player]).toBe(card.inYourHand ? true : false);
+            expect(card.inPlayersHand[player]).toBe(
+              card.inYourHand ? true : false
+            );
           } else {
-            // For other players, should be null
-            expect(card.inPlayersHand[player]).toBe(null);
+            // For other players, should be false if card is in our hand, otherwise null
+            expect(card.inPlayersHand[player]).toBe(
+              card.inYourHand ? false : null
+            );
           }
         });
       });
@@ -103,11 +107,9 @@ describe("GameLogic", () => {
       );
       knowledge.forEach((card) => {
         expect(card.inSolution).toBeNull();
-        if (card.inYourHand) {
-          expect(card.eliminatedFromSolution).toBe(true);
-        } else {
-          expect(card.eliminatedFromSolution).toBe(false);
-        }
+        expect(card.eliminatedFromSolution).toBe(
+          card.inYourHand ? true : false
+        );
       });
     });
 
@@ -188,7 +190,12 @@ describe("GameLogic", () => {
       // This test would check if the function can handle cases where
       // the players array is empty.
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const knowledge = initializeKnowledgeBase(mockYourHand, mockAllCards, [], mockCurrentUser);
+      const knowledge = initializeKnowledgeBase(
+        mockYourHand,
+        mockAllCards,
+        [],
+        mockCurrentUser
+      );
       // Expect: inPlayersHand is an empty object for each card
       expect(
         knowledge.every((k) => Object.keys(k.inPlayersHand).length === 0)
@@ -862,19 +869,30 @@ describe("GameLogic", () => {
       };
       const players = ["Alice", "Charlie"];
       const yourHand: string[] = [];
-      let knowledge = initializeKnowledgeBase(yourHand, allCards, players, "Charlie");
+      let knowledge = initializeKnowledgeBase(
+        yourHand,
+        allCards,
+        players,
+        "Charlie"
+      );
       // Mark Alice as definitely not having Miss Scarlet and Candlestick
       knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlet", "Alice");
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
       // Debug: Ensure uniqueRoom is still unknown for Alice
-      const roomCard = knowledge.find(k => k.cardName === uniqueRoom);
-      if (!roomCard) throw new Error("UniqueRoom card not found in knowledge base");
+      const roomCard = knowledge.find((k) => k.cardName === uniqueRoom);
+      if (!roomCard)
+        throw new Error("UniqueRoom card not found in knowledge base");
       if (roomCard.inPlayersHand["Alice"] !== null) {
-        throw new Error(`Test setup error: UniqueRoom for Alice should be unknown (null), but got ${roomCard.inPlayersHand["Alice"]}`);
+        throw new Error(
+          `Test setup error: UniqueRoom for Alice should be unknown (null), but got ${roomCard.inPlayersHand["Alice"]}`
+        );
       }
       const result = analyzePlayerTuples(tuples, knowledge);
       // Only the new deduction should be present:
-      expect(result.definitelyHas).toContainEqual({ playerName: "Alice", cardName: uniqueRoom });
+      expect(result.definitelyHas).toContainEqual({
+        playerName: "Alice",
+        cardName: uniqueRoom,
+      });
       expect(result.likelyHas).not.toContain("Miss Scarlet");
       expect(result.likelyHas).not.toContain("Candlestick");
     });
@@ -905,7 +923,12 @@ describe("GameLogic", () => {
         rooms: ["C"],
       };
       const yourHand: string[] = [];
-      let knowledge = initializeKnowledgeBase(yourHand, allCards, players, "Charlie");
+      let knowledge = initializeKnowledgeBase(
+        yourHand,
+        allCards,
+        players,
+        "Charlie"
+      );
       // Mark Alice as definitely not having A
       knowledge = markCardNotInPlayerHand(knowledge, "A", "Alice");
       // Analyze tuples
@@ -925,7 +948,12 @@ describe("GameLogic", () => {
         rooms: ["U", "V", "W", "X", "Y", "Z", "AA", "BB", "CC", "DD"],
       };
       const yourHand: string[] = [];
-      const knowledge = initializeKnowledgeBase(yourHand, allCards, players, mockCurrentUser);
+      const knowledge = initializeKnowledgeBase(
+        yourHand,
+        allCards,
+        players,
+        mockCurrentUser
+      );
       const tuples: PlayerCardTuples[] = [];
       for (let i = 0; i < 10; i++) {
         tuples.push({
@@ -1169,11 +1197,21 @@ describe("GameLogic", () => {
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
       // Alice should not have Kitchen
-      expect(updated.find((k) => k.cardName === "Kitchen")?.inPlayersHand["Alice"]).toBe(false); // Updated: new logic does not deduce Alice has Kitchen
+      expect(
+        updated.find((k) => k.cardName === "Kitchen")?.inPlayersHand["Alice"]
+      ).toBe(false); // Updated: new logic does not deduce Alice has Kitchen
       // Bob should not have Colonel Mustard, Dagger, Ballroom
-      expect(updated.find((k) => k.cardName === "Colonel Mustard")?.inPlayersHand["Bob"]).toBe(false);
-      expect(updated.find((k) => k.cardName === "Dagger")?.inPlayersHand["Bob"]).toBe(false);
-      expect(updated.find((k) => k.cardName === "Ballroom")?.inPlayersHand["Bob"]).toBe(false);
+      expect(
+        updated.find((k) => k.cardName === "Colonel Mustard")?.inPlayersHand[
+          "Bob"
+        ]
+      ).toBe(false);
+      expect(
+        updated.find((k) => k.cardName === "Dagger")?.inPlayersHand["Bob"]
+      ).toBe(false);
+      expect(
+        updated.find((k) => k.cardName === "Ballroom")?.inPlayersHand["Bob"]
+      ).toBe(false);
     });
 
     it("does not overwrite existing definite knowledge with the same value", () => {
@@ -1298,9 +1336,13 @@ describe("GameLogic", () => {
         mockCurrentUser
       );
       const cardName = "Colonel Mustard";
-      const updatedKnowledge = checkForSolution(knowledge);
+      // Mark all players as not having Colonel Mustard
+      let updated = knowledge;
+      mockPlayers.forEach(player => {
+        updated = markCardNotInPlayerHand(updated, cardName, player);
+      });
+      const updatedKnowledge = checkForSolution(updated);
       const cardInfo = updatedKnowledge.find((k) => k.cardName === cardName);
-
       expect(cardInfo).toBeDefined();
       expect(cardInfo?.inSolution).toBe(true);
     });

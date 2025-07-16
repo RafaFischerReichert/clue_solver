@@ -81,7 +81,8 @@ export const initializeKnowledgeBase = (
       if (player === currentUser) {
         inPlayersHand[player] = isInYourHand ? true : false;
       } else {
-        inPlayersHand[player] = null;
+        // If the card is in your hand, no other player can have it
+        inPlayersHand[player] = isInYourHand ? false : null;
       }
     });
     knowledgeBase.push({
@@ -457,3 +458,42 @@ export const checkForSolution = (
   });
   return knowledge;
 };
+
+// Utility: Given number of players, return possible hand sizes (sorted, smallest first)
+export function getPossibleHandSizes(numPlayers: number): number[] {
+  if (numPlayers === 3) return [6];
+  if (numPlayers === 4) return [4, 5];
+  if (numPlayers === 5) return [3, 4];
+  if (numPlayers === 6) return [3];
+  throw new Error("Unsupported number of players");
+}
+
+// Utility: Given a card name, knowledge base, and players, return all possible locations (players or 'solution') where the card could be, consistent with current knowledge.
+export function getPossibleCardLocations(
+  cardName: string,
+  knowledge: CardKnowledge[],
+  players: string[]
+): string[] {
+  const cardInfo = knowledge.find((k) => k.cardName === cardName);
+  // If the card is known to be in the solution, return only ['solution']
+  if (cardInfo && cardInfo.inSolution === true) {
+    return ["solution"];
+  }
+  const locations: string[] = [];
+  // Players
+  for (const player of players) {
+    if (cardInfo && cardInfo.inPlayersHand) {
+      if (cardInfo.inPlayersHand[player] === false) continue;
+    }
+    locations.push(player);
+  }
+  // Solution
+  if (cardInfo) {
+    if (cardInfo.inSolution !== false) {
+      locations.push("solution");
+    }
+  } else {
+    locations.push("solution");
+  }
+  return locations;
+}

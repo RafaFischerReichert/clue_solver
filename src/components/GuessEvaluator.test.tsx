@@ -6,25 +6,26 @@ import { CardKnowledge } from './GameLogic';
 
 describe('GuessEvaluator', () => {
   it('renders without crashing', () => {
-    render(<GuessEvaluator />); // No props required for now
+    // Minimal valid props
+    const accessibleRooms = ['Kitchen'];
+    const suspects = ['Plum'];
+    const weapons = ['Rope'];
+    const minimalCardKnowledge: CardKnowledge = {} as CardKnowledge;
+    const playerOrder = ['Alice', 'Bob', 'Charlie'];
+    const gameState: GameState = { knowledge: minimalCardKnowledge, previousGuesses: [], playerOrder };
+    render(
+      <GuessEvaluator
+        accessibleRooms={accessibleRooms}
+        suspects={suspects}
+        weapons={weapons}
+        gameState={gameState}
+        playerOrder={playerOrder}
+      />
+    );
     expect(screen.getByText('Guess Evaluator')).toBeInTheDocument();
+    // Check player order is rendered
+    expect(screen.getByTestId('player-order')).toHaveTextContent('Player Order: Alice, Bob, Charlie');
   });
 
-  // LOGIC TEST SKELETON
-  it('findOptimalGuess returns a guess in the correct format (skeleton)', () => {
-    // Mock implementation of findOptimalGuess
-    const mockFindOptimalGuess: (accessibleRooms: string[], gameState: GameState) => OptimalGuessResult = (accessibleRooms, gameState) => ({
-      guess: { room: accessibleRooms[0], suspect: 'Plum', weapon: 'Rope' },
-      entropyGain: 1.0,
-      tieBroken: false,
-    });
-    // Example input
-    const accessibleRooms = ['Kitchen'];
-    const minimalCardKnowledge: CardKnowledge = {} as CardKnowledge; // Replace with a valid minimal object if needed
-    const gameState: GameState = { knowledge: minimalCardKnowledge, previousGuesses: [] };
-    const result = mockFindOptimalGuess(accessibleRooms, gameState);
-    expect(result).toHaveProperty('guess');
-    expect(result).toHaveProperty('entropyGain');
-    expect(result).toHaveProperty('tieBroken');
-  });
+  // Logic test (to be determined)
 }); 

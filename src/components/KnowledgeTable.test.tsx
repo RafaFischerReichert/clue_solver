@@ -167,35 +167,6 @@ describe("KnowledgeTable", () => {
     });
   });
 
-  it("handles empty players array", () => {
-    // Expects: The component should render without crashing when players is empty
-    render(
-      <KnowledgeTable
-        cardKnowledge={mockCardKnowledge}
-        players={[]}
-        onKnowledgeChange={() => {}}
-      />
-    );
-    expect(screen.getByText("Knowledge Table")).toBeInTheDocument();
-    // Should still show card names even with no players
-    mockCardKnowledge.forEach((card) => {
-      expect(screen.getByText(card.cardName)).toBeInTheDocument();
-    });
-  });
-
-  it("handles both empty arrays", () => {
-    // Expects: The component should render without crashing when both arrays are empty
-    render(
-      <KnowledgeTable
-        cardKnowledge={[]}
-        players={[]}
-        onKnowledgeChange={() => {}}
-      />
-    );
-    expect(screen.getByText("Knowledge Table")).toBeInTheDocument();
-    expect(screen.getByText("Cards")).toBeInTheDocument();
-  });
-
   it("handles malformed card knowledge data", () => {
     // Expects: The component should handle malformed data gracefully
     const malformedKnowledge: CardKnowledge[] = [

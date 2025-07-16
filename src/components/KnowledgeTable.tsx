@@ -1,5 +1,6 @@
 import React from "react";
 import { CardKnowledge } from "./GameLogic";
+import { getPossibleHandSizes } from "./GameLogic";
 
 interface KnowledgeTableProps {
   cardKnowledge: CardKnowledge[];
@@ -29,16 +30,50 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
     cardKnowledge = [];
   }
 
+  let possibleHandSizes: number[] = [];
+  let handSizeError: string | null = null;
+  try {
+    possibleHandSizes = getPossibleHandSizes(players.length);
+  } catch (e) {
+    handSizeError = (e instanceof Error) ? e.message : String(e);
+    console.warn("KnowledgeTable: ", handSizeError);
+  }
+
+  // Compute known card counts for each player
+  const knownCardCounts: Record<string, number> = {};
+  players.forEach(player => {
+    knownCardCounts[player] = cardKnowledge.filter(card => card.inPlayersHand[player] === true).length;
+  });
+
   // Implementation of the KnowledgeTable component
+  if (handSizeError) {
+    return (
+      <div>
+        <h2>Knowledge Table</h2>
+        <div style={{ color: 'red', marginBottom: 8 }}>
+          Error: {handSizeError}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2>Knowledge Table</h2>
+      <div style={{ marginBottom: 8 }}>
+        <strong>Possible hand sizes per player:</strong> {possibleHandSizes.join(" or ")}
+      </div>
       <table className="knowledge-table">
         <thead>
           <tr>
             <th>Cards</th>
             {players.map((player) => (
-              <th key={player}>{player}</th>
+              <th key={player}>
+                {player}
+                <span style={{ fontWeight: 'normal', color: '#888', marginLeft: 4 }}>
+                  ({knownCardCounts[player]})
+                </span>
+              </th>
             ))}
           </tr>
         </thead>

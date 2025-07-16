@@ -63,7 +63,7 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
       <div style={{ marginBottom: 8 }}>
         <strong>Possible hand sizes per player:</strong> {possibleHandSizes.join(" or ")}
       </div>
-      <table className="knowledge-table">
+      <table className="knowledge-table-dark">
         <thead>
           <tr>
             <th>Cards</th>
@@ -79,7 +79,7 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
         </thead>
         <tbody>
           {cardKnowledge.map((card) => (
-            <tr key={card.cardName}>
+            <tr key={card.cardName} className={`category-${card.category}`}>
               <td>{card.cardName}</td>
               {players.map((player) => {
                 // If card is in your hand, show "Hand"

@@ -391,15 +391,15 @@ function App() {
               })
               .join(", ")}
           </div>
-          <div style={{ display: "flex", alignItems: "flex-start", width: "100%", maxWidth: 1200, gap: 32 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="knowledge-table-container">
+            <div className="knowledge-table-section">
               <KnowledgeTable
                 cardKnowledge={cardKnowledge}
                 players={gameData.players}
                 onKnowledgeChange={setCardKnowledge}
               />
             </div>
-            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div className="game-controls-section">
               <GuessForm
                 suspects={gameData.suspects}
                 weapons={gameData.weapons}
@@ -439,6 +439,13 @@ function App() {
                   onClick={() => {
                     setLoading(true);
                     setWorkerResult(null);
+                    
+                    // Get current accessible rooms before clearing them
+                    const currentAccessibleRooms = accessibleRooms.length > 0 ? accessibleRooms : gameData.rooms;
+                    
+                    // Clear accessible rooms to facilitate next evaluation
+                    setAccessibleRooms([]);
+                    
                     // Improved guess generation logic
                     const getGuessOptions = (
                       category: "suspect" | "weapon" | "room",
@@ -468,7 +475,7 @@ function App() {
                       gameData.suspects
                     );
                     const weapons = getGuessOptions("weapon", gameData.weapons);
-                    const rooms = getGuessOptions("room", accessibleRooms);
+                    const rooms = getGuessOptions("room", currentAccessibleRooms);
                     let allGuesses: Guess[] = [];
                     rooms.forEach((room) => {
                       suspects.forEach((suspect) => {

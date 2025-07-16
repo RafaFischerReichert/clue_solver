@@ -446,18 +446,88 @@ export const updateKnowledgeWithDeductions = (
 export const checkForSolution = (
   knowledge: CardKnowledge[]
 ): CardKnowledge[] => {
+  console.log("=== checkForSolution called ===");
+  console.log("Knowledge:", knowledge);
+  
   // First, find all cards that should be marked as inSolution: true
   const solutionCards: { cardName: string; category: string }[] = [];
-  knowledge.forEach(card => {
-    if (
-      !card.inYourHand &&
-      Object.values(card.inPlayersHand).every(hasCard => hasCard === false)
-    ) {
-      card.inSolution = true;
-      card.eliminatedFromSolution = false;
-      solutionCards.push({ cardName: card.cardName, category: card.category });
+  
+  // Group cards by category
+  const cardsByCategory = knowledge.reduce((acc, card) => {
+    if (!acc[card.category]) {
+      acc[card.category] = [];
     }
+    acc[card.category].push(card);
+    return acc;
+  }, {} as Record<string, CardKnowledge[]>);
+  
+  console.log("Cards by category:", cardsByCategory);
+  
+  // Check each category
+  Object.entries(cardsByCategory).forEach(([category, cards]) => {
+    console.log(`\nChecking category: ${category}`);
+    console.log(`Cards in category:`, cards.map(c => c.cardName));
+    
+    // Count how many cards in this category are known to be in players' hands
+    const cardsInPlayersHands = cards.filter(card => {
+      // Get all players except the current user
+      const otherPlayers = Object.keys(card.inPlayersHand).filter(player => 
+        card.inPlayersHand[player] !== true
+      );
+      // Check if any other player has this card
+      return otherPlayers.some(player => card.inPlayersHand[player] === true);
+    });
+    
+    console.log(`Cards known to be in players' hands:`, cardsInPlayersHands.map(c => c.cardName));
+    
+    // If all cards except one are known to be in players' hands, the remaining one must be in the solution
+    if (cardsInPlayersHands.length === cards.length - 1) {
+      const remainingCard = cards.find(card => {
+        const otherPlayers = Object.keys(card.inPlayersHand).filter(player => 
+          card.inPlayersHand[player] !== true
+        );
+        return !otherPlayers.some(player => card.inPlayersHand[player] === true);
+      });
+      
+      if (remainingCard && !remainingCard.inYourHand) {
+        console.log(`  => Marking ${remainingCard.cardName} as solution card (all others in category are in players' hands)`);
+        remainingCard.inSolution = true;
+        remainingCard.eliminatedFromSolution = false;
+        solutionCards.push({ cardName: remainingCard.cardName, category: remainingCard.category });
+      }
+    }
+    
+    // Also check the original logic: if a card is not in your hand and no other player has it
+    cards.forEach(card => {
+      console.log(`\nChecking card: ${card.cardName}`);
+      console.log(`  inYourHand: ${card.inYourHand}`);
+      console.log(`  inPlayersHand:`, card.inPlayersHand);
+      
+      // Get all players except the current user (who we know can't have solution cards)
+      const otherPlayers = Object.keys(card.inPlayersHand).filter(player => 
+        card.inPlayersHand[player] !== true // Exclude current user (who has inYourHand cards marked as true)
+      );
+      
+      console.log(`  Other players (excluding current user):`, otherPlayers);
+      console.log(`  Other players' card status:`, otherPlayers.map(player => ({ player, hasCard: card.inPlayersHand[player] })));
+      console.log(`  All other players don't have it:`, otherPlayers.every(player => card.inPlayersHand[player] === false));
+      
+      if (
+        !card.inYourHand &&
+        otherPlayers.every(player => card.inPlayersHand[player] === false)
+      ) {
+        console.log(`  => Marking ${card.cardName} as solution card (no one has it)`);
+        card.inSolution = true;
+        card.eliminatedFromSolution = false;
+        solutionCards.push({ cardName: card.cardName, category: card.category });
+      } else {
+        console.log(`  => NOT marking ${card.cardName} as solution card`);
+      }
+    });
   });
+  
+  console.log("Solution cards found:", solutionCards);
+  
   // For each found solution card, mark all other cards in the same category as not in the solution
   solutionCards.forEach(({ cardName, category }) => {
     knowledge.forEach(card => {
@@ -467,6 +537,10 @@ export const checkForSolution = (
       }
     });
   });
+  
+  console.log("Final knowledge:", knowledge);
+  console.log("=== checkForSolution finished ===");
+  
   return knowledge;
 };
 

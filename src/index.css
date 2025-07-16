@@ -204,41 +204,6 @@ input[type="checkbox"]:disabled {
   display: block;
 }
 
-.knowledge-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: #111;
-  color: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
-}
-
-.knowledge-table th,
-.knowledge-table td {
-  border: 1px solid #fff;
-  padding: 10px 14px;
-  text-align: center;
-  font-size: 1em;
-}
-
-.knowledge-table th {
-  background-color: #222;
-  font-weight: 700;
-  color: #fff;
-  border-bottom: 3px double #fff;
-  width: fit-content;
-}
-
-.knowledge-table tr:nth-child(even) {
-  background-color: #181818;
-}
-
-.knowledge-table tr:hover {
-  background-color: #222;
-}
-
 .success-message {
   background-color: #d4edda;
   color: #155724;

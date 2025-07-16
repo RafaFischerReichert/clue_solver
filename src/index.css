@@ -228,6 +228,7 @@ input[type="checkbox"]:disabled {
   font-weight: 700;
   color: #fff;
   border-bottom: 3px double #fff;
+  width: fit-content;
 }
 
 .knowledge-table tr:nth-child(even) {
@@ -262,7 +263,6 @@ input[type="checkbox"]:disabled {
   margin: 10px 0;
 }
 
-
 .backtrack-button {
   background-color: #c0392b;
   color: #fff;
@@ -281,4 +281,9 @@ input[type="checkbox"]:disabled {
   background-color: #c0392b;
   color: #fff;
   border-color: #922b21;
+}
+
+.solution-summary-box {
+  background-color: inherits;
+  color: inherits;
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import GuessEvaluator from './GuessEvaluator';
-import { Guess, GameState, OptimalGuessResult } from './GuessEvaluator';
+import { GameState } from './GuessEvaluator';
 import { CardKnowledge } from './GameLogic';
 
 describe('GuessEvaluator', () => {
@@ -10,7 +10,8 @@ describe('GuessEvaluator', () => {
     const accessibleRooms = ['Kitchen'];
     const suspects = ['Plum'];
     const weapons = ['Rope'];
-    const minimalCardKnowledge: CardKnowledge = {} as CardKnowledge;
+    // Use an array for minimalCardKnowledge to match the expected type (CardKnowledge[])
+    const minimalCardKnowledge: CardKnowledge[] = [];
     const playerOrder = ['Alice', 'Bob', 'Charlie'];
     const gameState: GameState = { knowledge: minimalCardKnowledge, previousGuesses: [], playerOrder };
     render(
@@ -19,7 +20,6 @@ describe('GuessEvaluator', () => {
         suspects={suspects}
         weapons={weapons}
         gameState={gameState}
-        playerOrder={playerOrder}
       />
     );
     expect(screen.getByText('Guess Evaluator')).toBeInTheDocument();

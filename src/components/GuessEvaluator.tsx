@@ -43,7 +43,7 @@ interface GuessEvaluatorProps {
   // currentTurn removed
 }
 
-const defaultEvaluateGuess = (guess: Guess, gameState: GameState): number => {
+const defaultEvaluateGuess = (_guess: Guess, _gameState: GameState): number => {
   // TODO: Replace with real entropy calculation
   return Math.random();
 };
@@ -74,8 +74,6 @@ const GuessEvaluator: React.FC<GuessEvaluatorProps> = ({ accessibleRooms, suspec
       return;
     }
     setLoading(true);
-    // Support both sync and async evaluateGuess
-    const isAsync = evalFn.constructor.name === 'AsyncFunction';
     const evaluateAll = async () => {
       const entropies = await Promise.all(
         allGuesses.map(guess => Promise.resolve(evalFn(guess, gameState)))

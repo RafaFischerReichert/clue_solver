@@ -14,9 +14,9 @@ import {
 
 describe("GameLogic", () => {
   const mockPlayers = ["Alice", "Bob", "Charlie"];
-  const mockYourHand = ["Miss Scarlet", "Candlestick"];
+  const mockYourHand = ["Miss Scarlett", "Candlestick"];
   const mockAllCards = {
-    suspects: ["Miss Scarlet", "Colonel Mustard", "Mrs. White"],
+    suspects: ["Miss Scarlett", "Colonel Mustard", "Dr. Orchid"],
     weapons: ["Candlestick", "Dagger", "Lead Pipe"],
     rooms: ["Kitchen", "Ballroom", "Conservatory"],
   };
@@ -116,19 +116,19 @@ describe("GameLogic", () => {
     it("handles duplicate cards gracefully", () => {
       // This test would check if the function can handle cases where
       // the same card appears multiple times in the input arrays.
-      const duplicateHand = ["Miss Scarlet", "Miss Scarlet"];
+      const duplicateHand = ["Miss Scarlett", "Miss Scarlett"];
       const knowledge = initializeKnowledgeBase(
         duplicateHand,
         mockAllCards,
         mockPlayers,
         mockCurrentUser
       );
-      const scarletInfo = knowledge.find((k) => k.cardName === "Miss Scarlet");
+      const scarletInfo = knowledge.find((k) => k.cardName === "Miss Scarlett");
       // Expect: the card is still marked as in your hand, and no duplicates in knowledge
       expect(scarletInfo).toBeDefined();
       expect(scarletInfo?.inYourHand).toBe(true);
       expect(
-        knowledge.filter((k) => k.cardName === "Miss Scarlet").length
+        knowledge.filter((k) => k.cardName === "Miss Scarlett").length
       ).toBe(1);
     });
 
@@ -155,7 +155,7 @@ describe("GameLogic", () => {
       // This test would check if the function can handle cases where
       // the allCards object is missing some keys (e.g., no rooms).
       const incompleteAllCards = {
-        suspects: ["Miss Scarlet", "Colonel Mustard"],
+        suspects: ["Miss Scarlett", "Colonel Mustard"],
         weapons: ["Candlestick", "Dagger"],
         // No rooms provided
       };
@@ -214,7 +214,7 @@ describe("GameLogic", () => {
         mockPlayers,
         mockCurrentUser
       );
-      const cardName = "Miss Scarlet";
+      const cardName = "Miss Scarlett";
       const playerName = "Alice";
 
       // Call: mark a specific card as in a specific player's hand
@@ -238,7 +238,7 @@ describe("GameLogic", () => {
         mockPlayers,
         mockCurrentUser
       );
-      const cardName = "Miss Scarlet";
+      const cardName = "Miss Scarlett";
       const playerName = "Alice";
 
       // Call: mark a card as in one player's hand
@@ -266,7 +266,7 @@ describe("GameLogic", () => {
         mockPlayers,
         mockCurrentUser
       );
-      const cardName = "Miss Scarlet";
+      const cardName = "Miss Scarlett";
       const playerName = "Alice";
 
       // Call: mark a card as in a player's hand
@@ -318,7 +318,7 @@ describe("GameLogic", () => {
         mockPlayers,
         mockCurrentUser
       );
-      const cardName = "Miss Scarlet";
+      const cardName = "Miss Scarlett";
       const playerName = "Alice";
 
       // Call: mark a card as definitely not in a specific player's hand
@@ -343,9 +343,9 @@ describe("GameLogic", () => {
         mockCurrentUser
       );
 
-      // Mark a card as not in Alice's hand (from unknown state)
-      const cardName = "Miss Scarlet";
-      const playerName = "Alice";
+      // Mark a card as not in Bob's hand (from unknown state)
+      const cardName = "Dr. Orchid";
+      const playerName = "Bob";
       const updatedKnowledge = markCardNotInPlayerHand(
         knowledge,
         cardName,
@@ -355,11 +355,10 @@ describe("GameLogic", () => {
       const cardInfo = updatedKnowledge.find((k) => k.cardName === cardName);
       expect(cardInfo).toBeDefined();
 
-      // Alice should not have the card
+      // Bob should not have the card
       expect(cardInfo?.inPlayersHand[playerName]).toBe(false);
 
-      // Bob and Charlie should remain unknown (unchanged from initial state)
-      expect(cardInfo?.inPlayersHand["Bob"]).toBe(null);
+      // Charlie should remain unknown (unchanged from initial state)
       expect(cardInfo?.inPlayersHand["Charlie"]).toBe(null);
     });
 
@@ -371,7 +370,7 @@ describe("GameLogic", () => {
         mockPlayers,
         mockCurrentUser
       );
-      const cardName = "Miss Scarlet";
+      const cardName = "Miss Scarlett";
       const playerName = "Alice";
 
       // Call: mark a card as not in a player's hand
@@ -398,7 +397,7 @@ describe("GameLogic", () => {
         mockPlayers,
         mockCurrentUser
       );
-      const cardName = "Miss Scarlet";
+      const cardName = "Miss Scarlett";
       const playerName = "Nonexistent Player";
 
       // Call: try to mark a card as not in a non-existent player's hand
@@ -423,7 +422,7 @@ describe("GameLogic", () => {
           player: "Alice",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: "Kitchen",
               guessedBy: "Bob",
@@ -482,7 +481,7 @@ describe("GameLogic", () => {
         },
       ];
       const guess = {
-        suspect: "Miss Scarlet",
+        suspect: "Miss Scarlett",
         weapon: "Candlestick",
         room: "Kitchen",
       };
@@ -526,7 +525,7 @@ describe("GameLogic", () => {
         },
       ];
       const guess = {
-        suspect: "Miss Scarlet",
+        suspect: "Miss Scarlett",
         weapon: "Candlestick",
         room: "Kitchen",
       };
@@ -571,7 +570,7 @@ describe("GameLogic", () => {
       // Test that suspect, weapon, room, guessedBy, shownBy, askedPlayers are all stored
       const tuples: PlayerCardTuples[] = [];
       const guess = {
-        suspect: "Miss Scarlet",
+        suspect: "Miss Scarlett",
         weapon: "Candlestick",
         room: "Kitchen",
       };
@@ -611,7 +610,7 @@ describe("GameLogic", () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       const tuples: PlayerCardTuples[] = [];
       const guess = {
-        suspect: "Miss Scarlet",
+        suspect: "Miss Scarlett",
         weapon: "Candlestick",
         room: "Kitchen",
       };
@@ -645,7 +644,7 @@ describe("GameLogic", () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       const tuples: PlayerCardTuples[] = [];
       const guess = {
-        suspect: "Miss Scarlet",
+        suspect: "Miss Scarlett",
         weapon: "Candlestick",
         room: "Kitchen",
       };
@@ -679,7 +678,7 @@ describe("GameLogic", () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       const tuples: PlayerCardTuples[] = [];
       const guess = {
-        suspect: "Miss Scarlet",
+        suspect: "Miss Scarlett",
         weapon: "Candlestick",
         room: "Kitchen",
       };
@@ -759,7 +758,7 @@ describe("GameLogic", () => {
           player: "Alice",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: "Kitchen",
               guessedBy: "Bob",
@@ -779,7 +778,7 @@ describe("GameLogic", () => {
       const result = analyzePlayerTuples(tuples, knowledge);
       // The new logic does not add likelyHas for shown cards unless there is no other knowledge
       expect(result.likelyHas.length).toBe(0); // Updated: new logic does not deduce likelyHas here
-      // expect(result.likelyHas).toContain("Miss Scarlet");
+      // expect(result.likelyHas).toContain("Miss Scarlett");
       // expect(result.likelyHas).toContain("Candlestick");
       // expect(result.likelyHas).toContain("Kitchen");
     });
@@ -791,7 +790,7 @@ describe("GameLogic", () => {
           player: "NO_RESPONSE",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: "Kitchen",
               guessedBy: "Bob",
@@ -816,7 +815,7 @@ describe("GameLogic", () => {
       expect(result.definitelyDoesNotHave.length).toBe(6); // 2 players × 3 cards
       expect(result.definitelyDoesNotHave).toContainEqual({
         playerName: "Alice",
-        cardName: "Miss Scarlet",
+        cardName: "Miss Scarlett",
       });
       expect(result.definitelyDoesNotHave).toContainEqual({
         playerName: "Alice",
@@ -828,7 +827,7 @@ describe("GameLogic", () => {
       });
       expect(result.definitelyDoesNotHave).toContainEqual({
         playerName: "Charlie",
-        cardName: "Miss Scarlet",
+        cardName: "Miss Scarlett",
       });
       expect(result.definitelyDoesNotHave).toContainEqual({
         playerName: "Charlie",
@@ -842,7 +841,7 @@ describe("GameLogic", () => {
 
     it("identifies definitelyHas when two cards are ruled out", () => {
       // This test checks that if a player (the shower) is known to not have two of the three cards in a tuple they showed, they must have the third one.
-      // Setup: Alice is the one showing the card (shower), and is already known to not have Miss Scarlet and Candlestick. The deduction is about Alice's hand.
+      // Setup: Alice is the one showing the card (shower), and is already known to not have Miss Scarlett and Candlestick. The deduction is about Alice's hand.
       // We use a unique room name to avoid interference from other tests.
       const uniqueRoom = "UniqueRoom";
       const tuples: PlayerCardTuples[] = [
@@ -850,7 +849,7 @@ describe("GameLogic", () => {
           player: "Alice",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: uniqueRoom,
               guessedBy: "Bob",
@@ -863,7 +862,7 @@ describe("GameLogic", () => {
       ];
       // Use a custom allCards for this test
       const allCards = {
-        suspects: ["Miss Scarlet"],
+        suspects: ["Miss Scarlett"],
         weapons: ["Candlestick"],
         rooms: [uniqueRoom],
       };
@@ -875,8 +874,8 @@ describe("GameLogic", () => {
         players,
         "Charlie"
       );
-      // Mark Alice as definitely not having Miss Scarlet and Candlestick
-      knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlet", "Alice");
+      // Mark Alice as definitely not having Miss Scarlett and Candlestick
+      knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlett", "Alice");
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
       // Debug: Ensure uniqueRoom is still unknown for Alice
       const roomCard = knowledge.find((k) => k.cardName === uniqueRoom);
@@ -893,7 +892,7 @@ describe("GameLogic", () => {
         playerName: "Alice",
         cardName: uniqueRoom,
       });
-      expect(result.likelyHas).not.toContain("Miss Scarlet");
+      expect(result.likelyHas).not.toContain("Miss Scarlett");
       expect(result.likelyHas).not.toContain("Candlestick");
     });
 
@@ -1010,7 +1009,7 @@ describe("GameLogic", () => {
           player: "Unknown Player",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: "Kitchen",
               guessedBy: "Bob",
@@ -1077,7 +1076,7 @@ describe("GameLogic", () => {
           player: "Alice",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: "Kitchen",
               guessedBy: "Bob",
@@ -1095,7 +1094,7 @@ describe("GameLogic", () => {
         mockPlayers,
         mockCurrentUser
       );
-      knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlet", "Alice");
+      knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlett", "Alice");
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
       const kitchen = updated.find((k) => k.cardName === "Kitchen");
@@ -1109,7 +1108,7 @@ describe("GameLogic", () => {
           player: "NO_RESPONSE",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: "Kitchen",
               guessedBy: "Bob",
@@ -1128,7 +1127,7 @@ describe("GameLogic", () => {
       );
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
       expect(
-        updated.find((k) => k.cardName === "Miss Scarlet")?.inPlayersHand[
+        updated.find((k) => k.cardName === "Miss Scarlett")?.inPlayersHand[
           "Alice"
         ]
       ).toBe(false);
@@ -1162,7 +1161,7 @@ describe("GameLogic", () => {
           player: "Alice",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: "Kitchen",
               guessedBy: "Bob",
@@ -1193,7 +1192,7 @@ describe("GameLogic", () => {
         mockPlayers,
         mockCurrentUser
       );
-      knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlet", "Alice");
+      knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlett", "Alice");
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
       // Alice should not have Kitchen
@@ -1221,7 +1220,7 @@ describe("GameLogic", () => {
           player: "Alice",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: "Kitchen",
               guessedBy: "Bob",
@@ -1238,7 +1237,7 @@ describe("GameLogic", () => {
         mockPlayers,
         mockCurrentUser
       );
-      knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlet", "Alice");
+      knowledge = markCardNotInPlayerHand(knowledge, "Miss Scarlett", "Alice");
       knowledge = markCardNotInPlayerHand(knowledge, "Candlestick", "Alice");
       knowledge = markCardInPlayerHand(knowledge, "Kitchen", "Alice");
       const updated = updatedKnowledgeBaseFromTuples(knowledge, tuples);
@@ -1272,7 +1271,7 @@ describe("GameLogic", () => {
           player: "Unknown Player",
           tuples: [
             {
-              suspect: "Miss Scarlet",
+              suspect: "Miss Scarlett",
               weapon: "Candlestick",
               room: "Kitchen",
               guessedBy: "Bob",

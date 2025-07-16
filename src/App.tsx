@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
 import GameSetup from "./components/GameSetup";
 import HandInput from "./components/HandInput";
@@ -11,9 +11,10 @@ import {
   PlayerCardTuples,
   markCardInPlayerHand,
   markCardNotInPlayerHand,
+  checkForSolution, // <-- add this import
 } from "./components/GameLogic";
 import React from "react";
-import GuessEvaluator, { Guess } from "./components/GuessEvaluator";
+import { Guess } from "./components/GuessEvaluator";
 
 // RoomChecklist: lets user select accessible rooms
 interface RoomChecklistProps {
@@ -22,11 +23,15 @@ interface RoomChecklistProps {
   onChange: (rooms: string[]) => void;
 }
 
-const RoomChecklist: React.FC<RoomChecklistProps> = ({ rooms, selectedRooms, onChange }) => {
+const RoomChecklist: React.FC<RoomChecklistProps> = ({
+  rooms,
+  selectedRooms,
+  onChange,
+}) => {
   // Toggle room selection
   const handleToggle = (room: string) => {
     if (selectedRooms.includes(room)) {
-      onChange(selectedRooms.filter(r => r !== room));
+      onChange(selectedRooms.filter((r) => r !== room));
     } else {
       onChange([...selectedRooms, room]);
     }
@@ -34,7 +39,7 @@ const RoomChecklist: React.FC<RoomChecklistProps> = ({ rooms, selectedRooms, onC
   return (
     <div>
       <h3>Accessible Rooms</h3>
-      {rooms.map(room => (
+      {rooms.map((room) => (
         <label key={room} style={{ display: "block" }}>
           <input
             type="checkbox"
@@ -59,7 +64,11 @@ interface GameData {
 }
 
 // Utility to compute asked players
-function getAskedPlayers(playerOrder: string[], guessedBy: string, showedBy: string | null): string[] {
+function getAskedPlayers(
+  playerOrder: string[],
+  guessedBy: string,
+  showedBy: string | null
+): string[] {
   const n = playerOrder.length;
   const askerIdx = playerOrder.indexOf(guessedBy);
   if (askerIdx === -1) return [];
@@ -79,94 +88,91 @@ function getAskedPlayers(playerOrder: string[], guessedBy: string, showedBy: str
 // Main app component
 function App() {
   // Step in the game flow
-  const [currentStep, setCurrentStep] = useState<"setup" | "hand-input" | "gameplay">(
-    "setup"
-  );
+  const [currentStep, setCurrentStep] = useState<
+    "setup" | "hand-input" | "gameplay"
+  >("setup");
   // Game setup data
   const [gameData, setGameData] = useState<GameData | null>(null);
-  // User's hand
-  const [userHand, setUserHand] = useState<string[]>([]);
   // Guess form state
   const [guessState, setGuessState] = useState({
-    selectedSuspect: '',
-    selectedWeapon: '',
-    selectedRoom: '',
-    guessedBy: '',
+    selectedSuspect: "",
+    selectedWeapon: "",
+    selectedRoom: "",
+    guessedBy: "",
     showedBy: null as string | null,
-    shownCard: '',
+    shownCard: "",
   });
   const [currentUser, setCurrentUser] = useState<string>("");
   const [cardKnowledge, setCardKnowledge] = useState<CardKnowledge[]>([]);
   const [playerTuples, setPlayerTuples] = useState<PlayerCardTuples[]>([]);
   // Accessible rooms for checklist
   const [accessibleRooms, setAccessibleRooms] = useState<string[]>([]);
-  // Player order and turn
-  const [playerOrder, setPlayerOrder] = useState<string[]>([]);
-  const [currentTurn, setCurrentTurn] = useState<number>(0);
   const [previousGuesses, setPreviousGuesses] = useState<Guess[]>([]);
+  const [workerResult, setWorkerResult] = useState<{
+    guess: Guess;
+    entropy: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    workerRef.current = new Worker(
+      new URL("./workers/guessWorker.ts", import.meta.url),
+      { type: "module" }
+    );
+    workerRef.current.onmessage = (e) => {
+      setWorkerResult(e.data);
+      setLoading(false);
+    };
+    return () => {
+      workerRef.current?.terminate();
+    };
+  }, []);
 
   // Handle game setup completion
-  const handleGameSetup = (players: string[], yourPlayerName: string) => {
-    // Use default Cluedo cards
-    const defaultSuspects = [
-      "Miss Scarlet",
-      "Colonel Mustard",
-      "Mrs. White",
-      "Mr. Green",
-      "Mrs. Peacock",
-      "Professor Plum",
-    ];
-    const defaultWeapons = [
-      "Candlestick",
-      "Dagger",
-      "Lead Pipe",
-      "Revolver",
-      "Rope",
-      "Wrench",
-    ];
-    const defaultRooms = [
-      "Kitchen",
-      "Ballroom",
-      "Conservatory",
-      "Dining Room",
-      "Billiard Room",
-      "Library",
-      "Lounge",
-      "Hall",
-      "Study",
-    ];
+  const handleGameSetup = (
+    players: string[],
+    yourPlayerName: string,
+    suspects: string[],
+    weapons: string[],
+    rooms: string[]
+  ) => {
     const newGameData = {
       players,
-      suspects: defaultSuspects,
-      weapons: defaultWeapons,
-      rooms: defaultRooms,
+      suspects,
+      weapons,
+      rooms,
       playerOrder: players,
       currentTurn: 0,
     };
     setGameData(newGameData);
-    setPlayerOrder(players);
-    setCurrentTurn(0);
     setCurrentStep("hand-input");
     if (yourPlayerName) setCurrentUser(yourPlayerName);
   };
 
   // Handle hand input completion
   const handleHandSubmit = (selectedCards: string[]) => {
-    setUserHand(selectedCards);
     if (gameData) {
       const allCards = {
         suspects: gameData.suspects,
         weapons: gameData.weapons,
         rooms: gameData.rooms,
       };
-      setCardKnowledge(initializeKnowledgeBase(selectedCards, allCards, gameData.players, currentUser));
+      setCardKnowledge(
+        initializeKnowledgeBase(
+          selectedCards,
+          allCards,
+          gameData.players,
+          currentUser
+        )
+      );
     }
     setCurrentStep("gameplay");
   };
 
   // Guess form changes
   const handleGuessChange = (suspect: string, weapon: string, room: string) => {
-    setGuessState(prev => ({
+    setGuessState((prev) => ({
       ...prev,
       selectedSuspect: suspect,
       selectedWeapon: weapon,
@@ -174,19 +180,19 @@ function App() {
     }));
   };
   const handleGuessedByChange = (player: string) => {
-    setGuessState(prev => ({
+    setGuessState((prev) => ({
       ...prev,
       guessedBy: player,
     }));
   };
   const handleShowedByChange = (player: string | null) => {
-    setGuessState(prev => ({
+    setGuessState((prev) => ({
       ...prev,
       showedBy: player,
     }));
   };
   const handleShownCardChange = (card: string) => {
-    setGuessState(prev => ({
+    setGuessState((prev) => ({
       ...prev,
       shownCard: card,
     }));
@@ -207,14 +213,32 @@ function App() {
       );
       if (gameData) {
         // Compute asked players (those between guesser and shower, inclusive of shower)
-        const askedPlayers = getAskedPlayers(gameData.playerOrder, guessData.guessedBy, guessData.showedBy);
+        const askedPlayers = getAskedPlayers(
+          gameData.playerOrder,
+          guessData.guessedBy,
+          guessData.showedBy
+        );
         // Exclude the shower
-        const nonShowerAsked = askedPlayers.filter(p => p !== guessData.showedBy);
+        const nonShowerAsked = askedPlayers.filter(
+          (p) => p !== guessData.showedBy
+        );
         // Mark all three cards as not in their hand
         for (const player of nonShowerAsked) {
-          updatedKnowledge = markCardNotInPlayerHand(updatedKnowledge, guessData.suspect || guessData.selectedSuspect, player);
-          updatedKnowledge = markCardNotInPlayerHand(updatedKnowledge, guessData.weapon || guessData.selectedWeapon, player);
-          updatedKnowledge = markCardNotInPlayerHand(updatedKnowledge, guessData.room || guessData.selectedRoom, player);
+          updatedKnowledge = markCardNotInPlayerHand(
+            updatedKnowledge,
+            guessData.suspect || guessData.selectedSuspect,
+            player
+          );
+          updatedKnowledge = markCardNotInPlayerHand(
+            updatedKnowledge,
+            guessData.weapon || guessData.selectedWeapon,
+            player
+          );
+          updatedKnowledge = markCardNotInPlayerHand(
+            updatedKnowledge,
+            guessData.room || guessData.selectedRoom,
+            player
+          );
         }
         // Debug printout
         const before = JSON.stringify(cardKnowledge);
@@ -227,25 +251,34 @@ function App() {
             const beforeCard = beforeObj[i];
             const afterCard = afterObj[i];
             for (const player of Object.keys(beforeCard.inPlayersHand)) {
-              if (beforeCard.inPlayersHand[player] !== afterCard.inPlayersHand[player]) {
-                diffs.push(`Player ${player} for card ${beforeCard.cardName}: ${beforeCard.inPlayersHand[player]} -> ${afterCard.inPlayersHand[player]}`);
+              if (
+                beforeCard.inPlayersHand[player] !==
+                afterCard.inPlayersHand[player]
+              ) {
+                diffs.push(
+                  `Player ${player} for card ${beforeCard.cardName}: ${beforeCard.inPlayersHand[player]} -> ${afterCard.inPlayersHand[player]}`
+                );
               }
             }
           }
-          console.log('Knowledge changes:', diffs);
+          console.log("Knowledge changes:", diffs);
         } else {
-          console.log('No knowledge changes.');
+          console.log("No knowledge changes.");
         }
       }
-      setCardKnowledge([...updatedKnowledge]);
-      alert("Guess submitted! Processing...");
+      setCardKnowledge(checkForSolution([...updatedKnowledge]));
       return;
     }
     // Default case: update knowledge and tuples
-    const askedPlayers = gameData && gameData.playerOrder && guessData.guessedBy
-      ? getAskedPlayers(gameData.playerOrder, guessData.guessedBy, guessData.showedBy)
-      : [];
-    console.log('Asked players for deduction:', askedPlayers);
+    const askedPlayers =
+      gameData && gameData.playerOrder && guessData.guessedBy
+        ? getAskedPlayers(
+            gameData.playerOrder,
+            guessData.guessedBy,
+            guessData.showedBy
+          )
+        : [];
+    console.log("Asked players for deduction:", askedPlayers);
     // Track knowledge before
     const before = JSON.stringify(cardKnowledge);
     const result = recordGuessResponse(
@@ -271,25 +304,29 @@ function App() {
         const beforeCard = beforeObj[i];
         const afterCard = afterObj[i];
         for (const player of Object.keys(beforeCard.inPlayersHand)) {
-          if (beforeCard.inPlayersHand[player] !== afterCard.inPlayersHand[player]) {
-            diffs.push(`Player ${player} for card ${beforeCard.cardName}: ${beforeCard.inPlayersHand[player]} -> ${afterCard.inPlayersHand[player]}`);
+          if (
+            beforeCard.inPlayersHand[player] !== afterCard.inPlayersHand[player]
+          ) {
+            diffs.push(
+              `Player ${player} for card ${beforeCard.cardName}: ${beforeCard.inPlayersHand[player]} -> ${afterCard.inPlayersHand[player]}`
+            );
           }
         }
       }
-      console.log('Knowledge changes:', diffs);
+      console.log("Knowledge changes:", diffs);
     } else {
-      console.log('No knowledge changes.');
+      console.log("No knowledge changes.");
     }
     setPlayerTuples([...result.tuples]);
-    setCardKnowledge([...result.knowledge]);
+    setCardKnowledge(checkForSolution([...result.knowledge]));
     alert("Guess submitted! Processing...");
-    setPreviousGuesses(prev => [
+    setPreviousGuesses((prev) => [
       ...prev,
       {
         room: guessData.room || guessData.selectedRoom,
         suspect: guessData.suspect || guessData.selectedSuspect,
         weapon: guessData.weapon || guessData.selectedWeapon,
-      }
+      },
     ]);
   };
 
@@ -317,32 +354,44 @@ function App() {
 
       {currentStep === "gameplay" && gameData && (
         <>
-          <button
-            onClick={() => {
-              setCurrentStep("setup");
-              setGameData(null);
-              setUserHand([]);
-              setCardKnowledge([]);
-              setPlayerTuples([]);
-              setAccessibleRooms([]);
-              setPlayerOrder([]);
-              setCurrentTurn(0);
-              setPreviousGuesses([]);
-              setCurrentUser("");
-              setGuessState({
-                selectedSuspect: '',
-                selectedWeapon: '',
-                selectedRoom: '',
-                guessedBy: '',
-                showedBy: null,
-                shownCard: '',
-              });
-            }}
-            style={{ marginBottom: 16 }}
-          >
-            End Game
-          </button>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 32 }}>
+          <div>
+            <button
+              className="backtrack-button"
+              onClick={() => {
+                setCurrentStep("setup");
+                setGameData(null);
+                setCardKnowledge([]);
+                setPlayerTuples([]);
+                setAccessibleRooms([]);
+                setPreviousGuesses([]);
+                setCurrentUser("");
+                setGuessState({
+                  selectedSuspect: "",
+                  selectedWeapon: "",
+                  selectedRoom: "",
+                  guessedBy: "",
+                  showedBy: null,
+                  shownCard: "",
+                });
+              }}
+              style={{ marginBottom: 16 }}
+            >
+              End Game
+            </button>
+          </div>
+          {/* Solution summary box */}
+          <div className="solution-summary-box">
+            <label className="solution-label">Known solution cards: </label>
+            {["suspect", "weapon", "room"]
+              .map((category) => {
+                const solutionCard = cardKnowledge.find(
+                  (c) => c.category === category && c.inSolution === true
+                );
+                return solutionCard ? solutionCard.cardName : "Unknown";
+              })
+              .join(", ")}
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-start", width: "100%", maxWidth: 1200, gap: 32 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <KnowledgeTable
                 cardKnowledge={cardKnowledge}
@@ -350,12 +399,16 @@ function App() {
                 onKnowledgeChange={setCardKnowledge}
               />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
               <GuessForm
                 suspects={gameData.suspects}
                 weapons={gameData.weapons}
                 rooms={gameData.rooms}
-                answeringPlayers={getAskedPlayers(gameData.playerOrder, guessState.guessedBy, guessState.showedBy)}
+                answeringPlayers={getAskedPlayers(
+                  gameData.playerOrder,
+                  guessState.guessedBy,
+                  guessState.showedBy
+                )}
                 allPlayers={gameData.players}
                 currentUser={currentUser}
                 {...guessState}
@@ -364,33 +417,112 @@ function App() {
                 onGuessedByChange={handleGuessedByChange}
                 onShowedByChange={handleShowedByChange}
                 onShownCardChange={handleShownCardChange}
-                onResetForm={() => setGuessState({
-                  selectedSuspect: '',
-                  selectedWeapon: '',
-                  selectedRoom: '',
-                  guessedBy: '',
-                  showedBy: null,
-                  shownCard: '',
-                })}
+                onResetForm={() =>
+                  setGuessState({
+                    selectedSuspect: "",
+                    selectedWeapon: "",
+                    selectedRoom: "",
+                    guessedBy: "",
+                    showedBy: null,
+                    shownCard: "",
+                  })
+                }
               />
+              <RoomChecklist
+                rooms={gameData.rooms}
+                selectedRooms={accessibleRooms}
+                onChange={setAccessibleRooms}
+              />
+              {/* Guess evaluation block: button, loading, and result */}
+              <div>
+                <button
+                  onClick={() => {
+                    setLoading(true);
+                    setWorkerResult(null);
+                    // Improved guess generation logic
+                    const getGuessOptions = (
+                      category: "suspect" | "weapon" | "room",
+                      allOptions: string[]
+                    ) => {
+                      // Find solution card for this category
+                      const solutionCard = cardKnowledge.find(
+                        (c) => c.category === category && c.inSolution === true
+                      )?.cardName;
+                      // Find cards in hand for this category
+                      const inHand = cardKnowledge
+                        .filter((c) => c.category === category && c.inYourHand)
+                        .map((c) => c.cardName);
+                      let options: string[] = [];
+                      if (solutionCard) {
+                        options = [
+                          solutionCard,
+                          ...inHand.filter((card) => card !== solutionCard),
+                        ];
+                      } else {
+                        options = allOptions;
+                      }
+                      return options;
+                    };
+                    const suspects = getGuessOptions(
+                      "suspect",
+                      gameData.suspects
+                    );
+                    const weapons = getGuessOptions("weapon", gameData.weapons);
+                    const rooms = getGuessOptions("room", accessibleRooms);
+                    let allGuesses: Guess[] = [];
+                    rooms.forEach((room) => {
+                      suspects.forEach((suspect) => {
+                        weapons.forEach((weapon) => {
+                          allGuesses.push({ room, suspect, weapon });
+                        });
+                      });
+                    });
+                    // Filter: keep only guesses with at least one card where inSolution == null
+                    allGuesses = allGuesses.filter((guess) => {
+                      const suspectStatus = cardKnowledge.find(
+                        (c) => c.cardName === guess.suspect
+                      )?.inSolution;
+                      const weaponStatus = cardKnowledge.find(
+                        (c) => c.cardName === guess.weapon
+                      )?.inSolution;
+                      const roomStatus = cardKnowledge.find(
+                        (c) => c.cardName === guess.room
+                      )?.inSolution;
+                      return [suspectStatus, weaponStatus, roomStatus].some(
+                        (status) => status === null
+                      );
+                    });
+                    workerRef.current?.postMessage({
+                      allGuesses,
+                      gameState: {
+                        knowledge: cardKnowledge as any,
+                        previousGuesses: previousGuesses,
+                        playerOrder: gameData.playerOrder,
+                      },
+                    });
+                  }}
+                  style={{ marginLeft: 8 }}
+                >
+                  Evaluate Best Guess
+                </button>
+                {loading && <div>Evaluating guesses...</div>}
+                {workerResult && (
+                  <div>
+                    <h2>Optimal Guess (via Worker):</h2>
+                    <ul>
+                      <li>Room: {workerResult.guess.room}</li>
+                      <li>Suspect: {workerResult.guess.suspect}</li>
+                      <li>Weapon: {workerResult.guess.weapon}</li>
+                      <li>
+                        Estimated Entropy Gain: {" "}
+                        {workerResult.entropy.toFixed(3)}
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <RoomChecklist
-            rooms={gameData.rooms}
-            selectedRooms={accessibleRooms}
-            onChange={setAccessibleRooms}
-          />
-          <GuessEvaluator
-            accessibleRooms={accessibleRooms}
-            suspects={gameData.suspects}
-            weapons={gameData.weapons}
-            gameState={{
-              knowledge: cardKnowledge as any, // FIXME: Type mismatch, CardKnowledge[] may not match expected type
-              previousGuesses: previousGuesses,
-              playerOrder: gameData.playerOrder, // playerOrder only in gameState now
-            }}
-            // Optionally pass a real evaluateGuess here
-          />
         </>
       )}
     </div>

@@ -446,15 +446,26 @@ export const updateKnowledgeWithDeductions = (
 export const checkForSolution = (
   knowledge: CardKnowledge[]
 ): CardKnowledge[] => {
-  knowledge.forEach((card) => {
-    // If card is not in your hand and not in any player's hand, it's in the solution
+  // First, find all cards that should be marked as inSolution: true
+  const solutionCards: { cardName: string; category: string }[] = [];
+  knowledge.forEach(card => {
     if (
       !card.inYourHand &&
-      !Object.values(card.inPlayersHand).some((hasCard) => hasCard === true)
+      Object.values(card.inPlayersHand).every(hasCard => hasCard === false)
     ) {
       card.inSolution = true;
       card.eliminatedFromSolution = false;
+      solutionCards.push({ cardName: card.cardName, category: card.category });
     }
+  });
+  // For each found solution card, mark all other cards in the same category as not in the solution
+  solutionCards.forEach(({ cardName, category }) => {
+    knowledge.forEach(card => {
+      if (card.category === category && card.cardName !== cardName) {
+        card.inSolution = false;
+        card.eliminatedFromSolution = true;
+      }
+    });
   });
   return knowledge;
 };

@@ -1,6 +1,6 @@
 // SuggestionAI: Minimax/entropy-based guess evaluator for Cluedo
 import { Guess, GameState } from './GuessEvaluator';
-import { getPossibleCardLocations } from './GameLogic';
+import { getPossibleCardLocations, updateKnowledgeWithDeductions, checkForSolution } from './GameLogic';
 
 /**
  * Evaluate a guess using minimax/expectimax or entropy-based logic.
@@ -10,7 +10,8 @@ import { getPossibleCardLocations } from './GameLogic';
  */
 export function evaluateGuess(
   guess: Guess,
-  gameState: GameState
+  gameState: GameState,
+  debug: boolean = false
 ): number {
   // Step 1: Generate possible worlds
   const possibleWorlds = generatePossibleWorlds(guess, gameState);
@@ -19,21 +20,30 @@ export function evaluateGuess(
   const entropyBefore = computeSolutionEntropy(gameState);
 
   // Step 2 & 3: For each world, simulate responses and update knowledge
-  const entropyAfterList: number[] = [];
+  // We'll aggregate probabilities across all possible worlds (assume each world is equally likely)
+  const entropyAfterList: { entropy: number, probability: number }[] = [];
   for (const world of possibleWorlds) {
     // Simulate possible responses in this world
-    const responses = simulateResponses(guess, world, gameState);
-    for (const response of responses) {
+    const responsesWithProb = simulateResponses(guess, world, gameState);
+    const worldProb = 1 / possibleWorlds.length;
+    for (const { response, probability } of responsesWithProb) {
+      // Create a copy of gameState with the guess appended to previousGuesses
+      const simulatedGameState = {
+        ...gameState,
+        previousGuesses: [...(gameState.previousGuesses || []), guess],
+      };
       // Update knowledge for this outcome
-      const updatedGameState = updateKnowledgeForOutcome(gameState, response);
+      const updatedGameState = updateKnowledgeForOutcome(simulatedGameState, response);
       // Compute entropy after this outcome
       const entropyAfter = computeSolutionEntropy(updatedGameState);
-      entropyAfterList.push(entropyAfter);
+      // The probability of this outcome is worldProb * probability
+      entropyAfterList.push({ entropy: entropyAfter, probability: worldProb * probability });
     }
   }
 
   // Step 5: Aggregate expected information gain
-  return aggregateExpectedInformationGain(entropyBefore, entropyAfterList);
+  const infoGain = aggregateExpectedInformationGain(entropyBefore, entropyAfterList);
+  return infoGain;
 }
 
 // Step 1: Generate all possible worlds consistent with current knowledge (focus on solution uncertainty)
@@ -68,7 +78,7 @@ function generatePossibleWorlds(guess:Guess, gameState: GameState): any[] {
 }
 
 // Step 2: Simulate responses for a guess in a given world
-function simulateResponses(guess: Guess, world: any, gameState: GameState): any[] {
+function simulateResponses(guess: Guess, world: any, gameState: GameState): { response: any, probability: number }[] {
   const { suspect, weapon, room } = guess;
   const cards = [suspect, weapon, room];
   const players = gameState.playerOrder || [];
@@ -89,18 +99,67 @@ function simulateResponses(guess: Guess, world: any, gameState: GameState): any[
     const cardsInHand = cards.filter(card => world[card] === player);
     if (cardsInHand.length > 0) {
       // This player can show one of these cards; each is equally likely
-      return cardsInHand.map(card => ({ shownBy: player, card }));
+      const prob = 1 / cardsInHand.length;
+      return cardsInHand.map(card => ({ response: { shownBy: player, card }, probability: prob }));
     }
   }
 
   // If no player can show a card, return a response indicating that
-  return [{ shownBy: null, card: null }];
+  return [{ response: { shownBy: null, card: null }, probability: 1 }];
 }
 
 // Step 3: Update knowledge for a given outcome (response)
 function updateKnowledgeForOutcome(gameState: GameState, response: any): GameState {
-  // Placeholder: Should return a new gameState with updated knowledge
-  return gameState;
+  // Clone the knowledge array
+  let newKnowledge = [...gameState.knowledge];
+  const players = gameState.playerOrder || [];
+
+  // The guess is always the last guess in previousGuesses
+  const lastGuess = gameState.previousGuesses && gameState.previousGuesses.length > 0
+    ? gameState.previousGuesses[gameState.previousGuesses.length - 1]
+    : null;
+
+  if (!lastGuess) {
+    // No guess to update knowledge for
+    return gameState;
+  }
+
+  const { suspect, weapon, room } = lastGuess;
+  
+  // Prepare askedPlayers as in simulateResponses
+  const guesserIndex = 0; // Assumed as in simulateResponses
+  const n = players.length;
+  const askedPlayers = [];
+  for (let i = 1; i < n; i++) {
+    askedPlayers.push(players[(guesserIndex + i) % n]);
+  }
+
+  // Build a tuple for this guess/response
+  const tuples = [];
+  const guessTuple = {
+    suspect,
+    weapon,
+    room,
+    guessedBy: players[guesserIndex],
+    shownBy: response.shownBy,
+    askedPlayers,
+    timestamp: 0, // deterministic for AI
+  };
+  if (response.shownBy) {
+    tuples.push({ player: response.shownBy, tuples: [guessTuple] });
+  } else {
+    tuples.push({ player: "NO_RESPONSE", tuples: [guessTuple] });
+  }
+
+  // Use deduction suite
+  let deducedKnowledge = updateKnowledgeWithDeductions(newKnowledge, tuples);
+  deducedKnowledge = checkForSolution(deducedKnowledge);
+
+  // Return a new GameState with updated knowledge
+  return {
+    ...gameState,
+    knowledge: deducedKnowledge,
+  };
 }
 
 // Step 4: Compute entropy of the solution (envelope) given current knowledge
@@ -140,9 +199,9 @@ function computeSolutionEntropy(gameState: GameState): number {
 }
 
 // Step 5: Aggregate expected information gain for a guess
-function aggregateExpectedInformationGain(entropyBefore: number, entropyAfterList: number[]): number {
-  // Placeholder: Should average entropy reduction over all outcomes
+function aggregateExpectedInformationGain(entropyBefore: number, entropyAfterList: { entropy: number, probability: number }[]): number {
   if (entropyAfterList.length === 0) return 0;
-  const avgEntropyAfter = entropyAfterList.reduce((a, b) => a + b, 0) / entropyAfterList.length;
-  return entropyBefore - avgEntropyAfter;
+  // Weighted sum of entropy after, using probabilities
+  const weightedEntropyAfter = entropyAfterList.reduce((sum, item) => sum + item.entropy * item.probability, 0);
+  return entropyBefore - weightedEntropyAfter;
 } 

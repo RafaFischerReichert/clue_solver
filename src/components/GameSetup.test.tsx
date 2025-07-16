@@ -73,7 +73,7 @@ describe("GameSetup", () => {
     const roomInput = screen.getByLabelText(/rooms/i);
 
     expect(suspectInput).toHaveValue(
-      "Miss Scarlet\nColonel Mustard\nMrs. White\nMr. Green\nMrs. Peacock\nProfessor Plum"
+      "Miss Scarlett\nColonel Mustard\nDr. Orchid\nReverend Green\nMrs. Peacock\nProfessor Plum"
     );
     expect(weaponInput).toHaveValue(
       "Candlestick\nDagger\nLead Pipe\nRevolver\nRope\nWrench"
@@ -93,8 +93,8 @@ describe("GameSetup", () => {
     // Expects: The your player name input should accept and display user input
     render(<GameSetup onGameStart={() => {}} />);
     const playerNameInput = screen.getByLabelText(/your player name/i);
-    fireEvent.change(playerNameInput, { target: { value: "Miss Scarlet" } });
-    expect(playerNameInput).toHaveValue("Miss Scarlet");
+    fireEvent.change(playerNameInput, { target: { value: "Miss Scarlett" } });
+    expect(playerNameInput).toHaveValue("Miss Scarlett");
   });
 
   it("validates your player name against the list of players", () => {
@@ -104,22 +104,22 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlet\nColonel Mustard\nMrs. White" },
+      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
     fireEvent.change(yourPlayerNameInput, {
-      target: { value: "Miss Scarlet" },
+      target: { value: "Miss Scarlett" },
     });
 
     const startButton = screen.getByText(/next/i);
     fireEvent.click(startButton);
 
     expect(mockOnGameStart).toHaveBeenCalledWith([
-      "Miss Scarlet",
+      "Miss Scarlett",
       "Colonel Mustard",
-      "Mrs. White",
-    ], "Miss Scarlet");
+      "Dr. Orchid",
+    ], "Miss Scarlett");
   });
 
   it("shows error message when your player name does not match any player", () => {
@@ -128,7 +128,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlet\nColonel Mustard\nMrs. White" },
+      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
@@ -149,7 +149,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlet\nColonel Mustard\nMrs. White" },
+      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
@@ -166,7 +166,7 @@ describe("GameSetup", () => {
 
     // Then, enter a valid name
     fireEvent.change(yourPlayerNameInput, {
-      target: { value: "Miss Scarlet" },
+      target: { value: "Miss Scarlett" },
     });
     expect(
       screen.queryByText(
@@ -181,7 +181,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlet\nColonel Mustard\nMrs. White" },
+      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
@@ -195,7 +195,7 @@ describe("GameSetup", () => {
 
     // Then, enter a valid name
     fireEvent.change(yourPlayerNameInput, {
-      target: { value: "Miss Scarlet" },
+      target: { value: "Miss Scarlett" },
     });
     expect(startButton).not.toBeDisabled();
   });
@@ -207,7 +207,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlet\nColonel Mustard\nMrs. White" },
+      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
@@ -226,7 +226,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlet\nColonel Mustard\nMrs. White" },
+      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);

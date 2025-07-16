@@ -7,7 +7,7 @@ describe("KnowledgeTable", () => {
   const mockPlayers = ["Alice", "Bob", "Charlie"];
   const mockCardKnowledge: CardKnowledge[] = [
     {
-      cardName: "Miss Scarlet",
+      cardName: "Miss Scarlett",
       category: "suspect",
       inYourHand: true,
       inPlayersHand: { Alice: false, Bob: null, Charlie: null },
@@ -83,8 +83,8 @@ describe("KnowledgeTable", () => {
         onKnowledgeChange={() => {}}
       />
     );
-    // Miss Scarlet should be marked as in your hand
-    const scarletRow = screen.getByText("Miss Scarlet").closest("tr");
+    // Miss Scarlett should be marked as in your hand
+    const scarletRow = screen.getByText("Miss Scarlett").closest("tr");
     expect(scarletRow).toHaveTextContent("Hand");
   });
 
@@ -271,7 +271,7 @@ describe("KnowledgeTable", () => {
     // Each card should have at most one player with a checkmark
     const multiCardKnowledge: CardKnowledge[] = [
       {
-        cardName: "Miss Scarlet",
+        cardName: "Miss Scarlett",
         category: "suspect" as const,
         inYourHand: false,
         inPlayersHand: { Alice: true, Bob: false, Charlie: false }, // Alice has it
@@ -305,7 +305,7 @@ describe("KnowledgeTable", () => {
     );
 
     // Each card should have exactly one checkmark
-    const scarletRow = screen.getByText("Miss Scarlet").closest("tr");
+    const scarletRow = screen.getByText("Miss Scarlett").closest("tr");
     const candlestickRow = screen.getByText("Candlestick").closest("tr");
     const libraryRow = screen.getByText("Library").closest("tr");
 

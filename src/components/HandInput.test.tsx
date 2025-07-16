@@ -4,10 +4,10 @@ import HandInput from "./HandInput";
 
 // Canonical Clue/Cluedo cards for the classic game
 const ALL_SUSPECTS = [
-  "Miss Scarlet",
+  "Miss Scarlett",
   "Colonel Mustard",
-  "Mrs. White",
-  "Mr. Green",
+  "Dr. Orchid",
+  "Reverend Green",
   "Mrs. Peacock",
   "Professor Plum",
 ];
@@ -126,7 +126,7 @@ describe("HandInput", () => {
 
   it("removes duplicate suspects from the display", () => {
     // Expects: The component should deduplicate suspects and only show unique values
-    const suspects = ["Miss Scarlet", "Miss Scarlet", "Colonel Mustard"];
+    const suspects = ["Miss Scarlett", "Miss Scarlett", "Colonel Mustard"];
     const weapons = ["Candlestick"];
     const rooms = ["Kitchen"];
 
@@ -141,15 +141,15 @@ describe("HandInput", () => {
       />
     );
 
-    // Should only show one instance of "Miss Scarlet"
-    const scarletElements = screen.getAllByText("Miss Scarlet");
+    // Should only show one instance of "Miss Scarlett"
+    const scarletElements = screen.getAllByText("Miss Scarlett");
     expect(scarletElements).toHaveLength(1);
     expect(screen.getByText("Colonel Mustard")).toBeInTheDocument();
   });
 
   it("removes duplicate weapons from the display", () => {
     // Expects: The component should deduplicate weapons and only show unique values
-    const suspects = ["Miss Scarlet"];
+    const suspects = ["Miss Scarlett"];
     const weapons = ["Candlestick", "Candlestick", "Revolver"];
     const rooms = ["Kitchen"];
 
@@ -172,7 +172,7 @@ describe("HandInput", () => {
 
   it("removes duplicate rooms from the display", () => {
     // Expects: The component should deduplicate rooms and only show unique values
-    const suspects = ["Miss Scarlet"];
+    const suspects = ["Miss Scarlett"];
     const weapons = ["Candlestick"];
     const rooms = ["Kitchen", "Kitchen", "Library"];
 
@@ -197,7 +197,7 @@ describe("HandInput", () => {
     // Expects: Clicking a checkbox should toggle its checked state
     DEFAULT_RENDER();
 
-    const checkbox = screen.getByLabelText("Miss Scarlet");
+    const checkbox = screen.getByLabelText("Miss Scarlett");
     fireEvent.click(checkbox);
     expect(checkbox).toBeChecked();
 
@@ -228,7 +228,7 @@ describe("HandInput", () => {
 
     // Select 6 cards (all available)
     const checkboxes = [
-      screen.getByLabelText("Miss Scarlet"),
+      screen.getByLabelText("Miss Scarlett"),
       screen.getByLabelText("Colonel Mustard"),
       screen.getByLabelText("Candlestick"),
       screen.getByLabelText("Revolver"),
@@ -246,7 +246,7 @@ describe("HandInput", () => {
 
     // Should call onHandSubmit with the selected cards
     expect(onHandSubmit).toHaveBeenCalledWith([
-      "Miss Scarlet",
+      "Miss Scarlett",
       "Colonel Mustard",
       "Candlestick",
       "Revolver",
@@ -298,7 +298,7 @@ describe("HandInput", () => {
   it("does not display the message when cards are selected", () => {
     DEFAULT_RENDER();
 
-    const checkbox = screen.getByLabelText("Miss Scarlet");
+    const checkbox = screen.getByLabelText("Miss Scarlett");
     fireEvent.click(checkbox);
 
     const message = screen.queryByText("Please select at least one card.");
@@ -311,7 +311,7 @@ describe("HandInput", () => {
 
     // Select 6 cards
     [
-      "Miss Scarlet",
+      "Miss Scarlett",
       "Colonel Mustard",
       "Candlestick",
       "Revolver",
@@ -337,7 +337,7 @@ describe("HandInput", () => {
 
     // Select 6 cards
     [
-      "Miss Scarlet",
+      "Miss Scarlett",
       "Colonel Mustard",
       "Candlestick",
       "Revolver",
@@ -368,7 +368,7 @@ describe("HandInput", () => {
 
     // Select all 7 cards
     [
-      "Miss Scarlet",
+      "Miss Scarlett",
       "Colonel Mustard",
       "Professor Plum",
       "Candlestick",
@@ -395,7 +395,7 @@ describe("HandInput", () => {
     DEFAULT_RENDER({ onHandSubmit });
 
     // Select all 6 cards
-    const scarletCheckbox = screen.getByLabelText("Miss Scarlet");
+    const scarletCheckbox = screen.getByLabelText("Miss Scarlett");
     const mustardCheckbox = screen.getByLabelText("Colonel Mustard");
     const candlestickCheckbox = screen.getByLabelText("Candlestick");
     const revolverCheckbox = screen.getByLabelText("Revolver");
@@ -471,9 +471,9 @@ describe("HandInput", () => {
 
     // Rapidly click all checkboxes in sequence, then again to toggle off, then on again
     const checkboxes = [
-      screen.getByLabelText("Miss Scarlet"),
+      screen.getByLabelText("Miss Scarlett"),
       screen.getByLabelText("Colonel Mustard"),
-      screen.getByLabelText("Mrs. White"),
+      screen.getByLabelText("Dr. Orchid"),
       screen.getByLabelText("Candlestick"),
       screen.getByLabelText("Revolver"),
       screen.getByLabelText("Kitchen"),
@@ -515,9 +515,9 @@ describe("HandInput", () => {
     // Submit should call onHandSubmit with all 6 cards
     fireEvent.click(submitButton);
     expect(onHandSubmit).toHaveBeenCalledWith([
-      "Miss Scarlet",
+      "Miss Scarlett",
       "Colonel Mustard",
-      "Mrs. White",
+      "Dr. Orchid",
       "Candlestick",
       "Revolver",
       "Kitchen",
@@ -528,8 +528,8 @@ describe("HandInput", () => {
     // Expects: When onHandSubmit throws an error, the component should catch it, log an error,
     // display an error message to the user, and not crash the component
     const mockOnHandSubmit = vi.fn((selectedCards: string[]) => {
-      if (selectedCards.includes("Miss Scarlet")) {
-        throw new Error("Miss Scarlet is not available");
+      if (selectedCards.includes("Miss Scarlett")) {
+        throw new Error("Miss Scarlett is not available");
       }
     });
 
@@ -546,8 +546,8 @@ describe("HandInput", () => {
       />
     );
 
-    // Select Miss Scarlet
-    const scarletCheckbox = screen.getByLabelText("Miss Scarlet");
+    // Select Miss Scarlett
+    const scarletCheckbox = screen.getByLabelText("Miss Scarlett");
     const mustardCheckbox = screen.getByLabelText("Colonel Mustard");
     const candlestickCheckbox = screen.getByLabelText("Candlestick");
     const daggerCheckbox = screen.getByLabelText("Dagger");
@@ -565,7 +565,7 @@ describe("HandInput", () => {
 
     expect(errorSpy).toHaveBeenCalledWith(
       "Error submitting hand:",
-      expect.objectContaining({ message: "Miss Scarlet is not available" })
+      expect.objectContaining({ message: "Miss Scarlett is not available" })
     );
 
     errorSpy.mockRestore();
@@ -666,7 +666,7 @@ describe("HandInput", () => {
 
     // Test with arrays containing invalid card names
     const suspectsWithInvalid = [
-      "Miss Scarlet",
+      "Miss Scarlett",
       null,
       "",
       undefined,
@@ -689,7 +689,7 @@ describe("HandInput", () => {
 
     // Currently the implementation doesn't filter invalid card names,
     // so all valid card names should still be displayed
-    expect(screen.getByText("Miss Scarlet")).toBeInTheDocument();
+    expect(screen.getByText("Miss Scarlett")).toBeInTheDocument();
     expect(screen.getByText("Colonel Mustard")).toBeInTheDocument();
     expect(screen.getByText("Candlestick")).toBeInTheDocument();
     expect(screen.getByText("Revolver")).toBeInTheDocument();
@@ -707,7 +707,7 @@ describe("HandInput", () => {
     DEFAULT_RENDER({ players: ["A", "B", "C", "D"], onHandSubmit });
 
     // Select 4 cards (valid)
-    ["Miss Scarlet", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
+    ["Miss Scarlett", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
       (card) => {
         fireEvent.click(screen.getByLabelText(card));
       }
@@ -722,7 +722,7 @@ describe("HandInput", () => {
 
     // Clear previous selections and select 5 cards (also valid)
     // First deselect the 4 cards we just selected
-    ["Miss Scarlet", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
+    ["Miss Scarlett", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
       (card) => {
         fireEvent.click(screen.getByLabelText(card));
       }
@@ -733,7 +733,7 @@ describe("HandInput", () => {
 
     // Now select 5 different cards
     [
-      "Miss Scarlet",
+      "Miss Scarlett",
       "Colonel Mustard",
       "Candlestick",
       "Kitchen",
@@ -752,7 +752,7 @@ describe("HandInput", () => {
     DEFAULT_RENDER({ players: ["A", "B", "C", "D", "E"], onHandSubmit });
 
     // Select 3 cards (valid)
-    ["Miss Scarlet", "Candlestick", "Kitchen"].forEach((card) => {
+    ["Miss Scarlett", "Candlestick", "Kitchen"].forEach((card) => {
       fireEvent.click(screen.getByLabelText(card));
     });
 
@@ -766,7 +766,7 @@ describe("HandInput", () => {
 
     // Clear previous selections and select 4 cards (also valid)
     // First deselect the 3 cards we just selected
-    ["Miss Scarlet", "Candlestick", "Kitchen"].forEach((card) => {
+    ["Miss Scarlett", "Candlestick", "Kitchen"].forEach((card) => {
       fireEvent.click(screen.getByLabelText(card));
     });
 
@@ -774,7 +774,7 @@ describe("HandInput", () => {
     await new Promise((resolve) => setTimeout(resolve, 150));
 
     // Now select 4 different cards
-    ["Miss Scarlet", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
+    ["Miss Scarlett", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
       (card) => {
         fireEvent.click(screen.getByLabelText(card));
       }
@@ -790,7 +790,7 @@ describe("HandInput", () => {
     DEFAULT_RENDER({ players: ["A", "B", "C", "D", "E", "F"], onHandSubmit });
 
     // Select 3 cards (valid)
-    ["Miss Scarlet", "Candlestick", "Kitchen"].forEach((card) => {
+    ["Miss Scarlett", "Candlestick", "Kitchen"].forEach((card) => {
       fireEvent.click(screen.getByLabelText(card));
     });
 

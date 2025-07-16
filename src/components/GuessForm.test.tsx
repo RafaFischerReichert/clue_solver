@@ -4,7 +4,7 @@ import GuessForm from './GuessForm';
 
 describe('GuessForm', () => {
   const mockProps = {
-    suspects: ['Miss Scarlet', 'Colonel Mustard', 'Mrs. White'],
+    suspects: ['Miss Scarlett', 'Colonel Mustard', 'Dr. Orchid'],
     weapons: ['Candlestick', 'Dagger', 'Lead Pipe'],
     rooms: ['Kitchen', 'Ballroom', 'Conservatory'],
     selectedSuspect: '',
@@ -49,8 +49,8 @@ describe('GuessForm', () => {
     });
     
     // Should call onGuessChange when selection changes
-    fireEvent.change(suspectSelect, { target: { value: 'Miss Scarlet' } });
-    expect(mockOnGuessChange).toHaveBeenCalledWith('Miss Scarlet', '', '');
+    fireEvent.change(suspectSelect, { target: { value: 'Miss Scarlett' } });
+    expect(mockOnGuessChange).toHaveBeenCalledWith('Miss Scarlett', '', '');
   });
 
   it('allows weapon input', () => {
@@ -104,7 +104,7 @@ describe('GuessForm', () => {
     const mockOnGuessSubmit = vi.fn();
     const propsWithSubmit = {
       ...mockProps,
-      selectedSuspect: 'Miss Scarlet',
+      selectedSuspect: 'Miss Scarlett',
       selectedWeapon: 'Candlestick',
       selectedRoom: 'Kitchen',
       guessedBy: 'Alice',
@@ -119,13 +119,13 @@ describe('GuessForm', () => {
     fireEvent.click(submitButton);
     
     expect(mockOnGuessSubmit).toHaveBeenCalledWith({
-      suspect: 'Miss Scarlet',
+      suspect: 'Miss Scarlett',
       weapon: 'Candlestick',
       room: 'Kitchen',
       guessedBy: 'Alice',
       showedBy: null,
       shownCard: undefined,
-      answeringPlayers: [],
+      answeringPlayers: ['Bob', 'Charlie'], // Updated: all except guesser
     });
   });
 
@@ -153,12 +153,12 @@ describe('GuessForm', () => {
     const mockOnShownCardChange = vi.fn();
     const propsWithSubmit = {
       ...mockProps,
-      selectedSuspect: 'Miss Scarlet',
+      selectedSuspect: 'Miss Scarlett',
       selectedWeapon: 'Candlestick',
       selectedRoom: 'Kitchen',
       guessedBy: 'Alice',
       showedBy: 'Bob',
-      shownCard: 'Miss Scarlet', // Provide the shown card to make form valid
+      shownCard: 'Miss Scarlett', // Provide the shown card to make form valid
       onGuessSubmit: mockOnGuessSubmit,
       onShownCardChange: mockOnShownCardChange,
     };
@@ -171,13 +171,13 @@ describe('GuessForm', () => {
     
     // Verify submission was called with correct data
     expect(mockOnGuessSubmit).toHaveBeenCalledWith({
-      suspect: 'Miss Scarlet',
+      suspect: 'Miss Scarlett',
       weapon: 'Candlestick',
       room: 'Kitchen',
       guessedBy: 'Alice',
       showedBy: 'Bob',
-      shownCard: 'Miss Scarlet',
-      answeringPlayers: [],
+      shownCard: 'Miss Scarlett',
+      answeringPlayers: ['Bob', 'Charlie'], // Updated: all except guesser
     });
   });
 
@@ -187,7 +187,7 @@ describe('GuessForm', () => {
     const mockOnResetForm = vi.fn();
     const propsWithSubmit = {
       ...mockProps,
-      selectedSuspect: 'Miss Scarlet',
+      selectedSuspect: 'Miss Scarlett',
       selectedWeapon: 'Candlestick',
       selectedRoom: 'Kitchen',
       guessedBy: 'Alice',
@@ -217,7 +217,7 @@ describe('GuessForm', () => {
     
     // Fill in some but not all required fields
     const suspectSelect = screen.getByLabelText('Suspect:');
-    fireEvent.change(suspectSelect, { target: { value: 'Miss Scarlet' } });
+    fireEvent.change(suspectSelect, { target: { value: 'Miss Scarlett' } });
     
     // Button should still be disabled
     expect(submitButton).toBeDisabled();
@@ -231,7 +231,7 @@ describe('GuessForm', () => {
     const mockOnGuessSubmit = vi.fn();
     const propsWithSubmit = {
       ...mockProps,
-      selectedSuspect: 'Miss Scarlet',
+      selectedSuspect: 'Miss Scarlett',
       selectedWeapon: 'Candlestick',
       selectedRoom: 'Kitchen',
       guessedBy: 'Alice',
@@ -258,7 +258,7 @@ describe('GuessForm', () => {
     
     const propsWithError = {
       ...mockProps,
-      selectedSuspect: 'Miss Scarlet',
+      selectedSuspect: 'Miss Scarlett',
       selectedWeapon: 'Candlestick',
       selectedRoom: 'Kitchen',
       guessedBy: 'Alice',
@@ -461,7 +461,7 @@ describe('GuessForm', () => {
     const mockOnShownCardChange = vi.fn();
     const propsWithUserInvolved = {
       ...mockProps,
-      selectedSuspect: 'Miss Scarlet',
+      selectedSuspect: 'Miss Scarlett',
       selectedWeapon: 'Candlestick', 
       selectedRoom: 'Kitchen',
       guessedBy: 'Alice', // currentUser
@@ -476,7 +476,7 @@ describe('GuessForm', () => {
     expect(shownCardSelect).toBeInTheDocument();
     
     // Should have ONLY the three guessed cards as options in the shown card dropdown
-    const shownCardOptions = screen.getAllByText('Miss Scarlet');
+    const shownCardOptions = screen.getAllByText('Miss Scarlett');
     expect(shownCardOptions.length).toBe(2); // One in suspect dropdown, one in shown card dropdown
     
     const candlestickOptions = screen.getAllByText('Candlestick');
@@ -495,8 +495,8 @@ describe('GuessForm', () => {
     expect(shownCardOptionElements.length).toBe(4); // Empty option + 3 guessed cards
     
     // Should call onShownCardChange when selection changes
-    fireEvent.change(shownCardSelect, { target: { value: 'Miss Scarlet' } });
-    expect(mockOnShownCardChange).toHaveBeenCalledWith('Miss Scarlet');
+    fireEvent.change(shownCardSelect, { target: { value: 'Miss Scarlett' } });
+    expect(mockOnShownCardChange).toHaveBeenCalledWith('Miss Scarlett');
     
     // Should call onShownCardChange with different card
     fireEvent.change(shownCardSelect, { target: { value: 'Candlestick' } });
@@ -507,12 +507,12 @@ describe('GuessForm', () => {
     // Expects: The shown card dropdown should display the currently selected value
     const propsWithShownCard = {
       ...mockProps,
-      selectedSuspect: 'Miss Scarlet',
+      selectedSuspect: 'Miss Scarlett',
       selectedWeapon: 'Candlestick',
       selectedRoom: 'Kitchen',
       guessedBy: 'Alice',
       showedBy: 'Bob',
-      shownCard: 'Miss Scarlet',
+      shownCard: 'Miss Scarlett',
     };
     
     render(<GuessForm {...propsWithShownCard} />);
@@ -520,6 +520,6 @@ describe('GuessForm', () => {
     const shownCardSelect = screen.getByLabelText('Shown card:') as HTMLSelectElement;
     
     // Should display the selected value
-    expect(shownCardSelect.value).toBe('Miss Scarlet');
+    expect(shownCardSelect.value).toBe('Miss Scarlett');
   });
 }); 

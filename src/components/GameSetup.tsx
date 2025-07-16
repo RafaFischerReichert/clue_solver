@@ -5,7 +5,7 @@ import React, { useState } from "react";
  */
 interface GameSetupProps {
   /** Callback function called when game setup is complete */
-  onGameStart: (players: string[], yourPlayerName: string) => void;
+  onGameStart: (players: string[], yourPlayerName: string, suspects: string[], weapons: string[], rooms: string[]) => void;
 }
 
 /**
@@ -17,7 +17,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
   const [playerNames, setPlayerNames] = useState("");
   /** Suspect names (newline-separated) */
   const [suspects, setSuspects] = useState(
-    "Miss Scarlet\nColonel Mustard\nMrs. White\nMr. Green\nMrs. Peacock\nProfessor Plum"
+    "Scarlett\nMustard\nOrchid\nGreen\nPeacock\nPlum"
   );
   /** Weapon names (newline-separated) */
   const [weapons, setWeapons] = useState(
@@ -131,6 +131,18 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
       .split("\n")
       .map((name) => name.trim())
       .filter((name) => name !== "");
+    const suspectsList = suspects
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const weaponsList = weapons
+      .split("\n")
+      .map((w) => w.trim())
+      .filter(Boolean);
+    const roomsList = rooms
+      .split("\n")
+      .map((r) => r.trim())
+      .filter(Boolean);
 
     // console.log("Processed players:", players);
     // console.log("Validation - isYourPlayerNameValid:", isYourPlayerNameValid());
@@ -158,7 +170,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
         // "All validation passed, calling onGameStart with players:",
         players
       );
-      onGameStart(players, yourPlayerName); // order is preserved
+      onGameStart(players, yourPlayerName, suspectsList, weaponsList, roomsList); // order is preserved
     } else {
       console.warn("Validation failed, not calling onGameStart");
     }

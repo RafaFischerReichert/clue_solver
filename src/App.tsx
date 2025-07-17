@@ -343,7 +343,7 @@ function App() {
   return (
     <div className="App">
       <h1>Cluedo Solver</h1>
-      <div className="version-label">Version 1.1.0</div>
+      <div className="version-label">Version 1.2.0</div>
 
       {currentStep === "setup" && <GameSetup onGameStart={handleGameSetup} />}
 

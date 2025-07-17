@@ -6,12 +6,14 @@ A desktop application for solving Cluedo/Clue board games using React, TypeScrip
 
 ### ✅ Implemented
 - **Game Setup**: Configure players, your hand, and game elements
+- **Player Order Setup**: Set and customize the player order and hand sizes during game setup
 - **Knowledge Tracking**: Track which cards are in which players' hands
-- **Deduction Engine**: Advanced logic to deduce card locations based on game events
+- **Deduction Engine**: Advanced logic to deduce card locations based on game events, now with hand size awareness for more accurate deductions
 - **Three-State Knowledge System**: Distinguish between "definitely has", "definitely doesn't have", and "unknown"
 - **Guess Response Tracking**: Record and analyze player responses to suggestions
 - **Solution Detection**: Automatically identify when cards must be in the solution
 - **Comprehensive Testing**: Full test coverage with TDD approach
+- **Automated Versioning**: Script to update version numbers, create release commits, and tag/push releases
 
 ### 🚧 In Progress / Planned
 - **Suggestion AI**: Intelligent suggestions for optimal gameplay
@@ -29,6 +31,7 @@ A desktop application for solving Cluedo/Clue board games using React, TypeScrip
 - **Testing**: Vitest + React Testing Library
 - **Styling**: CSS Modules
 - **Icons**: Lucide React
+- **Release Automation**: Node.js script for versioning and tagging
 
 ## 📁 Project Structure
 
@@ -37,6 +40,7 @@ clue_solver/
 ├── src/                    # React application source
 │   ├── components/         # React components
 │   │   ├── GameSetup.tsx   # Game initialization
+│   │   ├── PlayerOrderSetup.tsx   # Player order and hand size setup
 │   │   ├── HandInput.tsx   # Player hand selection
 │   │   ├── KnowledgeTable.tsx # Knowledge display
 │   │   ├── GameLogic.tsx   # Core deduction logic
@@ -86,6 +90,13 @@ clue_solver/
    npm run build
    ```
 
+### Versioning & Release
+To bump the version, commit, tag, and push a release:
+```bash
+node update-version.cjs 1.2.0
+```
+(Replace `1.2.0` with your desired version number.)
+
 ### Development Commands
 
 ```bash
@@ -95,6 +106,7 @@ npm run test         # Run tests
 npm run test:ui      # Run tests with UI
 npm run test:run     # Run tests once
 npm run tauri        # Tauri CLI commands
+npm run tauri dev    # Start development server in a new window
 ```
 
 ## 🧠 Core Logic
@@ -168,3 +180,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Happy deducing! 🕵️‍♂️**
+
+#
+# For details on recent changes and new features, see the [CHANGELOG.md](CHANGELOG.md).

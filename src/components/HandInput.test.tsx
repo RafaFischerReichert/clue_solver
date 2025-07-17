@@ -45,7 +45,8 @@ const DEFAULT_RENDER = (overrides = {}) =>
       rooms={ALL_ROOMS}
       onHandSubmit={() => {}}
       onBack={() => {}}
-      players={["A", "B", "C"]}
+      handSizes={{ A: 6, B: 6, C: 6 }}
+      currentUser="A"
       {...overrides}
     />
   );
@@ -74,7 +75,8 @@ describe("HandInput", () => {
         rooms={rooms}
         onHandSubmit={() => {}}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -114,7 +116,8 @@ describe("HandInput", () => {
         rooms={[]}
         onHandSubmit={() => {}}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -137,7 +140,8 @@ describe("HandInput", () => {
         rooms={rooms}
         onHandSubmit={() => {}}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -160,7 +164,8 @@ describe("HandInput", () => {
         rooms={rooms}
         onHandSubmit={() => {}}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -183,7 +188,8 @@ describe("HandInput", () => {
         rooms={rooms}
         onHandSubmit={() => {}}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -222,7 +228,8 @@ describe("HandInput", () => {
         rooms={rooms}
         onHandSubmit={onHandSubmit}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -269,7 +276,8 @@ describe("HandInput", () => {
         rooms={rooms}
         onHandSubmit={onHandSubmit}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -542,7 +550,8 @@ describe("HandInput", () => {
         rooms={ALL_ROOMS}
         onHandSubmit={mockOnHandSubmit}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -585,7 +594,8 @@ describe("HandInput", () => {
         rooms={"not an array" as any}
         onHandSubmit={() => {}}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -635,7 +645,8 @@ describe("HandInput", () => {
         rooms={largeRooms}
         onHandSubmit={() => {}}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -683,7 +694,8 @@ describe("HandInput", () => {
         rooms={roomsWithInvalid as any}
         onHandSubmit={() => {}}
         onBack={() => {}}
-        players={["A", "B", "C"]}
+        handSizes={{ A: 6, B: 6, C: 6 }}
+        currentUser="A"
       />
     );
 
@@ -702,98 +714,114 @@ describe("HandInput", () => {
     warnSpy.mockRestore();
   });
 
-  it("allows valid hand size for 4 players (4 or 5 cards)", async () => {
+  it("allows valid hand size for 4 players (4 cards)", async () => {
     const onHandSubmit = vi.fn();
-    DEFAULT_RENDER({ players: ["A", "B", "C", "D"], onHandSubmit });
-
-    // Select 4 cards (valid)
-    ["Miss Scarlett", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
-      (card) => {
-        fireEvent.click(screen.getByLabelText(card));
-      }
+    render(
+      <HandInput
+        suspects={ALL_SUSPECTS}
+        weapons={ALL_WEAPONS}
+        rooms={ALL_ROOMS}
+        onHandSubmit={onHandSubmit}
+        onBack={() => {}}
+        handSizes={{ A: 4, B: 4, C: 4, D: 4 }}
+        currentUser="A"
+      />
     );
-
-    // Wait for throttling to ensure state updates
+    ["Miss Scarlett", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
+      (card) => fireEvent.click(screen.getByLabelText(card))
+    );
     await new Promise((resolve) => setTimeout(resolve, 150));
     const submitButton = screen.getByText("Submit");
     expect(submitButton).not.toBeDisabled();
     fireEvent.click(submitButton);
     expect(onHandSubmit).toHaveBeenCalled();
-
-    // Clear previous selections and select 5 cards (also valid)
-    // First deselect the 4 cards we just selected
-    ["Miss Scarlett", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
-      (card) => {
-        fireEvent.click(screen.getByLabelText(card));
-      }
-    );
-
-    // Wait for throttling
-    await new Promise((resolve) => setTimeout(resolve, 150));
-
-    // Now select 5 different cards
-    [
-      "Miss Scarlett",
-      "Colonel Mustard",
-      "Candlestick",
-      "Kitchen",
-      "Library",
-    ].forEach((card) => {
-      fireEvent.click(screen.getByLabelText(card));
-    });
-
-    // Wait for throttling to ensure state updates
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    expect(submitButton).not.toBeDisabled();
   });
 
-  it("allows valid hand size for 5 players (3 or 4 cards)", async () => {
+  it("allows valid hand size for 4 players (5 cards)", async () => {
     const onHandSubmit = vi.fn();
-    DEFAULT_RENDER({ players: ["A", "B", "C", "D", "E"], onHandSubmit });
-
-    // Select 3 cards (valid)
-    ["Miss Scarlett", "Candlestick", "Kitchen"].forEach((card) => {
-      fireEvent.click(screen.getByLabelText(card));
-    });
-
-    // Wait for throttling to ensure state updates
+    render(
+      <HandInput
+        suspects={ALL_SUSPECTS}
+        weapons={ALL_WEAPONS}
+        rooms={ALL_ROOMS}
+        onHandSubmit={onHandSubmit}
+        onBack={() => {}}
+        handSizes={{ A: 5, B: 5, C: 5, D: 5 }}
+        currentUser="A"
+      />
+    );
+    ["Miss Scarlett", "Colonel Mustard", "Candlestick", "Kitchen", "Library"].forEach(
+      (card) => fireEvent.click(screen.getByLabelText(card))
+    );
     await new Promise((resolve) => setTimeout(resolve, 150));
-
     const submitButton = screen.getByText("Submit");
     expect(submitButton).not.toBeDisabled();
     fireEvent.click(submitButton);
     expect(onHandSubmit).toHaveBeenCalled();
+  });
 
-    // Clear previous selections and select 4 cards (also valid)
-    // First deselect the 3 cards we just selected
+  it("allows valid hand size for 5 players (3 cards)", async () => {
+    const onHandSubmit = vi.fn();
+    render(
+      <HandInput
+        suspects={ALL_SUSPECTS}
+        weapons={ALL_WEAPONS}
+        rooms={ALL_ROOMS}
+        onHandSubmit={onHandSubmit}
+        onBack={() => {}}
+        handSizes={{ A: 3, B: 3, C: 3, D: 3, E: 3 }}
+        currentUser="A"
+      />
+    );
     ["Miss Scarlett", "Candlestick", "Kitchen"].forEach((card) => {
       fireEvent.click(screen.getByLabelText(card));
     });
-
-    // Wait for throttling
     await new Promise((resolve) => setTimeout(resolve, 150));
-
-    // Now select 4 different cards
-    ["Miss Scarlett", "Colonel Mustard", "Candlestick", "Kitchen"].forEach(
-      (card) => {
-        fireEvent.click(screen.getByLabelText(card));
-      }
-    );
-
-    // Wait for throttling to ensure state updates
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    const submitButton = screen.getByText("Submit");
     expect(submitButton).not.toBeDisabled();
+    fireEvent.click(submitButton);
+    expect(onHandSubmit).toHaveBeenCalled();
+  });
+
+  it("allows valid hand size for 5 players (4 cards)", async () => {
+    const onHandSubmit = vi.fn();
+    render(
+      <HandInput
+        suspects={ALL_SUSPECTS}
+        weapons={ALL_WEAPONS}
+        rooms={ALL_ROOMS}
+        onHandSubmit={onHandSubmit}
+        onBack={() => {}}
+        handSizes={{ A: 4, B: 4, C: 4, D: 4, E: 4 }}
+        currentUser="A"
+      />
+    );
+    ["Miss Scarlett", "Colonel Mustard", "Candlestick", "Kitchen"].forEach((card) => {
+      fireEvent.click(screen.getByLabelText(card));
+    });
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const submitButton = screen.getByText("Submit");
+    expect(submitButton).not.toBeDisabled();
+    fireEvent.click(submitButton);
+    expect(onHandSubmit).toHaveBeenCalled();
   });
 
   it("allows valid hand size for 6 players (3 cards)", async () => {
     const onHandSubmit = vi.fn();
-    DEFAULT_RENDER({ players: ["A", "B", "C", "D", "E", "F"], onHandSubmit });
-
-    // Select 3 cards (valid)
+    render(
+      <HandInput
+        suspects={ALL_SUSPECTS}
+        weapons={ALL_WEAPONS}
+        rooms={ALL_ROOMS}
+        onHandSubmit={onHandSubmit}
+        onBack={() => {}}
+        handSizes={{ A: 3, B: 3, C: 3, D: 3, E: 3, F: 3 }}
+        currentUser="A"
+      />
+    );
     ["Miss Scarlett", "Candlestick", "Kitchen"].forEach((card) => {
       fireEvent.click(screen.getByLabelText(card));
     });
-
     await new Promise((resolve) => setTimeout(resolve, 150));
     const submitButton = screen.getByText("Submit");
     expect(submitButton).not.toBeDisabled();

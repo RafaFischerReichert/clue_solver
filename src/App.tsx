@@ -116,6 +116,8 @@ function App() {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const workerRef = useRef<Worker | null>(null);
+  // Store the user's hand
+  const [userHand, setUserHand] = useState<string[]>([]);
 
   useEffect(() => {
     workerRef.current = new Worker(
@@ -169,6 +171,7 @@ function App() {
           currentUser
         )
       );
+      setUserHand(selectedCards);
     }
     setCurrentStep("gameplay");
   };
@@ -370,7 +373,8 @@ function App() {
           rooms={gameData.rooms}
           onHandSubmit={handleHandSubmit}
           onBack={() => setCurrentStep("player-order-setup")}
-          players={gameData.players}
+          handSizes={gameData.handSizes}
+          currentUser={currentUser}
         />
       )}
 
@@ -406,6 +410,7 @@ function App() {
                 cardKnowledge={cardKnowledge}
                 players={gameData.players}
                 onKnowledgeChange={setCardKnowledge}
+                handSizes={gameData.handSizes}
               />
             </div>
             <div className="guess-form-container">
@@ -436,6 +441,7 @@ function App() {
                     shownCard: "",
                   })
                 }
+                userHand={userHand}
               />
             </div>
             {/* Guess evaluation block: button, loading, and result */}

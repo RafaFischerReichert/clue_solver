@@ -16,6 +16,7 @@ describe('GuessForm', () => {
     answeringPlayers: ['Alice', 'Bob', 'Charlie'],
     allPlayers: ['Alice', 'Bob', 'Charlie'], // <-- add this
     currentUser: 'Alice',
+    userHand: [], // <-- add this
     onGuessChange: () => {},
     onGuessedByChange: () => {},
     onShowedByChange: () => {},
@@ -36,6 +37,7 @@ describe('GuessForm', () => {
     const propsWithCallback = {
       ...mockProps,
       onGuessChange: mockOnGuessChange,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithCallback} />);
@@ -59,6 +61,7 @@ describe('GuessForm', () => {
     const propsWithCallback = {
       ...mockProps,
       onGuessChange: mockOnGuessChange,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithCallback} />);
@@ -82,6 +85,7 @@ describe('GuessForm', () => {
     const propsWithCallback = {
       ...mockProps,
       onGuessChange: mockOnGuessChange,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithCallback} />);
@@ -109,6 +113,7 @@ describe('GuessForm', () => {
       selectedRoom: 'Kitchen',
       guessedBy: 'Alice',
       onGuessSubmit: mockOnGuessSubmit,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithSubmit} />);
@@ -136,6 +141,7 @@ describe('GuessForm', () => {
       suspects: [], // Empty array should not crash
       weapons: null as any, // Invalid type should not crash
       rooms: undefined as any, // Undefined should not crash
+      userHand: [],
     };
     
     render(<GuessForm {...invalidProps} />);
@@ -161,6 +167,7 @@ describe('GuessForm', () => {
       shownCard: 'Miss Scarlett', // Provide the shown card to make form valid
       onGuessSubmit: mockOnGuessSubmit,
       onShownCardChange: mockOnShownCardChange,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithSubmit} />);
@@ -193,6 +200,7 @@ describe('GuessForm', () => {
       guessedBy: 'Alice',
       onGuessSubmit: mockOnGuessSubmit,
       onResetForm: mockOnResetForm,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithSubmit} />);
@@ -284,6 +292,7 @@ describe('GuessForm', () => {
     const propsWithSubmit = {
       ...mockProps,
       onGuessSubmit: mockOnGuessSubmit,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithSubmit} />);
@@ -305,6 +314,7 @@ describe('GuessForm', () => {
       ...mockProps,
       guessedBy: 'Alice',
       showedBy: 'Alice',
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithSamePlayer} />);
@@ -324,6 +334,7 @@ describe('GuessForm', () => {
       ...mockProps,
       guessedBy: 'Alice', // currentUser
       showedBy: 'Bob',
+      userHand: [],
     };
     
     const { rerender } = render(<GuessForm {...propsWithUserAsGuesser} />);
@@ -336,6 +347,7 @@ describe('GuessForm', () => {
       ...mockProps,
       guessedBy: 'Bob',
       showedBy: 'Alice', // currentUser
+      userHand: [],
     };
     
     rerender(<GuessForm {...propsWithUserAsShower} />);
@@ -350,6 +362,7 @@ describe('GuessForm', () => {
       ...mockProps,
       guessedBy: 'Alice', // currentUser
       showedBy: 'Bob',
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithUserAsGuesser} />);
@@ -368,6 +381,7 @@ describe('GuessForm', () => {
     const propsWithCallback = {
       ...mockProps,
       onGuessedByChange: mockOnGuessedByChange,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithCallback} />);
@@ -394,6 +408,7 @@ describe('GuessForm', () => {
     const propsWithCallback = {
       ...mockProps,
       onShowedByChange: mockOnShowedByChange,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithCallback} />);
@@ -424,6 +439,7 @@ describe('GuessForm', () => {
       ...mockProps,
       guessedBy: 'Bob',
       showedBy: 'Charlie',
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithSelections} />);
@@ -442,6 +458,7 @@ describe('GuessForm', () => {
     const propsWithCallback = {
       ...mockProps,
       onShowedByChange: mockOnShowedByChange,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithCallback} />);
@@ -467,6 +484,7 @@ describe('GuessForm', () => {
       guessedBy: 'Alice', // currentUser
       showedBy: 'Bob',
       onShownCardChange: mockOnShownCardChange,
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithUserInvolved} />);
@@ -513,6 +531,7 @@ describe('GuessForm', () => {
       guessedBy: 'Alice',
       showedBy: 'Bob',
       shownCard: 'Miss Scarlett',
+      userHand: [],
     };
     
     render(<GuessForm {...propsWithShownCard} />);
@@ -521,5 +540,26 @@ describe('GuessForm', () => {
     
     // Should display the selected value
     expect(shownCardSelect.value).toBe('Miss Scarlett');
+  });
+
+  it("does not allow card in user's hand to be shown by someone else", () => {
+    // Expects: If a non-user is selected as shower and the shown card is in the user's hand,
+    // the submit button should be disabled and the error message should appear
+    const props = {
+      ...mockProps,
+      selectedSuspect: 'Miss Scarlett',
+      selectedWeapon: 'Candlestick',
+      selectedRoom: 'Kitchen',
+      guessedBy: 'Alice',
+      showedBy: 'Bob', // not the user
+      shownCard: 'Miss Scarlett', // in user's hand
+      userHand: ['Miss Scarlett', 'Dagger'],
+    };
+    render(<GuessForm {...props} />);
+    // The error message should be visible
+    expect(screen.getByText("Selected shown card is in user's hand")).toBeInTheDocument();
+    // The submit button should be disabled
+    const submitButton = screen.getByText('Submit Guess');
+    expect(submitButton).toBeDisabled();
   });
 }); 

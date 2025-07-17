@@ -9,18 +9,18 @@ describe("KnowledgeTable", () => {
     {
       cardName: "Miss Scarlett",
       category: "suspect",
-      inYourHand: true,
+      inYourHand: false,
       inPlayersHand: { Alice: false, Bob: null, Charlie: null },
-      inSolution: false,
-      eliminatedFromSolution: true,
+      inSolution: null,
+      eliminatedFromSolution: false,
     },
     {
       cardName: "Candlestick",
       category: "weapon",
-      inYourHand: false,
-      inPlayersHand: { Alice: null, Bob: true, Charlie: false },
-      inSolution: null,
-      eliminatedFromSolution: false,
+      inYourHand: true,
+      inPlayersHand: { Alice: true, Bob: false, Charlie: false },
+      inSolution: false,
+      eliminatedFromSolution: true,
     },
     {
       cardName: "Ballroom",
@@ -32,6 +32,9 @@ describe("KnowledgeTable", () => {
     },
   ];
 
+  // Add a default handSizes object for most tests
+  const defaultHandSizes = { Alice: 6, Bob: 6, Charlie: 6 };
+
   it("renders without crashing", () => {
     // Expects: The component should render with the main heading
     render(
@@ -39,6 +42,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
     expect(screen.getByText("Knowledge Table")).toBeInTheDocument();
@@ -51,6 +55,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
 
@@ -66,6 +71,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
 
@@ -75,60 +81,119 @@ describe("KnowledgeTable", () => {
   });
 
   it("shows correct knowledge state for cards in your hand", () => {
-    // Expects: Cards marked as inYourHand should display "Your Hand" in all player columns
+    // Expects: 'Hand' only in the column for the player whose hand it is
+    const handSizes = { Alice: 6, Bob: 6, Charlie: 6 };
+    const cardKnowledge: CardKnowledge[] = [
+      {
+        cardName: "Miss Scarlett",
+        category: "suspect",
+        inYourHand: true,
+        inPlayersHand: { Alice: true, Bob: false, Charlie: false },
+        inSolution: false,
+        eliminatedFromSolution: true,
+      },
+    ];
     render(
       <KnowledgeTable
-        cardKnowledge={mockCardKnowledge}
+        cardKnowledge={cardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={handSizes}
       />
     );
-    // Miss Scarlett should be marked as in your hand
-    const scarletRow = screen.getByText("Miss Scarlett").closest("tr");
-    expect(scarletRow).toHaveTextContent("Hand");
+    const row = screen.getByText("Miss Scarlett").closest("tr");
+    const tds = row?.querySelectorAll("td");
+    // 0: card name, 1: Alice, 2: Bob, 3: Charlie
+    expect(tds?.[1].textContent).toBe("Hand"); // Alice's column
+    expect(tds?.[2].textContent).toBe("Hand"); // Bob's column
+    expect(tds?.[3].textContent).toBe("Hand"); // Charlie's column
   });
 
   it("shows checkmark when player has the card", () => {
-    // Expects: When inPlayersHand[player] is true, display a checkmark (✓)
+    // Expects: '✓' in the correct player's column
+    const handSizes = { Alice: 6, Bob: 6, Charlie: 6 };
+    const cardKnowledge: CardKnowledge[] = [
+      {
+        cardName: "Candlestick",
+        category: "weapon",
+        inYourHand: false,
+        inPlayersHand: { Alice: false, Bob: true, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+    ];
     render(
       <KnowledgeTable
-        cardKnowledge={mockCardKnowledge}
+        cardKnowledge={cardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={handSizes}
       />
     );
-    // Candlestick: Bob has it (✓)
-    const candlestickRow = screen.getByText("Candlestick").closest("tr");
-    expect(candlestickRow).toHaveTextContent("✓");
+    const row = screen.getByText("Candlestick").closest("tr");
+    const tds = row?.querySelectorAll("td");
+    // 0: card name, 1: Alice, 2: Bob, 3: Charlie
+    expect(tds?.[1].textContent).toBe("✗"); // Alice
+    expect(tds?.[2].textContent).toBe("✓"); // Bob
+    expect(tds?.[3].textContent).toBe("✗"); // Charlie
   });
 
   it("shows X when player does not have the card", () => {
-    // Expects: When inPlayersHand[player] is false, display an X (✗)
+    // Expects: '✗' in the correct player's column
+    const handSizes = { Alice: 6, Bob: 6, Charlie: 6 };
+    const cardKnowledge: CardKnowledge[] = [
+      {
+        cardName: "Candlestick",
+        category: "weapon",
+        inYourHand: false,
+        inPlayersHand: { Alice: false, Bob: true, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+    ];
     render(
       <KnowledgeTable
-        cardKnowledge={mockCardKnowledge}
+        cardKnowledge={cardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={handSizes}
       />
     );
-    // Candlestick: Charlie does not have it (✗)
-    const candlestickRow = screen.getByText("Candlestick").closest("tr");
-    expect(candlestickRow).toHaveTextContent("✗");
+    const row = screen.getByText("Candlestick").closest("tr");
+    const tds = row?.querySelectorAll("td");
+    // 0: card name, 1: Alice, 2: Bob, 3: Charlie
+    expect(tds?.[1].textContent).toBe("✗"); // Alice
+    expect(tds?.[2].textContent).toBe("✓"); // Bob
+    expect(tds?.[3].textContent).toBe("✗"); // Charlie
   });
 
   it("shows empty cell when player knowledge is unknown", () => {
-    // Expects: When inPlayersHand[player] is null, display an empty cell
+    // Expects: empty cell for player with null knowledge
+    const handSizes = { Alice: 6, Bob: 6, Charlie: 6 };
+    const cardKnowledge: CardKnowledge[] = [
+      {
+        cardName: "Candlestick",
+        category: "weapon",
+        inYourHand: false,
+        inPlayersHand: { Alice: null, Bob: true, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+    ];
     render(
       <KnowledgeTable
-        cardKnowledge={mockCardKnowledge}
+        cardKnowledge={cardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={handSizes}
       />
     );
-    // Candlestick: Alice's knowledge is unknown (null)
-    const candlestickRow = screen.getByText("Candlestick").closest("tr");
-    const aliceCell = candlestickRow?.querySelectorAll("td")[1]; // 0: card name, 1: Alice, 2: Bob, 3: Charlie
-    expect(aliceCell?.textContent).toBe("");
+    const row = screen.getByText("Candlestick").closest("tr");
+    const tds = row?.querySelectorAll("td");
+    // 0: card name, 1: Alice, 2: Bob, 3: Charlie
+    expect(tds?.[1].textContent).toBe(""); // Alice unknown
+    expect(tds?.[2].textContent).toBe("✓"); // Bob
+    expect(tds?.[3].textContent).toBe("✗"); // Charlie
   });
 
   it("shows empty cells when all player knowledge is unknown", () => {
@@ -138,6 +203,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={mockCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
     // Ballroom: all players unknown
@@ -157,6 +223,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={[]}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
     expect(screen.getByText("Knowledge Table")).toBeInTheDocument();
@@ -194,6 +261,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={malformedKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
 
@@ -213,6 +281,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={null as any}
         players={null as any}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
 
@@ -251,6 +320,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={constraintTestKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
 
@@ -301,6 +371,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={multiCardKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
 
@@ -355,6 +426,7 @@ describe("KnowledgeTable", () => {
         cardKnowledge={yourHandKnowledge}
         players={mockPlayers}
         onKnowledgeChange={() => {}}
+        handSizes={defaultHandSizes}
       />
     );
 
@@ -375,5 +447,147 @@ describe("KnowledgeTable", () => {
     const ropeXMarks = ropeRow?.textContent?.match(/✗/g);
     expect(ropeCheckmarks).toHaveLength(1);
     expect(ropeXMarks).toHaveLength(2);
+  });
+
+  it("shows (known/total) in the header for each player", () => {
+    // Expects: The header should show (known/total) for each player
+    const handSizes = { Alice: 2, Bob: 1, Charlie: 0 };
+    const cardKnowledge: CardKnowledge[] = [
+      {
+        cardName: "Card1",
+        category: "suspect",
+        inYourHand: false,
+        inPlayersHand: { Alice: true, Bob: true, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+      {
+        cardName: "Card2",
+        category: "weapon",
+        inYourHand: false,
+        inPlayersHand: { Alice: true, Bob: null, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+    ];
+    render(
+      <KnowledgeTable
+        cardKnowledge={cardKnowledge}
+        players={mockPlayers}
+        onKnowledgeChange={() => {}}
+        handSizes={handSizes}
+      />
+    );
+    expect(screen.getByText("(2 / 2)")).toBeInTheDocument(); // Alice
+    expect(screen.getByText("(1 / 1)")).toBeInTheDocument(); // Bob
+    expect(screen.getByText("(0 / 0)")).toBeInTheDocument(); // Charlie
+  });
+
+  it("applies bold and green style when all cards are known for a player", () => {
+    // Expects: When known == total, style is bold and green
+    const handSizes = { Alice: 2, Bob: 1, Charlie: 0 };
+    const cardKnowledge: CardKnowledge[] = [
+      {
+        cardName: "Card1",
+        category: "suspect",
+        inYourHand: false,
+        inPlayersHand: { Alice: true, Bob: true, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+      {
+        cardName: "Card2",
+        category: "weapon",
+        inYourHand: false,
+        inPlayersHand: { Alice: true, Bob: null, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+    ];
+    render(
+      <KnowledgeTable
+        cardKnowledge={cardKnowledge}
+        players={mockPlayers}
+        onKnowledgeChange={() => {}}
+        handSizes={handSizes}
+      />
+    );
+    // Find the span for Alice (should be bold and green)
+    const aliceHeader = screen.getByText("Alice").parentElement;
+    const aliceSpan = aliceHeader?.querySelector(".secondary-text");
+    expect(aliceSpan).toHaveStyle({ fontWeight: "bold", color: "rgb(0, 128, 0)" });
+  });
+
+  it("does not apply bold/green style when not all cards are known", () => {
+    // Expects: When known != total, style is normal
+    const handSizes = { Alice: 3, Bob: 1, Charlie: 0 };
+    const cardKnowledge: CardKnowledge[] = [
+      {
+        cardName: "Card1",
+        category: "suspect",
+        inYourHand: false,
+        inPlayersHand: { Alice: true, Bob: true, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+      {
+        cardName: "Card2",
+        category: "weapon",
+        inYourHand: false,
+        inPlayersHand: { Alice: true, Bob: null, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+    ];
+    render(
+      <KnowledgeTable
+        cardKnowledge={cardKnowledge}
+        players={mockPlayers}
+        onKnowledgeChange={() => {}}
+        handSizes={handSizes}
+      />
+    );
+    // Find the span for Alice (should NOT be bold/green)
+    const aliceHeader = screen.getByText("Alice").parentElement;
+    const aliceSpan = aliceHeader?.querySelector(".secondary-text");
+    expect(aliceSpan).not.toHaveStyle({ fontWeight: "bold", color: "green" });
+  });
+
+  it("shows '?' for hand size if missing and does not apply special style", () => {
+    // Expects: If hand size is missing, shows ? and no bold/green style
+    const handSizes = { Alice: 2, Bob: undefined as any, Charlie: 0 };
+    const cardKnowledge: CardKnowledge[] = [
+      {
+        cardName: "Card1",
+        category: "suspect",
+        inYourHand: false,
+        inPlayersHand: { Alice: true, Bob: true, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+      {
+        cardName: "Card2",
+        category: "weapon",
+        inYourHand: false,
+        inPlayersHand: { Alice: true, Bob: null, Charlie: false },
+        inSolution: null,
+        eliminatedFromSolution: false,
+      },
+    ];
+    render(
+      <KnowledgeTable
+        cardKnowledge={cardKnowledge}
+        players={mockPlayers}
+        onKnowledgeChange={() => {}}
+        handSizes={handSizes}
+      />
+    );
+    expect(screen.getByText("(2 / 2)")).toBeInTheDocument(); // Alice
+    expect(screen.getByText("(1 / ?)")).toBeInTheDocument(); // Bob
+    expect(screen.getByText("(0 / 0)")).toBeInTheDocument(); // Charlie
+    // Bob's style should not be bold/green
+    const bobHeader = screen.getByText("Bob").parentElement;
+    const bobSpan = bobHeader?.querySelector(".secondary-text");
+    expect(bobSpan).not.toHaveStyle({ fontWeight: "bold", color: "green" });
   });
 });

@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import { getPossibleHandSizes } from "./GameLogic";
 
 // Props for HandInput
 interface HandInputProps {
@@ -8,7 +7,8 @@ interface HandInputProps {
   rooms: string[];    // Room card names
   onHandSubmit: (selectedCards: string[]) => void; // Called when hand is submitted
   onBack: () => void; // Called when back button is pressed
-  players: string[];  // Player names
+  handSizes: Record<string, number>; // Actual hand sizes for each player
+  currentUser: string; // The current user's name
 }
 
 // HandInput: lets user select their cards
@@ -18,7 +18,8 @@ const HandInput: React.FC<HandInputProps> = ({
   rooms,
   onHandSubmit,
   onBack,
-  players,
+  handSizes,
+  currentUser,
 }) => {
   // Validate original props first
   if (!Array.isArray(suspects)) {
@@ -118,12 +119,11 @@ const HandInput: React.FC<HandInputProps> = ({
 
   const hasSelectedCards = selectedCards.length > 0;
   // Find the correct source for players
-  const playerList = Array.isArray(players) ? players : [];
-  const possibleHandSizes = getPossibleHandSizes(playerList.length);
-  const isValidHandSize = possibleHandSizes.includes(selectedCards.length);
+  const requiredHandSize = handSizes && currentUser ? handSizes[currentUser] : null;
+  const isValidHandSize = requiredHandSize !== null && selectedCards.length === requiredHandSize;
 
   return (
-    <div className="form-section">
+    <div className="form-section hand-input-wide">
       <form onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
         <h2>Select Your Cards</h2>
         <p>Check the cards that are in your hand:</p>
@@ -173,15 +173,15 @@ const HandInput: React.FC<HandInputProps> = ({
           <div className="error-message">Please select at least one card.</div>
         )}
         <div className="form-group" style={{ marginBottom: 12 }}>
-          <strong>Possible hand sizes per player:</strong> {possibleHandSizes.join(" or ")}
+          <strong>Your required hand size:</strong> {requiredHandSize !== null ? requiredHandSize : "?"}
           <br />
           <span>
             You have selected {selectedCards.length} card{selectedCards.length !== 1 ? 's' : ''}.
             {isValidHandSize ? ' ✅' : ' ❌'}
           </span>
-          {!isValidHandSize && (
+          {!isValidHandSize && requiredHandSize !== null && (
             <div className="error-message">
-              Please select a valid number of cards ({possibleHandSizes.join(' or ')}).
+              Please select exactly {requiredHandSize} card{requiredHandSize !== 1 ? 's' : ''}.
             </div>
           )}
         </div>

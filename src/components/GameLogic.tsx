@@ -102,10 +102,40 @@ export const initializeKnowledgeBase = (
   return knowledgeBase;
 };
 
+// Deduces: If a player's full hand is known, all other cards must not be in that player's hand
+export function deduceFullHands(
+  knowledge: CardKnowledge[],
+  handSizes: Record<string, number>
+): CardKnowledge[] {
+  // For each player, count how many cards are known to be in their hand
+  const playerKnownCards: Record<string, string[]> = {};
+  Object.keys(handSizes).forEach((player) => {
+    playerKnownCards[player] = knowledge
+      .filter((card) => card.inPlayersHand[player] === true)
+      .map((card) => card.cardName);
+  });
+  // For each player whose hand is fully known, mark all other cards as not in their hand
+  let updatedKnowledge = knowledge.map((card) => ({ ...card, inPlayersHand: { ...card.inPlayersHand } }));
+  Object.entries(handSizes).forEach(([player, handSize]) => {
+    if (playerKnownCards[player].length === handSize) {
+      updatedKnowledge.forEach((card) => {
+        if (
+          !playerKnownCards[player].includes(card.cardName) &&
+          card.inPlayersHand[player] !== false
+        ) {
+          card.inPlayersHand[player] = false;
+        }
+      });
+    }
+  });
+  return updatedKnowledge;
+}
+
 export const markCardInPlayerHand = (
   knowledge: CardKnowledge[],
   cardName: string,
-  playerName: string
+  playerName: string,
+  handSizes?: Record<string, number>
 ): CardKnowledge[] => {
   // Check if the cardName exists in the knowledge base
   const cardExists = knowledge.some((card) => card.cardName === cardName);
@@ -129,7 +159,7 @@ export const markCardInPlayerHand = (
     return knowledge;
   }
 
-  return knowledge.map((card) => {
+  let updated = knowledge.map((card) => {
     if (card.cardName === cardName) {
       const updatedInPlayersHand = { ...card.inPlayersHand };
       // Mark the card as in this player's hand
@@ -140,7 +170,6 @@ export const markCardInPlayerHand = (
           updatedInPlayersHand[otherPlayer] = false;
         }
       });
-
       return {
         ...card,
         inPlayersHand: updatedInPlayersHand,
@@ -150,6 +179,10 @@ export const markCardInPlayerHand = (
     }
     return card;
   });
+  if (handSizes) {
+    updated = deduceFullHands(updated, handSizes);
+  }
+  return updated;
 };
 
 export const markCardNotInPlayerHand = (
@@ -214,7 +247,8 @@ export const recordGuessResponse = (
   shownBy: string | null,
   guessedBy: string,
   askedPlayers: string[],
-  knowledge: CardKnowledge[]
+  knowledge: CardKnowledge[],
+  handSizes?: Record<string, number>
 ): { tuples: PlayerCardTuples[]; knowledge: CardKnowledge[] } => {
   const newTuple: GuessTuple = {
     ...guess,
@@ -303,6 +337,9 @@ export const recordGuessResponse = (
   }
   // After recording the tuple, analyze and update knowledge
   knowledge = updateKnowledgeWithDeductions(knowledge, tuples);
+  if (handSizes) {
+    knowledge = deduceFullHands(knowledge, handSizes);
+  }
   return { tuples, knowledge };
 };
 
@@ -337,7 +374,12 @@ export const analyzePlayerTuples = (
           // Gather knowledge for this player and these cards
           const cardStates = threeCards.map((cardName) => {
             const card = knowledge.find((k) => k.cardName === cardName);
-            return card ? card.inPlayersHand[player.player] : null;
+            // Defensive: treat cards in your hand as definitely not in the showing player's hand
+            if (card) {
+              if (card.inYourHand) return false;
+              return card.inPlayersHand[player.player];
+            }
+            return null;
           });
           // If the player is known to have any of the cards, skip deduction for this tuple
           if (cardStates.some((state) => state === true)) {
@@ -444,7 +486,8 @@ export const updateKnowledgeWithDeductions = (
 };
 
 export const checkForSolution = (
-  knowledge: CardKnowledge[]
+  knowledge: CardKnowledge[],
+  handSizes?: Record<string, number>
 ): CardKnowledge[] => {
   console.log("=== checkForSolution called ===");
   console.log("Knowledge:", knowledge);
@@ -542,6 +585,9 @@ export const checkForSolution = (
   console.log("Final knowledge:", knowledge);
   console.log("=== checkForSolution finished ===");
   
+  if (handSizes) {
+    knowledge = deduceFullHands(knowledge, handSizes);
+  }
   return knowledge;
 };
 

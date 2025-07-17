@@ -1,11 +1,11 @@
 import React from "react";
 import { CardKnowledge } from "./GameLogic";
-import { getPossibleHandSizes } from "./GameLogic";
 
 interface KnowledgeTableProps {
   cardKnowledge: CardKnowledge[];
   players: string[];
   onKnowledgeChange: (updatedKnowledge: CardKnowledge[]) => void;
+  handSizes: Record<string, number>; // Actual hand sizes for each player
 }
 
 // Create table structure (one column per player, one row per card)
@@ -13,6 +13,7 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
   // Validate props and handle invalid inputs gracefully
   let players = props.players;
   let cardKnowledge = props.cardKnowledge;
+  let handSizes = props.handSizes;
 
   if (!Array.isArray(players)) {
     console.warn(
@@ -30,19 +31,12 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
     cardKnowledge = [];
   }
 
-  let possibleHandSizes: number[] = [];
-  let handSizeError: string | null = null;
-  try {
-    possibleHandSizes = getPossibleHandSizes(players.length);
-  } catch (e) {
-    handSizeError = (e instanceof Error) ? e.message : String(e);
-    console.warn("KnowledgeTable: ", handSizeError);
-  }
-
   // Compute known card counts for each player
   const knownCardCounts: Record<string, number> = {};
+  const knowFullHand: Record<string, boolean> = {};
   players.forEach(player => {
     knownCardCounts[player] = cardKnowledge.filter(card => card.inPlayersHand[player] === true).length;
+    knowFullHand[player] = handSizes && handSizes[player] !== undefined && knownCardCounts[player] === handSizes[player];
   });
 
   // Calculate known solution cards
@@ -58,17 +52,6 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
   }).join(", ");
 
   // Implementation of the KnowledgeTable component
-  if (handSizeError) {
-    return (
-      <div>
-        <h2>Knowledge Table</h2>
-        <div className="error-message" style={{ marginBottom: 8 }}>
-          Error: {handSizeError}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <h2>Knowledge Table</h2>
@@ -77,7 +60,7 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
         {knownSolution}
       </div>
       <div style={{ marginBottom: 8 }}>
-        <strong>Possible hand sizes per player:</strong> {possibleHandSizes.join(" or ")}
+        <strong>Hand size per player:</strong> {players.map(p => `${p}: ${handSizes && handSizes[p] !== undefined ? handSizes[p] : '?'}`).join(', ')}
       </div>
       <table className="knowledge-table-dark">
         <thead>
@@ -86,8 +69,15 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
             {players.map((player) => (
               <th key={player}>
                 {player}
-                <span className="secondary-text" style={{ marginLeft: 4 }}>
-                  ({knownCardCounts[player]})
+                <span
+                  className="secondary-text"
+                  style={{
+                    marginLeft: 4,
+                    fontWeight: knowFullHand[player] ? 'bold' : undefined,
+                    color: knowFullHand[player] ? 'green' : undefined,
+                  }}
+                >
+                  ({knownCardCounts[player]} / {handSizes && handSizes[player] !== undefined ? handSizes[player] : '?'})
                 </span>
               </th>
             ))}

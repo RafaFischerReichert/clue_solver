@@ -28,6 +28,7 @@ interface GuessFormProps {
   answeringPlayers: string[];
   allPlayers: string[]; // <-- add this
   currentUser: string;
+  userHand: string[]; // <-- add this
 
   // Callbacks
   onGuessChange: (suspect: string, weapon: string, room: string) => void;
@@ -179,13 +180,21 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
   const requiresShownCard =
     props.guessedBy === props.currentUser && props.showedBy && !props.shownCard;
 
+  // New: Check if a non-user is showing a card in the user's hand
+  const isInvalidShownCard =
+    props.showedBy &&
+    props.showedBy !== props.currentUser &&
+    props.shownCard &&
+    props.userHand.includes(props.shownCard);
+
   const isFormValid =
     props.selectedSuspect &&
     props.selectedWeapon &&
     props.selectedRoom &&
     props.guessedBy &&
     !isSamePlayerGuesserAndShower &&
-    !requiresShownCard;
+    !requiresShownCard &&
+    !isInvalidShownCard;
 
   return (
     <div>
@@ -293,6 +302,13 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
               </option>
               <option value={props.selectedRoom}>{props.selectedRoom}</option>
             </select>
+          </div>
+        )}
+
+        {/* Show error if a non-user is showing a card in the user's hand and a card is selected */}
+        {isInvalidShownCard && (
+          <div className="error-message" style={{ marginTop: "10px" }}>
+            Selected shown card is in user's hand
           </div>
         )}
 

@@ -10,6 +10,7 @@ import {
   CardKnowledge,
   markCardNotInPlayerHand,
   updateKnowledgeWithDeductions, // <-- import the new function
+  deduceFullHands,
 } from "./GameLogic";
 
 describe("GameLogic", () => {
@@ -1066,6 +1067,50 @@ describe("GameLogic", () => {
       expect(result.definitelyHas).toEqual([]);
       expect(result.definitelyDoesNotHave).toEqual([]);
     });
+
+    it("deduces shown card when one is in your hand and another is ruled out", () => {
+      // Later, we learn Bob does not have Kitchen. Bob must have Colonel Mustard.
+      const knowledge = initializeKnowledgeBase(
+        mockYourHand, // Alice has Miss Scarlett, Candlestick
+        mockAllCards,
+        mockPlayers,
+        mockCurrentUser
+      );
+      const tuples: PlayerCardTuples[] = [];
+
+      // Bob shows someone one of: Colonel Mustard (unknown), Kitchen (unknown), Candlestick (in your hand)
+      recordGuessResponse(
+        tuples,
+        { suspect: "Colonel Mustard", weapon: "Candlestick", room: "Kitchen" },
+        "Bob",
+        "Charlie",
+        ["Bob"],
+        knowledge
+      );
+      // We make a guess and discover Charlie has the Kitchen
+      recordGuessResponse(
+        tuples,
+        { suspect: "Miss Scarlett", weapon: "Dagger", room: "Kitchen" },
+        "Charlie",
+        "Alice",
+        ["Charlie"],
+        knowledge
+      );
+      // Mark that Charlie is the one with Kitchen
+      const updatedKnowledge = markCardInPlayerHand(
+        knowledge,
+        "Kitchen",
+        "Charlie"
+      );
+      // Run deduction
+      const result = analyzePlayerTuples(tuples, updatedKnowledge);
+      // Expect: Bob is definitely marked as having Colonel Mustard
+      // This test expects that deduction logic marks the only remaining possible card as definitely in Bob's hand.
+      expect(result.definitelyHas).toContainEqual({
+        playerName: "Bob",
+        cardName: "Colonel Mustard",
+      });
+    });
   });
 
   describe("updatedKnowledgeBaseFromTuples", () => {
@@ -1337,7 +1382,7 @@ describe("GameLogic", () => {
       const cardName = "Colonel Mustard";
       // Mark all players as not having Colonel Mustard
       let updated = knowledge;
-      mockPlayers.forEach(player => {
+      mockPlayers.forEach((player) => {
         updated = markCardNotInPlayerHand(updated, cardName, player);
       });
       const updatedKnowledge = checkForSolution(updated);
@@ -1352,6 +1397,153 @@ describe("GameLogic", () => {
       const knowledge: CardKnowledge[] = [];
       const updatedKnowledge = checkForSolution(knowledge);
       expect(updatedKnowledge).toEqual(knowledge);
+    });
+  });
+
+  describe("deduceFullHands", () => {
+    it("marks all other cards as not in player's hand when full hand is known", () => {
+      const knowledge: CardKnowledge[] = [
+        {
+          cardName: "A",
+          category: "suspect",
+          inYourHand: false,
+          inPlayersHand: { P1: true, P2: null },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+        {
+          cardName: "B",
+          category: "weapon",
+          inYourHand: false,
+          inPlayersHand: { P1: true, P2: null },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+        {
+          cardName: "C",
+          category: "room",
+          inYourHand: false,
+          inPlayersHand: { P1: null, P2: null },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+        {
+          cardName: "D",
+          category: "room",
+          inYourHand: false,
+          inPlayersHand: { P1: null, P2: null },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+      ];
+      const handSizes = { P1: 2, P2: 2 };
+      const result = deduceFullHands(knowledge, handSizes);
+      // P1's hand is fully known (A, B), so C and D must be false for P1
+      expect(result.find((c) => c.cardName === "C")?.inPlayersHand.P1).toBe(
+        false
+      );
+      expect(result.find((c) => c.cardName === "D")?.inPlayersHand.P1).toBe(
+        false
+      );
+      // Known cards remain true
+      expect(result.find((c) => c.cardName === "A")?.inPlayersHand.P1).toBe(
+        true
+      );
+      expect(result.find((c) => c.cardName === "B")?.inPlayersHand.P1).toBe(
+        true
+      );
+      // P2 is unaffected
+      expect(result.find((c) => c.cardName === "C")?.inPlayersHand.P2).toBe(
+        null
+      );
+      expect(result.find((c) => c.cardName === "D")?.inPlayersHand.P2).toBe(
+        null
+      );
+    });
+
+    it("does not mark cards if hand is not fully known", () => {
+      const knowledge: CardKnowledge[] = [
+        {
+          cardName: "A",
+          category: "suspect",
+          inYourHand: false,
+          inPlayersHand: { P1: true, P2: null },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+        {
+          cardName: "B",
+          category: "weapon",
+          inYourHand: false,
+          inPlayersHand: { P1: null, P2: null },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+        {
+          cardName: "C",
+          category: "room",
+          inYourHand: false,
+          inPlayersHand: { P1: null, P2: null },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+      ];
+      const handSizes = { P1: 2, P2: 2 };
+      const result = deduceFullHands(knowledge, handSizes);
+      // No card should be marked as false for P1
+      expect(result.find((c) => c.cardName === "B")?.inPlayersHand.P1).toBe(
+        null
+      );
+      expect(result.find((c) => c.cardName === "C")?.inPlayersHand.P1).toBe(
+        null
+      );
+    });
+
+    it("handles multiple players with full hands independently", () => {
+      const knowledge: CardKnowledge[] = [
+        {
+          cardName: "A",
+          category: "suspect",
+          inYourHand: false,
+          inPlayersHand: { P1: true, P2: null },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+        {
+          cardName: "B",
+          category: "weapon",
+          inYourHand: false,
+          inPlayersHand: { P1: true, P2: true },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+        {
+          cardName: "C",
+          category: "room",
+          inYourHand: false,
+          inPlayersHand: { P1: null, P2: true },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+        {
+          cardName: "D",
+          category: "room",
+          inYourHand: false,
+          inPlayersHand: { P1: null, P2: null },
+          inSolution: null,
+          eliminatedFromSolution: false,
+        },
+      ];
+      const handSizes = { P1: 2, P2: 2 };
+      const result = deduceFullHands(knowledge, handSizes);
+      // P1's hand is fully known (A, B), so D must be false for P1
+      expect(result.find((c) => c.cardName === "D")?.inPlayersHand.P1).toBe(
+        false
+      );
+      // P2's hand is fully known (B, C), so D must be false for P2
+      expect(result.find((c) => c.cardName === "D")?.inPlayersHand.P2).toBe(
+        false
+      );
     });
   });
 });

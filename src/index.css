@@ -394,6 +394,7 @@ input[type="checkbox"]:disabled {
 
 .guess-form-container {
   align-items: center;
+  min-width:fit-content;
 }
 
 .room-checklist-container {
@@ -419,4 +420,9 @@ input[type="checkbox"]:disabled {
     flex-direction: column;
     gap: 24px;
   }
+}
+
+.hand-input-wide {
+  width: 600px; /* or any width you prefer */
+  max-width: 100%;
 }

@@ -481,7 +481,8 @@ export const checkForSolution = (
     console.log(`Cards known to be in players' hands:`, cardsInPlayersHands.map(c => c.cardName));
     
     // If all cards except one are known to be in players' hands, the remaining one must be in the solution
-    if (cardsInPlayersHands.length === cards.length - 1) {
+    // Only apply this logic if there are multiple cards in the category
+    if (cards.length > 1 && cardsInPlayersHands.length === cards.length - 1) {
       const remainingCard = cards.find(card => {
         const otherPlayers = Object.keys(card.inPlayersHand).filter(player => 
           card.inPlayersHand[player] !== true
@@ -545,12 +546,43 @@ export const checkForSolution = (
 };
 
 // Utility: Given number of players, return possible hand sizes (sorted, smallest first)
+// All combinations must add up to exactly 18 cards (21 total - 3 in solution)
 export function getPossibleHandSizes(numPlayers: number): number[] {
-  if (numPlayers === 3) return [6];
-  if (numPlayers === 4) return [4, 5];
-  if (numPlayers === 5) return [3, 4];
-  if (numPlayers === 6) return [3];
+  if (numPlayers === 3) return [6]; // 3 * 6 = 18
+  if (numPlayers === 4) return [4, 5]; // 4 * 4 = 16, 4 * 5 = 20 - but we need combinations that sum to 18
+  if (numPlayers === 5) return [3, 4]; // 5 * 3 = 15, 5 * 4 = 20 - but we need combinations that sum to 18
+  if (numPlayers === 6) return [3]; // 6 * 3 = 18
   throw new Error("Unsupported number of players");
+}
+
+// New function: Get all valid hand size combinations that sum to exactly 18 cards
+export function getValidHandSizeCombinations(numPlayers: number): number[][] {
+  const possibleSizes = getPossibleHandSizes(numPlayers);
+  const validCombinations: number[][] = [];
+  
+  // Generate all combinations of hand sizes and check if they sum to 18
+  function generateCombinations(current: number[], remainingPlayers: number): void {
+    if (remainingPlayers === 0) {
+      const total = current.reduce((sum, size) => sum + size, 0);
+      if (total === 18) {
+        validCombinations.push([...current]);
+      }
+      return;
+    }
+    
+    for (const size of possibleSizes) {
+      generateCombinations([...current, size], remainingPlayers - 1);
+    }
+  }
+  
+  generateCombinations([], numPlayers);
+  return validCombinations;
+}
+
+// New function: Check if a specific hand size combination is valid
+export function isValidHandSizeCombination(handSizes: Record<string, number>): boolean {
+  const totalCards = Object.values(handSizes).reduce((sum, size) => sum + size, 0);
+  return totalCards === 18;
 }
 
 // Utility: Given a card name, knowledge base, and players, return all possible locations (players or 'solution') where the card could be, consistent with current knowledge.

@@ -125,7 +125,7 @@ describe('GuessForm', () => {
       guessedBy: 'Alice',
       showedBy: null,
       shownCard: undefined,
-      answeringPlayers: ['Bob', 'Charlie'], // Updated: all except guesser
+      answeringPlayers: ['Alice', 'Bob', 'Charlie'], // All players including guesser
     });
   });
 
@@ -177,7 +177,7 @@ describe('GuessForm', () => {
       guessedBy: 'Alice',
       showedBy: 'Bob',
       shownCard: 'Miss Scarlett',
-      answeringPlayers: ['Bob', 'Charlie'], // Updated: all except guesser
+      answeringPlayers: ['Alice', 'Bob', 'Charlie'], // All players including guesser
     });
   });
 

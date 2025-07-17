@@ -191,7 +191,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
     <div>
       <h2>Guess Form</h2>
       <form onSubmit={handleSubmit}>
-        <div>
+        <div className="form-group">
           <label htmlFor="suspect">Suspect:</label>
           <select
             id="suspect"
@@ -208,7 +208,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
           </select>
         </div>
 
-        <div>
+        <div className="form-group">
           <label htmlFor="weapon">Weapon:</label>
           <select
             id="weapon"
@@ -225,7 +225,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
           </select>
         </div>
 
-        <div>
+        <div className="form-group">
           <label htmlFor="room">Room:</label>
           <select
             id="room"
@@ -242,7 +242,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
           </select>
         </div>
 
-        <div>
+        <div className="form-group">
           <label htmlFor="guessedBy">Guessed by:</label>
           <select
             id="guessedBy"
@@ -259,7 +259,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
           </select>
         </div>
 
-        <div>
+        <div className="form-group">
           <label htmlFor="showedBy">Showed by:</label>
           <select
             id="showedBy"
@@ -276,7 +276,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
         </div>
 
         {props.showedBy && (
-          <div>
+          <div className="form-group">
             <label htmlFor="shownCard">Shown card:</label>
             <select
               id="shownCard"
@@ -297,18 +297,18 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
         )}
 
         {isSamePlayerGuesserAndShower && (
-          <div style={{ color: "red", marginTop: "10px" }}>
+          <div className="error-message" style={{ marginTop: "10px" }}>
             Error: Guesser and shower cannot be the same player
           </div>
         )}
 
         {requiresShownCard && (
-          <div style={{ color: "red", marginTop: "10px" }}>
+          <div className="error-message" style={{ marginTop: "10px" }}>
             You must select which card was shown
           </div>
         )}
 
-        <div>
+        <div className="form-group">
           <label>Players who were asked (inferred):</label>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             {validAnsweringPlayers.map((player) => (
@@ -317,7 +317,7 @@ const GuessForm: React.FC<GuessFormProps> = (props) => {
           </ul>
         </div>
 
-        <button type="submit" disabled={!isFormValid}>
+        <button className="btn-primary" type="submit" disabled={!isFormValid}>
           Submit Guess
         </button>
       </form>

@@ -101,29 +101,29 @@ const GuessEvaluator: React.FC<GuessEvaluatorProps> = ({ accessibleRooms, suspec
 
   if (allGuesses.length === 0) {
     return (
-      <div>
+      <div className="form-section">
         <h2>Guess Evaluator</h2>
         {playerOrderDiv}
-        <p>No guesses available.</p>
+        <p className="info-message">No guesses available.</p>
       </div>
     );
   }
 
   if (loading || bestGuess === null || bestEntropy === null) {
     return (
-      <div>
+      <div className="form-section">
         <h2>Guess Evaluator</h2>
         {playerOrderDiv}
-        <p>Evaluating guesses...</p>
+        <p className="info-message">Evaluating guesses...</p>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="form-section">
       <h2>Guess Evaluator</h2>
       {playerOrderDiv}
-      <div>
+      <div className="form-group">
         <p>Optimal Guess:</p>
         <ul>
           <li>Room: {bestGuess.room}</li>

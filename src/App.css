@@ -1,17 +1,18 @@
 .App {
   text-align: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--header-bg);
+  color: var(--header-text);
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: var(--header-bg);
   padding: 20px;
-  color: white;
+  color: var(--header-text);
 }
 
 .App-link {
-  color: #61dafb;
+  color: var(--link-color);
 }
 
 /* Knowledge Table Layout */
@@ -37,49 +38,12 @@
 }
 
 /* Knowledge Table Styling */
-.knowledge-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.knowledge-table th {
-  background: #f8f9fa;
-  padding: 12px 8px;
-  text-align: center;
-  font-weight: bold;
-  border-bottom: 2px solid #dee2e6;
-  color: #495057;
-}
-
-.knowledge-table td {
-  padding: 8px;
-  text-align: center;
-  border-bottom: 1px solid #dee2e6;
-  color: #495057;
-}
-
-.knowledge-table tr:hover {
-  background-color: #f8f9fa;
-}
-
-.knowledge-table th:first-child,
-.knowledge-table td:first-child {
-  text-align: left;
-  font-weight: 500;
-  background: #f8f9fa;
-}
-
-/* Alternative Dark Theme Knowledge Table (from index.css) */
 .knowledge-table-dark {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: #111;
-  color: #fff;
+  background: var(--table-dark-bg);
+  color: var(--table-dark-header-text);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
@@ -87,62 +51,68 @@
 
 .knowledge-table-dark th,
 .knowledge-table-dark td {
-  border: 1px solid #fff;
+  border: 1px solid var(--table-dark-border);
   padding: 10px 14px;
   text-align: center;
   font-size: 1em;
 }
 
 .knowledge-table-dark th {
-  background-color: #222;
+  background-color: var(--table-dark-header-bg);
   font-weight: 700;
-  color: #fff;
-  border-bottom: 3px double #fff;
+  color: var(--table-dark-header-text);
+  border-bottom: 3px double var(--table-dark-border);
   width: fit-content;
 }
 
 .knowledge-table-dark tr:nth-child(even) {
-  background-color: #181818;
+  background-color: var(--table-dark-row-even);
 }
 
 .knowledge-table-dark tr:hover {
-  background-color: #222;
+  background-color: var(--table-dark-row-hover);
 }
 
 /* Category-based styling for knowledge table */
 .knowledge-table-dark .category-suspect {
-  background-color: #1a1a2e; /* Dark blue for suspects */
+  background-color: var(--category-suspect); /* Dark blue for suspects */
 }
 
 .knowledge-table-dark .category-suspect:nth-child(even) {
-  background-color: #16213e; /* Slightly lighter dark blue for alternating rows */
+  background-color: var(--category-suspect-even); /* Slightly lighter dark blue for alternating rows */
 }
 
 .knowledge-table-dark .category-weapon {
-  background-color: #2d1b1b; /* Dark red for weapons */
+  background-color: var(--category-weapon); /* Dark red for weapons */
 }
 
 .knowledge-table-dark .category-weapon:nth-child(even) {
-  background-color: #3d1f1f; /* Slightly lighter dark red for alternating rows */
+  background-color: var(--category-weapon-even); /* Slightly lighter dark red for alternating rows */
 }
 
 .knowledge-table-dark .category-room {
-  background-color: #1b2d1b; /* Dark green for rooms */
+  background-color: var(--category-room); /* Dark green for rooms */
 }
 
 .knowledge-table-dark .category-room:nth-child(even) {
-  background-color: #1f3d1f; /* Slightly lighter dark green for alternating rows */
+  background-color: var(--category-room-even); /* Slightly lighter dark green for alternating rows */
 }
 
 /* Hover effects for each category */
 .knowledge-table-dark .category-suspect:hover {
-  background-color: #2a2a4e !important;
+  background-color: var(--category-suspect-hover) !important;
 }
 
 .knowledge-table-dark .category-weapon:hover {
-  background-color: #4d2b2b !important;
+  background-color: var(--category-weapon-hover) !important;
 }
 
 .knowledge-table-dark .category-room:hover {
-  background-color: #2b4d2b !important;
-} 
+  background-color: var(--category-room-hover) !important;
+}
+
+.version-label {
+  font-size: 0.8em;
+  color: var(--secondary-text);
+  margin-bottom: 20px;
+}

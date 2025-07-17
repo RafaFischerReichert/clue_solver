@@ -1,41 +1,99 @@
+/*
+  Global base styles and resets
+*/
 :root {
+  /* Root variables and base font settings */
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: dark;
+  color: var(--primary-text);
+  background-color: var(--primary-bg);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  /* Main backgrounds */
+  --primary-bg: #6e0000; /* Main app background */
+  --secondary-bg: #dfb428; /* Section or card backgrounds */
+  --secondary-bg-darker: #866700;
+  --header-bg: #380000; /* Header background */
+
+  /* Text colors */
+  --primary-text: #eee; /* Main text color */
+  --primary-text-faded: #ddd;
+  --secondary-text: #b1b1b1; /* Table and muted text */
+  --header-text: #fff; /* Header text color */
+
+  /* Link colors */
+  --link-color: #61dafb; /* Default link color */
+  --link-hover: #535bf2; /* Link hover color */
+
+  /* Dark table theme */
+  --table-dark-bg: #111;
+  --table-dark-header-bg: #222;
+  --table-dark-header-text: #fff;
+  --table-dark-border: #fff;
+  --table-dark-row-even: #181818;
+  --table-dark-row-hover: #222;
+
+  /* Category colors for dark table */
+  --category-suspect: #1a1a2e;
+  --category-suspect-even: #16213e;
+  --category-weapon: #2d1b1b;
+  --category-weapon-even: #3d1f1f;
+  --category-room: #1b2d1b;
+  --category-room-even: #1f3d1f;
+  --category-suspect-hover: #2a2a4e;
+  --category-weapon-hover: #4d2b2b;
+  --category-room-hover: #2b4d2b;
+
+  /* Buttons */
+  --btn-primary-bg: #000000;
+  --btn-primary-hover: #444444;
+  --btn-primary-disabled: #333333;
+  --btn-secondary-bg: #ca1400;
+  --btn-secondary-hover: #ff1900;
+  --btn-secondary-disabled: #420700;
+
+  /* Error/feedback */
+  --error-text: #ffbf00;
+  --success-text: #155724;
+  --info-text: #0c5460;
+  --warning-text: #856404;
 }
 
+/* Global link styles */
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--link-color);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--link-hover);
 }
 
+/* Global body styles and background */
 body {
   margin: 0;
   padding: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #667eea;
+  background: var(--primary-bg); /* or use a gradient variable if you want */
+  color: var(--primary-text);
 }
 
+/* Heading styles */
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
 
+/* Base button styles */
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -43,43 +101,48 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
-  color: white;
+  background-color: var(--btn-primary-bg);
+  color: var(--primary-text);
   cursor: pointer;
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: white;
+  background-color: var(--btn-primary-bg);
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 button:disabled {
-  background-color: #666;
-  color: #d6d6d6;
+  background-color: var(--btn-primary-disabled);
+  color: var(--secondary-text);
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
+/* Disabled input and select styles */
 input:disabled,
 select:disabled {
   background-color: #666;
   color: #d6d6d6;
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.5;
   border-color: #111;
 }
 
+/* Disabled checkbox styles */
 input[type="checkbox"]:disabled {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
+/* Utility card class for padding */
 .card {
   padding: 2em;
 }
 
+/* App container for centering and max width */
 #app {
   max-width: 1280px;
   margin: 0 auto;
@@ -87,70 +150,63 @@ input[type="checkbox"]:disabled {
   text-align: center;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-    color: #213547;
-  }
-}
-
-/* Custom styles for Cluedo Solver */
+/* Utility container for page content */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 
+/* Header section styling */
 .header {
   text-align: center;
   margin-bottom: 30px;
-  color: #2c3e50;
+  color: var(--header-text);
 }
 
+/* Form section layout and background */
 .form-section {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--primary-bg);
+  border-radius: 8px;
+  padding: 24px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Form group for label + input/textarea/select */
 .form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  justify-content: center;
 }
-
+.form-group label {
+  min-width: 120px;
+  text-align: right;
+  margin-right: 8px;
+  font-weight: 600;
+  color: var(--primary-text);
+}
+.form-group input,
 .form-group textarea {
-  min-height: 100px;
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.form-group textarea {
+  min-height: fit-content;
   resize: vertical;
 }
 
+/* Primary button styles */
 .btn-primary {
-  background-color: #3498db;
-  color: white;
+  background-color: var(--btn-primary-bg);
+  color: var(--primary-text);
   border: none;
   padding: 12px 24px;
   border-radius: 5px;
@@ -158,97 +214,209 @@ input[type="checkbox"]:disabled {
   font-size: 16px;
   font-weight: 600;
 }
-
 .btn-primary:hover {
-  background-color: #2980b9;
+  background-color: var(--btn-primary-hover);
 }
 
+/* Secondary button styles */
 .btn-secondary {
-  background-color: #95a5a6;
-  color: white;
+  background-color: var(--btn-secondary-bg);
+  color: var(--secondary-text);
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 14px;
 }
-
 .btn-secondary:hover {
-  background-color: #7f8c8d;
+  background-color: var(--btn-secondary-hover);
+}
+.btn-secondary:disabled {
+  background-color: var(--btn-secondary-disabled);
+  opacity: 0.5;
 }
 
-.tabs {
-  display: flex;
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 20px;
-}
-
-.tab {
-  padding: 10px 20px;
-  cursor: pointer;
-  border: none;
-  background: none;
-  color: #666;
-}
-
-.tab.active {
-  color: #3498db;
-  border-bottom: 2px solid #3498db;
-}
-
-.tab-content {
-  display: none;
-}
-
-.tab-content.active {
-  display: block;
-}
-
+/* Success message feedback */
 .success-message {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: inherit;
+  color: var(--success-text);
   padding: 10px;
   border-radius: 5px;
   margin: 10px 0;
 }
 
+/* Info message feedback */
 .info-message {
-  background-color: #d1ecf1;
-  color: #0c5460;
+  background-color: inherit;
+  color: var(--info-text);
   padding: 10px;
   border-radius: 5px;
   margin: 10px 0;
 }
 
+/* Warning message feedback */
 .warning-message {
-  background-color: #fff3cd;
-  color: #856404;
+  background-color: inherit;
+  color: var(--warning-text);
   padding: 10px;
   border-radius: 5px;
   margin: 10px 0;
 }
 
-.backtrack-button {
-  background-color: #c0392b;
-  color: #fff;
-  border: 2px solid #fff;
-  border-radius: 8px;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
+.error-message {
+  background-color: inherit;
+  color: var(--error-text);
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+}
+
+/* Player order drag-and-drop styles (shared) */
+.dnd-list {
   margin-top: 8px;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  border: 1px solid var(--primary-text-faded);
+  border-radius: 4px;
+  background: var(--secondary-bg);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+.dnd-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-bottom: 1px solid #eee;
+  cursor: grab;
+  background: var(--secondary-bg-darker);
+  border-radius: 3px;
+  margin-bottom: 4px;
+  transition: background 0.2s;
+}
+.dnd-item:last-child {
+  border-bottom: none;
+}
+.dnd-index {
+  font-weight: bold;
+  margin-right: 8px;
+  color: var(--primary-text);
+}
+.dnd-item.dragging {
+  background: var(--secondary-bg);
 }
 
-.backtrack-button:hover,
-.backtrack-button:focus {
-  background-color: #c0392b;
-  color: #fff;
-  border-color: #922b21;
+.secondary-text {
+  color: var(--secondary-text);
+  font-weight: normal;
 }
 
-.solution-summary-box {
-  background-color: inherits;
-  color: inherits;
+.form-group input,
+.form-group textarea {
+  width: 220px; /* or whatever width you prefer */
+  max-width: 100%;
+  min-width: 80px;
+  box-sizing: border-box;
+  height: 30px;
+  max-height: 100%;
+}
+
+.game-controls-section-horizontal {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.guess-form-container {
+  flex: 2 1 0;
+  min-width: 280px;
+  max-width: 400px;
+}
+
+.room-checklist-container {
+  flex: 1 1 0;
+  min-width: 180px;
+  max-width: 250px;
+}
+
+.main-three-column {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  min-width: fit-content;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 40px;
+}
+
+.knowledge-table-section {
+  flex: 0 1 auto;
+  min-width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--primary-bg);
+  border-radius: 8px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.guess-form-container,
+.room-checklist-container {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--primary-bg);
+  border-radius: 8px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.knowledge-table,
+.knowledge-table-dark {
+  width: 100%;
+  max-width: 100%;
+  table-layout: auto;
+}
+
+.knowledge-table th,
+.knowledge-table td,
+.knowledge-table-dark th,
+.knowledge-table-dark td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.guess-form-container {
+  align-items: center;
+}
+
+.room-checklist-container {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.room-checklist-container h3 {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.room-checklist-container label {
+  display: block;
+  margin: 0 auto 8px auto;
+  text-align: left;
+  width: fit-content;
+}
+
+@media (max-width: 900px) {
+  .main-three-column {
+    flex-direction: column;
+    gap: 24px;
+  }
 }

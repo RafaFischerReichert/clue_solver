@@ -66,14 +66,14 @@ describe("GameSetup", () => {
   });
 
   it("has default values for suspects, weapons, and rooms", () => {
-    // Expects: The component should have default Cluedo values pre-filled in the textareas
+    // Expects: The component should have default values for suspects, weapons, and rooms
     render(<GameSetup onGameStart={() => {}} />);
     const suspectInput = screen.getByLabelText(/suspects/i);
     const weaponInput = screen.getByLabelText(/weapons/i);
     const roomInput = screen.getByLabelText(/rooms/i);
 
     expect(suspectInput).toHaveValue(
-      "Miss Scarlett\nColonel Mustard\nDr. Orchid\nReverend Green\nMrs. Peacock\nProfessor Plum"
+      "Scarlett\nMustard\nOrchid\nGreen\nPeacock\nPlum"
     );
     expect(weaponInput).toHaveValue(
       "Candlestick\nDagger\nLead Pipe\nRevolver\nRope\nWrench"
@@ -93,8 +93,8 @@ describe("GameSetup", () => {
     // Expects: The your player name input should accept and display user input
     render(<GameSetup onGameStart={() => {}} />);
     const playerNameInput = screen.getByLabelText(/your player name/i);
-    fireEvent.change(playerNameInput, { target: { value: "Miss Scarlett" } });
-    expect(playerNameInput).toHaveValue("Miss Scarlett");
+    fireEvent.change(playerNameInput, { target: { value: "Scarlett" } });
+    expect(playerNameInput).toHaveValue("Scarlett");
   });
 
   it("validates your player name against the list of players", () => {
@@ -104,22 +104,46 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
+      target: { value: "Scarlett\nMustard\nOrchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
     fireEvent.change(yourPlayerNameInput, {
-      target: { value: "Miss Scarlett" },
+      target: { value: "Scarlett" },
     });
 
     const startButton = screen.getByText(/next/i);
     fireEvent.click(startButton);
 
     expect(mockOnGameStart).toHaveBeenCalledWith([
-      "Miss Scarlett",
-      "Colonel Mustard",
-      "Dr. Orchid",
-    ], "Miss Scarlett");
+      "Scarlett",
+      "Mustard",
+      "Orchid",
+    ], "Scarlett", [
+      "Scarlett",
+      "Mustard",
+      "Orchid",
+      "Green",
+      "Peacock",
+      "Plum",
+    ], [
+      "Candlestick",
+      "Dagger",
+      "Lead Pipe",
+      "Revolver",
+      "Rope",
+      "Wrench",
+    ], [
+      "Kitchen",
+      "Ballroom",
+      "Conservatory",
+      "Dining Room",
+      "Billiard Room",
+      "Library",
+      "Lounge",
+      "Hall",
+      "Study",
+    ]);
   });
 
   it("shows error message when your player name does not match any player", () => {
@@ -128,7 +152,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
+      target: { value: "Scarlett\nMustard\nOrchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
@@ -149,7 +173,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
+      target: { value: "Scarlett\nMustard\nOrchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
@@ -166,7 +190,7 @@ describe("GameSetup", () => {
 
     // Then, enter a valid name
     fireEvent.change(yourPlayerNameInput, {
-      target: { value: "Miss Scarlett" },
+      target: { value: "Scarlett" },
     });
     expect(
       screen.queryByText(
@@ -181,7 +205,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
+      target: { value: "Scarlett\nMustard\nOrchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
@@ -195,7 +219,7 @@ describe("GameSetup", () => {
 
     // Then, enter a valid name
     fireEvent.change(yourPlayerNameInput, {
-      target: { value: "Miss Scarlett" },
+      target: { value: "Scarlett" },
     });
     expect(startButton).not.toBeDisabled();
   });
@@ -207,7 +231,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
+      target: { value: "Scarlett\nMustard\nOrchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
@@ -226,7 +250,7 @@ describe("GameSetup", () => {
 
     const playerInput = screen.getByLabelText(/player names/i);
     fireEvent.change(playerInput, {
-      target: { value: "Miss Scarlett\nColonel Mustard\nDr. Orchid" },
+      target: { value: "Scarlett\nMustard\nOrchid" },
     });
 
     const yourPlayerNameInput = screen.getByLabelText(/your player name/i);
@@ -312,7 +336,31 @@ describe("GameSetup", () => {
     const startButton = screen.getByText(/next/i);
     fireEvent.click(startButton);
 
-    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"], "Alice");
+    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"], "Alice", [
+      "Scarlett",
+      "Mustard",
+      "Orchid",
+      "Green",
+      "Peacock",
+      "Plum",
+    ], [
+      "Candlestick",
+      "Dagger",
+      "Lead Pipe",
+      "Revolver",
+      "Rope",
+      "Wrench",
+    ], [
+      "Kitchen",
+      "Ballroom",
+      "Conservatory",
+      "Dining Room",
+      "Billiard Room",
+      "Library",
+      "Lounge",
+      "Hall",
+      "Study",
+    ]);
   });
 
   it("does not allow starting the game if your player name is empty", () => {
@@ -406,7 +454,31 @@ describe("GameSetup", () => {
     const startButton = screen.getByText(/next/i);
     fireEvent.click(startButton);
 
-    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"], "Alice");
+    expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"], "Alice", [
+      "Scarlett",
+      "Mustard",
+      "Orchid",
+      "Green",
+      "Peacock",
+      "Plum",
+    ], [
+      "Candlestick",
+      "Dagger",
+      "Lead Pipe",
+      "Revolver",
+      "Rope",
+      "Wrench",
+    ], [
+      "Kitchen",
+      "Ballroom",
+      "Conservatory",
+      "Dining Room",
+      "Billiard Room",
+      "Library",
+      "Lounge",
+      "Hall",
+      "Study",
+    ]);
   });
 
   it("does not allow starting the game if there are duplicate suspects", () => {
@@ -536,6 +608,30 @@ describe("GameSetup", () => {
       "Charlie",
       "Alice",
       "Bob"
-    ], "Charlie");
+    ], "Charlie", [
+      "Scarlett",
+      "Mustard",
+      "Orchid",
+      "Green",
+      "Peacock",
+      "Plum",
+    ], [
+      "Candlestick",
+      "Dagger",
+      "Lead Pipe",
+      "Revolver",
+      "Rope",
+      "Wrench",
+    ], [
+      "Kitchen",
+      "Ballroom",
+      "Conservatory",
+      "Dining Room",
+      "Billiard Room",
+      "Library",
+      "Lounge",
+      "Hall",
+      "Study",
+    ]);
   });
 });

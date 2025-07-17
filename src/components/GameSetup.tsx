@@ -5,7 +5,13 @@ import React, { useState } from "react";
  */
 interface GameSetupProps {
   /** Callback function called when game setup is complete */
-  onGameStart: (players: string[], yourPlayerName: string, suspects: string[], weapons: string[], rooms: string[]) => void;
+  onGameStart: (
+    players: string[],
+    yourPlayerName: string,
+    suspects: string[],
+    weapons: string[],
+    rooms: string[]
+  ) => void;
 }
 
 /**
@@ -32,6 +38,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
 
   const isYourPlayerNameValid = () => {
     return playerNames
+      .trim()
       .split("\n")
       .map((name) => name.trim())
       .includes(yourPlayerName.trim());
@@ -170,16 +177,22 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
         // "All validation passed, calling onGameStart with players:",
         players
       );
-      onGameStart(players, yourPlayerName, suspectsList, weaponsList, roomsList); // order is preserved
+      onGameStart(
+        players,
+        yourPlayerName,
+        suspectsList,
+        weaponsList,
+        roomsList
+      ); // order is preserved
     } else {
       console.warn("Validation failed, not calling onGameStart");
     }
   };
 
   return (
-    <div>
+    <div className="form-section">
       <h1>Game Setup</h1>
-      <div>
+      <div className="form-group">
         <label htmlFor="player-names">Player Names (one per line):</label>
         <textarea
           id="player-names"
@@ -187,18 +200,18 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
           onChange={handlePlayerNamesChange}
           placeholder="Enter player names..."
         />
-        {areThereThreeOrMorePlayers() ? null : (
-          <div style={{ color: "red" }}>
-            At least 3 players are required to start the game.
-          </div>
-        )}
-        {hasDuplicatePlayerNames() && (
-          <div style={{ color: "red" }}>
-            Player names must be unique. Please remove duplicates.
-          </div>
-        )}
       </div>
-      <div>
+      {areThereThreeOrMorePlayers() ? null : (
+        <div className="error-message">
+          At least 3 players are required to start the game.
+        </div>
+      )}
+      {hasDuplicatePlayerNames() && (
+        <div className="error-message">
+          Player names must be unique. Please remove duplicates.
+        </div>
+      )}
+      <div className="form-group">
         <label htmlFor="suspects">Suspects (one per line):</label>
         <textarea
           id="suspects"
@@ -207,7 +220,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
           placeholder="Default Cluedo suspects are pre-filled. Edit as needed..."
         />
       </div>
-      <div>
+      <div className="form-group">
         <label htmlFor="weapons">Weapons (one per line):</label>
         <textarea
           id="weapons"
@@ -216,7 +229,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
           placeholder="Default Cluedo weapons are pre-filled. Edit as needed..."
         />
       </div>
-      <div>
+      <div className="form-group">
         <label htmlFor="rooms">Rooms (one per line):</label>
         <textarea
           id="rooms"
@@ -225,7 +238,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
           placeholder="Default Cluedo rooms are pre-filled. Edit as needed..."
         />
       </div>
-      <div>
+      <div className="form-group">
         <label htmlFor="your-player-name">Your Player Name:</label>
         <input
           id="your-player-name"
@@ -234,13 +247,14 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
           onChange={handleYourPlayerNameChange}
           placeholder="Enter your player name (must match one from the list above)"
         />
-        {!isYourPlayerNameValid() && yourPlayerName && (
-          <div style={{ color: "red" }}>
-            Your player name must match one of the player names entered above.
-          </div>
-        )}
       </div>
+      {!isYourPlayerNameValid() && yourPlayerName && (
+        <div className="error-message">
+          Your player name must match one of the player names entered above.
+        </div>
+      )}
       <button
+        className="btn-primary"
         onClick={handleSubmit}
         disabled={
           !isYourPlayerNameValid() ||

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import "./App.css";
 import GameSetup from "./components/GameSetup";
+import PlayerOrderSetup from "./components/PlayerOrderSetup";
 import HandInput from "./components/HandInput";
 import GuessForm from "./components/GuessForm";
 import KnowledgeTable from "./components/KnowledgeTable";
@@ -60,6 +61,7 @@ interface GameData {
   weapons: string[];
   rooms: string[];
   playerOrder: string[];
+  handSizes: Record<string, number>;
   currentTurn: number;
 }
 
@@ -89,7 +91,7 @@ function getAskedPlayers(
 function App() {
   // Step in the game flow
   const [currentStep, setCurrentStep] = useState<
-    "setup" | "hand-input" | "gameplay"
+    "setup" | "player-order-setup" | "hand-input" | "gameplay"
   >("setup");
   // Game setup data
   const [gameData, setGameData] = useState<GameData | null>(null);
@@ -143,10 +145,11 @@ function App() {
       weapons,
       rooms,
       playerOrder: players,
+      handSizes: {}, // Will be set in PlayerOrderSetup
       currentTurn: 0,
     };
     setGameData(newGameData);
-    setCurrentStep("hand-input");
+    setCurrentStep("player-order-setup");
     if (yourPlayerName) setCurrentUser(yourPlayerName);
   };
 
@@ -319,7 +322,6 @@ function App() {
     }
     setPlayerTuples([...result.tuples]);
     setCardKnowledge(checkForSolution([...result.knowledge]));
-    alert("Guess submitted! Processing...");
     setPreviousGuesses((prev) => [
       ...prev,
       {
@@ -338,11 +340,28 @@ function App() {
   return (
     <div className="App">
       <h1>Cluedo Solver</h1>
-      <div style={{ fontSize: '0.8em', color: '#666', marginBottom: '20px' }}>
-        Version 1.0.0
-      </div>
+      <div className="version-label">Version 1.1.0</div>
 
       {currentStep === "setup" && <GameSetup onGameStart={handleGameSetup} />}
+
+      {currentStep === "player-order-setup" && gameData && (
+        <PlayerOrderSetup
+          players={gameData.players}
+          onComplete={(playerOrder, handSizes) => {
+            setGameData((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    playerOrder,
+                    handSizes,
+                  }
+                : null
+            );
+            setCurrentStep("hand-input");
+          }}
+          onBack={handleBackToSetup}
+        />
+      )}
 
       {currentStep === "hand-input" && gameData && (
         <HandInput
@@ -350,7 +369,7 @@ function App() {
           weapons={gameData.weapons}
           rooms={gameData.rooms}
           onHandSubmit={handleHandSubmit}
-          onBack={handleBackToSetup}
+          onBack={() => setCurrentStep("player-order-setup")}
           players={gameData.players}
         />
       )}
@@ -359,7 +378,7 @@ function App() {
         <>
           <div>
             <button
-              className="backtrack-button"
+              className="btn-secondary"
               onClick={() => {
                 setCurrentStep("setup");
                 setGameData(null);
@@ -377,24 +396,11 @@ function App() {
                   shownCard: "",
                 });
               }}
-              style={{ marginBottom: 16 }}
             >
               End Game
             </button>
           </div>
-          {/* Solution summary box */}
-          <div className="solution-summary-box">
-            <label className="solution-label">Known solution cards: </label>
-            {["suspect", "weapon", "room"]
-              .map((category) => {
-                const solutionCard = cardKnowledge.find(
-                  (c) => c.category === category && c.inSolution === true
-                );
-                return solutionCard ? solutionCard.cardName : "Unknown";
-              })
-              .join(", ")}
-          </div>
-          <div className="knowledge-table-container">
+          <div className="main-three-column">
             <div className="knowledge-table-section">
               <KnowledgeTable
                 cardKnowledge={cardKnowledge}
@@ -402,7 +408,7 @@ function App() {
                 onKnowledgeChange={setCardKnowledge}
               />
             </div>
-            <div className="game-controls-section">
+            <div className="guess-form-container">
               <GuessForm
                 suspects={gameData.suspects}
                 weapons={gameData.weapons}
@@ -431,106 +437,105 @@ function App() {
                   })
                 }
               />
+            </div>
+            {/* Guess evaluation block: button, loading, and result */}
+            <div className="room-checklist-container">
               <RoomChecklist
                 rooms={gameData.rooms}
                 selectedRooms={accessibleRooms}
                 onChange={setAccessibleRooms}
               />
-              {/* Guess evaluation block: button, loading, and result */}
-              <div>
-                <button
-                  onClick={() => {
-                    setLoading(true);
-                    setWorkerResult(null);
-                    
-                    // Get current accessible rooms before clearing them
-                    const currentAccessibleRooms = accessibleRooms.length > 0 ? accessibleRooms : gameData.rooms;
-                    
-                    // Clear accessible rooms to facilitate next evaluation
-                    setAccessibleRooms([]);
-                    
-                    // Improved guess generation logic
-                    const getGuessOptions = (
-                      category: "suspect" | "weapon" | "room",
-                      allOptions: string[]
-                    ) => {
-                      // Find solution card for this category
-                      const solutionCard = cardKnowledge.find(
-                        (c) => c.category === category && c.inSolution === true
-                      )?.cardName;
-                      // Find cards in hand for this category
-                      const inHand = cardKnowledge
-                        .filter((c) => c.category === category && c.inYourHand)
-                        .map((c) => c.cardName);
-                      let options: string[] = [];
-                      if (solutionCard) {
-                        options = [
-                          solutionCard,
-                          ...inHand.filter((card) => card !== solutionCard),
-                        ];
-                      } else {
-                        options = allOptions;
-                      }
-                      return options;
-                    };
-                    const suspects = getGuessOptions(
-                      "suspect",
-                      gameData.suspects
-                    );
-                    const weapons = getGuessOptions("weapon", gameData.weapons);
-                    const rooms = getGuessOptions("room", currentAccessibleRooms);
-                    let allGuesses: Guess[] = [];
-                    rooms.forEach((room) => {
-                      suspects.forEach((suspect) => {
-                        weapons.forEach((weapon) => {
-                          allGuesses.push({ room, suspect, weapon });
-                        });
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  setWorkerResult(null);
+                  // Get current accessible rooms before clearing them
+                  const currentAccessibleRooms =
+                    accessibleRooms.length > 0
+                      ? accessibleRooms
+                      : gameData.rooms;
+                  // Clear accessible rooms to facilitate next evaluation
+                  setAccessibleRooms([]);
+                  // Improved guess generation logic
+                  const getGuessOptions = (
+                    category: "suspect" | "weapon" | "room",
+                    allOptions: string[]
+                  ) => {
+                    // Find solution card for this category
+                    const solutionCard = cardKnowledge.find(
+                      (c) => c.category === category && c.inSolution === true
+                    )?.cardName;
+                    // Find cards in hand for this category
+                    const inHand = cardKnowledge
+                      .filter((c) => c.category === category && c.inYourHand)
+                      .map((c) => c.cardName);
+                    let options: string[] = [];
+                    if (solutionCard) {
+                      options = [
+                        solutionCard,
+                        ...inHand.filter((card) => card !== solutionCard),
+                      ];
+                    } else {
+                      options = allOptions;
+                    }
+                    return options;
+                  };
+                  const suspects = getGuessOptions(
+                    "suspect",
+                    gameData.suspects
+                  );
+                  const weapons = getGuessOptions("weapon", gameData.weapons);
+                  const rooms = getGuessOptions("room", currentAccessibleRooms);
+                  let allGuesses: Guess[] = [];
+                  rooms.forEach((room) => {
+                    suspects.forEach((suspect) => {
+                      weapons.forEach((weapon) => {
+                        allGuesses.push({ room, suspect, weapon });
                       });
                     });
-                    // Filter: keep only guesses with at least one card where inSolution == null
-                    allGuesses = allGuesses.filter((guess) => {
-                      const suspectStatus = cardKnowledge.find(
-                        (c) => c.cardName === guess.suspect
-                      )?.inSolution;
-                      const weaponStatus = cardKnowledge.find(
-                        (c) => c.cardName === guess.weapon
-                      )?.inSolution;
-                      const roomStatus = cardKnowledge.find(
-                        (c) => c.cardName === guess.room
-                      )?.inSolution;
-                      return [suspectStatus, weaponStatus, roomStatus].some(
-                        (status) => status === null
-                      );
-                    });
-                    workerRef.current?.postMessage({
-                      allGuesses,
-                      gameState: {
-                        knowledge: cardKnowledge as any,
-                        previousGuesses: previousGuesses,
-                        playerOrder: gameData.playerOrder,
-                      },
-                    });
-                  }}
-                  style={{ marginLeft: 8 }}
-                >
-                  Evaluate Best Guess
-                </button>
-                {loading && <div>Evaluating guesses...</div>}
-                {workerResult && (
-                  <div>
-                    <h2>Optimal Guess (via Worker):</h2>
-                    <ul>
-                      <li>Room: {workerResult.guess.room}</li>
-                      <li>Suspect: {workerResult.guess.suspect}</li>
-                      <li>Weapon: {workerResult.guess.weapon}</li>
-                      <li>
-                        Estimated Entropy Gain: {" "}
-                        {workerResult.entropy.toFixed(3)}
-                      </li>
-                    </ul>
-                  </div>
-                )}
-              </div>
+                  });
+                  // Filter: keep only guesses with at least one card where inSolution == null
+                  allGuesses = allGuesses.filter((guess) => {
+                    const suspectStatus = cardKnowledge.find(
+                      (c) => c.cardName === guess.suspect
+                    )?.inSolution;
+                    const weaponStatus = cardKnowledge.find(
+                      (c) => c.cardName === guess.weapon
+                    )?.inSolution;
+                    const roomStatus = cardKnowledge.find(
+                      (c) => c.cardName === guess.room
+                    )?.inSolution;
+                    return [suspectStatus, weaponStatus, roomStatus].some(
+                      (status) => status === null
+                    );
+                  });
+                  workerRef.current?.postMessage({
+                    allGuesses,
+                    gameState: {
+                      knowledge: cardKnowledge as any,
+                      previousGuesses: previousGuesses,
+                      playerOrder: gameData.playerOrder,
+                    },
+                  });
+                }}
+                style={{ marginLeft: 8 }}
+              >
+                Evaluate Best Guess
+              </button>
+              {loading && <div>Evaluating guesses...</div>}
+              {workerResult && (
+                <div>
+                  <h2>Optimal Guess (via Worker):</h2>
+                  <ul>
+                    <li>Room: {workerResult.guess.room}</li>
+                    <li>Suspect: {workerResult.guess.suspect}</li>
+                    <li>Weapon: {workerResult.guess.weapon}</li>
+                    <li>
+                      Estimated Entropy Gain: {workerResult.entropy.toFixed(3)}
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </>

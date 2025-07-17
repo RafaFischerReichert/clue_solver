@@ -127,7 +127,7 @@ function generatePossibleWorlds(guess:Guess, gameState: GameState, debug: boolea
 }
 
 // Step 2: Simulate responses for a guess in a given world
-function simulateResponses(guess: Guess, world: any, gameState: GameState, debug: boolean): { response: any, probability: number }[] {
+export function simulateResponses(guess: Guess, world: any, gameState: GameState, debug: boolean): { response: any, probability: number }[] {
   const { suspect, weapon, room } = guess;
   const cards = [suspect, weapon, room];
   const players = gameState.playerOrder || [];

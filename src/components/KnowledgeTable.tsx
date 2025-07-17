@@ -45,12 +45,24 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
     knownCardCounts[player] = cardKnowledge.filter(card => card.inPlayersHand[player] === true).length;
   });
 
+  // Calculate known solution cards
+  const knownSolution = [
+    "suspect",
+    "weapon",
+    "room"
+  ].map((category) => {
+    const solutionCard = cardKnowledge.find(
+      (c) => c.category === category && c.inSolution === true
+    );
+    return solutionCard ? solutionCard.cardName : "Unknown";
+  }).join(", ");
+
   // Implementation of the KnowledgeTable component
   if (handSizeError) {
     return (
       <div>
         <h2>Knowledge Table</h2>
-        <div style={{ color: 'red', marginBottom: 8 }}>
+        <div className="error-message" style={{ marginBottom: 8 }}>
           Error: {handSizeError}
         </div>
       </div>
@@ -60,6 +72,10 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
   return (
     <div>
       <h2>Knowledge Table</h2>
+      <div className="solution-summary-box">
+        <label className="solution-label">Known solution cards: </label>
+        {knownSolution}
+      </div>
       <div style={{ marginBottom: 8 }}>
         <strong>Possible hand sizes per player:</strong> {possibleHandSizes.join(" or ")}
       </div>
@@ -70,7 +86,7 @@ const KnowledgeTable: React.FC<KnowledgeTableProps> = (props) => {
             {players.map((player) => (
               <th key={player}>
                 {player}
-                <span style={{ fontWeight: 'normal', color: '#888', marginLeft: 4 }}>
+                <span className="secondary-text" style={{ marginLeft: 4 }}>
                   ({knownCardCounts[player]})
                 </span>
               </th>

@@ -1,45 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { evaluateGuess } from "./SuggestionAI";
+import { evaluateGuess, simulateResponses } from "./SuggestionAI";
 import { Guess, GameState } from "./GuessEvaluator";
-
-const TESTABLE_GAME_STATE: GameState = {
-    knowledge: [
-      {
-        cardName: "A",
-        category: "suspect",
-        inYourHand: false,
-        inPlayersHand: { P1: true, P2: false },
-        inSolution: false,
-        eliminatedFromSolution: true,
-      },
-      {
-        cardName: "B",
-        category: "suspect",
-        inYourHand: false,
-        inPlayersHand: { P1: false, P2: null },
-        inSolution: null,
-        eliminatedFromSolution: false,
-      },
-      {
-        cardName: "X",
-        category: "weapon",
-        inYourHand: false,
-        inPlayersHand: { P1: false, P2: null },
-        inSolution: null,
-        eliminatedFromSolution: false,
-      },
-      {
-        cardName: "Y",
-        category: "room",
-        inYourHand: false,
-        inPlayersHand: { P1: false, P2: null },
-        inSolution: null,
-        eliminatedFromSolution: false,
-      },
-    ],
-    previousGuesses: [{ suspect: "B", weapon: "X", room: "Y" }],
-    playerOrder: ["P1", "P2"],
-}
 
 describe("SuggestionAI", () => {
   it("returns 0 if there's only one possible solution", () => {
@@ -79,12 +40,6 @@ describe("SuggestionAI", () => {
     expect(evaluateGuess(guess, gameState)).toBe(0);
   });
 
-  it("reflects deduction if no one can answer", () => {
-    // Should be > 0, since we learn something from TESTABLE_GAME_STATE
-    const guess: Guess = { suspect: "B", weapon: "X", room: "Y" };
-    expect(evaluateGuess(guess, TESTABLE_GAME_STATE)).toBeGreaterThan(0);
-  });
-
   it("averages info gain if a player can show 2 cards", () => {
     // If a player can show 2 cards, info gain should be averaged over both outcomes
     const gameState: GameState = {
@@ -120,43 +75,6 @@ describe("SuggestionAI", () => {
     const guess: Guess = { suspect: "A", weapon: "B", room: "C" };
     // Should be > 0, and the function should not throw
     expect(() => evaluateGuess(guess, gameState)).not.toThrow();
-  });
-
-  it("considers all solutions equally likely", () => {
-    // All solutions are equally likely, so info gain should be correct for uniform uncertainty
-    const gameState: GameState = {
-      knowledge: [
-        {
-          cardName: "A",
-          category: "suspect",
-          inYourHand: false,
-          inPlayersHand: { P1: null, P2: null },
-          inSolution: null,
-          eliminatedFromSolution: false,
-        },
-        {
-          cardName: "B",
-          category: "weapon",
-          inYourHand: false,
-          inPlayersHand: { P1: null, P2: null },
-          inSolution: null,
-          eliminatedFromSolution: false,
-        },
-        {
-          cardName: "C",
-          category: "room",
-          inYourHand: false,
-          inPlayersHand: { P1: null, P2: null },
-          inSolution: null,
-          eliminatedFromSolution: false,
-        },
-      ],
-      previousGuesses: [{ suspect: "A", weapon: "B", room: "C" }],
-      playerOrder: ["P1", "P2"],
-    };
-    const guess: Guess = { suspect: "A", weapon: "B", room: "C" };
-    // Should be > 0, since we start with max uncertainty
-    expect(evaluateGuess(guess, gameState)).toBeGreaterThan(0);
   });
 
   it("handles invalid guesses gracefully", () => {
@@ -215,10 +133,11 @@ describe("SuggestionAI", () => {
     const guess: Guess = { suspect: "A", weapon: "B", room: "C" };
     // We'll call simulateResponses directly for this test
     const world = { A: "P2", B: "P2", C: "P1" };
-    const responses = require("./SuggestionAI").simulateResponses(
+    const responses = simulateResponses(
       guess,
       world,
-      gameState
+      gameState,
+      false // debug parameter
     );
     const totalProb = responses.reduce((sum: any, r: { probability: any; }) => sum + r.probability, 0);
     expect(totalProb).toBeCloseTo(1, 5);

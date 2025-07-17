@@ -123,72 +123,76 @@ const HandInput: React.FC<HandInputProps> = ({
   const isValidHandSize = possibleHandSizes.includes(selectedCards.length);
 
   return (
-    <form onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
-      <h2>Select Your Cards</h2>
-      <p>Check the cards that are in your hand:</p>
+    <div className="form-section">
+      <form onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
+        <h2>Select Your Cards</h2>
+        <p>Check the cards that are in your hand:</p>
 
-      <div>
-        <h3>Suspects</h3>
-        {uniqueSuspects.map((suspect) => (
-          <label key={suspect}>
-            <input
-              type="checkbox"
-              checked={selectedCards.includes(suspect)}
-              onChange={() => handleCardToggle(suspect)}
-            />
-            {suspect}
-          </label>
-        ))}
-      </div>
+        <div>
+          <h3>Suspects</h3>
+          {uniqueSuspects.map((suspect) => (
+            <label key={suspect}>
+              <input
+                type="checkbox"
+                checked={selectedCards.includes(suspect)}
+                onChange={() => handleCardToggle(suspect)}
+              />
+              {suspect}
+            </label>
+          ))}
+        </div>
 
-      <div>
-        <h3>Weapons</h3>
-        {uniqueWeapons.map((weapon) => (
-          <label key={weapon}>
-            <input
-              type="checkbox"
-              checked={selectedCards.includes(weapon)}
-              onChange={() => handleCardToggle(weapon)}
-            />
-            {weapon}
-          </label>
-        ))}
-      </div>
+        <div>
+          <h3>Weapons</h3>
+          {uniqueWeapons.map((weapon) => (
+            <label key={weapon}>
+              <input
+                type="checkbox"
+                checked={selectedCards.includes(weapon)}
+                onChange={() => handleCardToggle(weapon)}
+              />
+              {weapon}
+            </label>
+          ))}
+        </div>
 
-      <div>
-        <h3>Rooms</h3>
-        {uniqueRooms.map((room) => (
-          <label key={room}>
-            <input
-              type="checkbox"
-              checked={selectedCards.includes(room)}
-              onChange={() => handleCardToggle(room)}
-            />
-            {room}
-          </label>
-        ))}
-      </div>
-      {!hasSelectedCards && (
-        <div style={{ color: "red" }}>Please select at least one card.</div>
-      )}
-      <div style={{ marginBottom: 12 }}>
-        <strong>Possible hand sizes per player:</strong> {possibleHandSizes.join(" or ")}
-        <br />
-        <span>
-          You have selected {selectedCards.length} card{selectedCards.length !== 1 ? 's' : ''}.
-          {isValidHandSize ? ' ✅' : ' ❌'}
-        </span>
-        {!isValidHandSize && (
-          <div style={{ color: 'red' }}>
-            Please select a valid number of cards ({possibleHandSizes.join(' or ')}).
-          </div>
+        <div>
+          <h3>Rooms</h3>
+          {uniqueRooms.map((room) => (
+            <label key={room}>
+              <input
+                type="checkbox"
+                checked={selectedCards.includes(room)}
+                onChange={() => handleCardToggle(room)}
+              />
+              {room}
+            </label>
+          ))}
+        </div>
+        {!hasSelectedCards && (
+          <div className="error-message">Please select at least one card.</div>
         )}
-      </div>
-      <button type="submit" disabled={!isValidHandSize}>Submit</button>
-      <button type="button" onClick={onBack} className="backtrack-button" style={{ marginLeft: 8 }}>
-        Back
-      </button>
-    </form>
+        <div className="form-group" style={{ marginBottom: 12 }}>
+          <strong>Possible hand sizes per player:</strong> {possibleHandSizes.join(" or ")}
+          <br />
+          <span>
+            You have selected {selectedCards.length} card{selectedCards.length !== 1 ? 's' : ''}.
+            {isValidHandSize ? ' ✅' : ' ❌'}
+          </span>
+          {!isValidHandSize && (
+            <div className="error-message">
+              Please select a valid number of cards ({possibleHandSizes.join(' or ')}).
+            </div>
+          )}
+        </div>
+        <div className="form-group">
+          <button className="btn-primary" type="submit" disabled={!isValidHandSize}>Submit</button>
+          <button type="button" onClick={onBack} className="btn-secondary">
+            Back
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

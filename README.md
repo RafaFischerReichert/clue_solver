@@ -111,6 +111,20 @@ npm run tauri dev    # Start development server in a new window
 
 ## 🧠 Core Logic
 
+### Deduction Logic Pipeline
+The deduction engine now uses a unified, robust pipeline for all deduction steps, handled by `updateKnowledgeWithDeductions` in `GameLogic.tsx`. The deduction flow is as follows:
+
+1. **Tuple-based and Direct Deductions**
+   - Analyzes all guess/response tuples to deduce who definitely or definitely does not have which cards.
+2. **Full Hand Deduction**
+   - If a player's hand is fully known, all other cards are marked as not in that player's hand.
+3. **Solution Deduction**
+   - If only one possible solution card remains in a category, or a card cannot be in any hand, it is marked as the solution. All other cards in that category are marked as not in the solution.
+4. **Advanced Deduction**
+   - If the solution for a category is known, and for another card in that category all but one player are known not to have it, the last possible player must have that card.
+
+This pipeline ensures that each deduction step feeds into the next, maximizing the information gained and keeping the knowledge base as up-to-date as possible. All deduction logic is now centralized in `updateKnowledgeWithDeductions` for maintainability and clarity.
+
 ### Knowledge Base System
 The app uses a sophisticated three-state knowledge system:
 - **`true`**: Player definitely has this card

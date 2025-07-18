@@ -1,3 +1,28 @@
+/*
+Clue/Cluedo Deduction Flow (Guess-Response-Knowledge Update)
+------------------------------------------------------------
+1. When a guess is made and a response is recorded (recordGuessResponse):
+   - A tuple is added to the history for the player who showed a card (or a NO_RESPONSE entry if no one showed).
+   - All other asked players are marked as not having any of the guessed cards.
+   - The knowledge base is updated using updateKnowledgeWithDeductions.
+
+2. updateKnowledgeWithDeductions applies deduction steps in this order:
+   a) Tuple-based and direct deductions:
+      - Analyze all tuples to deduce who definitely/likely/definitely-does-not have which cards.
+      - Apply these deductions to the knowledge base.
+   b) Full hand deduction (deduceFullHands):
+      - If a player's hand is fully known, all other cards are marked as not in their hand.
+   c) Solution deduction (checkForSolution):
+      - If only one possible solution card remains in a category, or a card cannot be in any hand, it is marked as the solution.
+      - All other cards in that category are marked as not in the solution.
+   d) Advanced deduction:
+      - If the solution for a category is known, and for another card in that category all but one player are known not to have it, the last possible player must have that card.
+
+4. Special handling:
+   - When the user is the shower, deduction for that tuple is skipped (no contradiction, no definite/likely has).
+
+This order ensures that each deduction step feeds into the next, maximizing the information gained and keeping the knowledge base as up-to-date as possible.
+*/
 interface GamePlayProps {
   players: string[];
   yourHand: string[];
@@ -336,44 +361,40 @@ export const recordGuessResponse = (
     });
   }
   // After recording the tuple, analyze and update knowledge
-  knowledge = updateKnowledgeWithDeductions(knowledge, tuples);
-  if (handSizes) {
-    knowledge = deduceFullHands(knowledge, handSizes);
-  }
+  knowledge = updateKnowledgeWithDeductions(knowledge, tuples, undefined, handSizes);
   return { tuples, knowledge };
 };
 
-export const analyzePlayerTuples = (
-  tuples: PlayerCardTuples[],
-  knowledge: CardKnowledge[]
-): {
-  likelyHas: string[];
-  definitelyHas: { playerName: string; cardName: string }[];
-  definitelyDoesNotHave: { playerName: string; cardName: string }[];
-} => {
-  const likelyHas: string[] = [];
-  const definitelyHas: { playerName: string; cardName: string }[] = [];
-  const definitelyDoesNotHave: { playerName: string; cardName: string }[] = [];
+export const updateKnowledgeWithDeductions = (
+  knowledge: CardKnowledge[],
+  playerTuples: PlayerCardTuples[],
+  currentUser?: string,
+  handSizes?: Record<string, number>
+): CardKnowledge[] => {
+  let updatedKnowledge = knowledge;
 
-  tuples.forEach((player) => {
+  // Tuple-based and direct deductions (formerly in analyzePlayerTuples)
+  playerTuples.forEach((player) => {
     if (player.player === "NO_RESPONSE") {
       // All asked players in no-response tuples don't have any of the three cards
       player.tuples.forEach((tuple) => {
         tuple.askedPlayers.forEach((askedPlayer) => {
-          definitelyDoesNotHave.push(
-            { playerName: askedPlayer, cardName: tuple.suspect },
-            { playerName: askedPlayer, cardName: tuple.weapon },
-            { playerName: askedPlayer, cardName: tuple.room }
-          );
+          updatedKnowledge = markCardNotInPlayerHand(updatedKnowledge, tuple.suspect, askedPlayer);
+          updatedKnowledge = markCardNotInPlayerHand(updatedKnowledge, tuple.weapon, askedPlayer);
+          updatedKnowledge = markCardNotInPlayerHand(updatedKnowledge, tuple.room, askedPlayer);
         });
       });
     } else {
       player.tuples.forEach((tuple) => {
         if (tuple.shownBy === player.player) {
+          // If the shower is the current user, skip deduction for this tuple
+          if (currentUser && player.player === currentUser) {
+            return;
+          }
           const threeCards = [tuple.suspect, tuple.weapon, tuple.room];
           // Gather knowledge for this player and these cards
           const cardStates = threeCards.map((cardName) => {
-            const card = knowledge.find((k) => k.cardName === cardName);
+            const card = updatedKnowledge.find((k) => k.cardName === cardName);
             // Defensive: treat cards in your hand as definitely not in the showing player's hand
             if (card) {
               if (card.inYourHand) return false;
@@ -393,43 +414,26 @@ export const analyzePlayerTuples = (
             .map((state, idx) => (state === null ? idx : -1))
             .filter((idx) => idx !== -1);
           if (dontHaveIndices.length === 0 && unknownIndices.length === 3) {
-            // All three are unknown: all are likelyHas
-            threeCards.forEach((cardName) => {
-              if (
-                !definitelyHas.some((d) => d.playerName === player.player && d.cardName === cardName) &&
-                !definitelyDoesNotHave.some((d) => d.playerName === player.player && d.cardName === cardName) &&
-                !likelyHas.includes(cardName)
-              ) {
-                likelyHas.push(cardName);
-              }
-            });
+            // All three are unknown: all are likelyHas (no direct deduction, so skip for now)
+            // This is a soft deduction, not applied to knowledge base directly
           } else if (dontHaveIndices.length === 1 && unknownIndices.length === 2) {
-            // One is ruled out, other two are likelyHas
-            unknownIndices.forEach((idx) => {
-              const cardName = threeCards[idx];
-              if (
-                !definitelyHas.some((d) => d.playerName === player.player && d.cardName === cardName) &&
-                !definitelyDoesNotHave.some((d) => d.playerName === player.player && d.cardName === cardName) &&
-                !likelyHas.includes(cardName)
-              ) {
-                likelyHas.push(cardName);
-              }
-            });
+            // One is ruled out, other two are likelyHas (no direct deduction, so skip for now)
+            // This is a soft deduction, not applied to knowledge base directly
           } else if (dontHaveIndices.length === 2 && unknownIndices.length === 1) {
             // Two are ruled out, last is definitelyHas
             const idx = unknownIndices[0];
             const cardName = threeCards[idx];
-            if (!definitelyHas.some((d) => d.playerName === player.player && d.cardName === cardName)) {
-              definitelyHas.push({ playerName: player.player, cardName });
-            }
+            updatedKnowledge = markCardInPlayerHand(updatedKnowledge, cardName, player.player);
           } else if (dontHaveIndices.length === 3) {
             // Contradiction: all three are ruled out
-            // eslint-disable-next-line no-console
-            console.warn(
-              `Contradiction detected: Player "${player.player}" is marked as not having any of the cards (${threeCards.join(", ")}) in this tuple. This should not happen.`
-            );
-            if (typeof window !== 'undefined' && typeof window.alert === 'function') {
-              window.alert(`Contradiction detected: Player "${player.player}" is marked as not having any of the cards (${threeCards.join(", ")}) in this tuple. This should not happen.`);
+            if (!currentUser || player.player !== currentUser) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `Contradiction detected: Player "${player.player}" is marked as not having any of the cards (${threeCards.join(", ")}) in this tuple. This should not happen.`
+              );
+              if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+                window.alert(`Contradiction detected: Player "${player.player}" is marked as not having any of the cards (${threeCards.join(", ")}) in this tuple. This should not happen.`);
+              }
             }
           }
         }
@@ -437,51 +441,44 @@ export const analyzePlayerTuples = (
     }
   });
 
-  return { likelyHas, definitelyHas, definitelyDoesNotHave };
-};
+  // Always deduce full hands after basic deductions
+  if (handSizes) {
+    updatedKnowledge = deduceFullHands(updatedKnowledge, handSizes);
+  }
 
-export const updatedKnowledgeBaseFromTuples = (
-  knowledge: CardKnowledge[],
-  playerTuples: PlayerCardTuples[]
-): CardKnowledge[] => {
-  const analysis = analyzePlayerTuples(playerTuples, knowledge);
-  let updatedKnowledge = knowledge;
+  // Always check for solution after hand size deduction - this way, we might get more locations crossed out
+  updatedKnowledge = checkForSolution(updatedKnowledge, handSizes);
 
-  // Apply definite has
-  analysis.definitelyHas.forEach(({ playerName, cardName }) => {
-    updatedKnowledge = markCardInPlayerHand(
-      updatedKnowledge,
-      cardName,
-      playerName
+  // Advanced deduction: If the solution for a category is known (card A),
+  // and all users but one are known not to have card B in that category,
+  // the last user must have card B.
+  // For each category, check if a solution card is known
+  const categories = ["suspect", "weapon", "room"];
+  categories.forEach((category) => {
+    const solutionCard = updatedKnowledge.find(
+      (c) => c.category === category && c.inSolution === true
     );
+    if (solutionCard) {
+      // For all other cards in this category (not the solution)
+      updatedKnowledge
+        .filter((c) => c.category === category && c.cardName !== solutionCard.cardName)
+        .forEach((card) => {
+          // Find all players who are not known NOT to have this card
+          const possiblePlayers = Object.entries(card.inPlayersHand)
+            .filter(([, hasIt]) => hasIt !== false)
+            .map(([player]) => player);
+          if (possiblePlayers.length === 1) {
+            // Only one player could have this card, so they must have it
+            updatedKnowledge = markCardInPlayerHand(
+              updatedKnowledge,
+              card.cardName,
+              possiblePlayers[0]
+            );
+          }
+        });
+    }
   });
 
-  // Apply definite does not have
-  analysis.definitelyDoesNotHave.forEach(({ playerName, cardName }) => {
-    updatedKnowledge = markCardNotInPlayerHand(
-      updatedKnowledge,
-      cardName,
-      playerName
-    );
-  });
-
-  return updatedKnowledge;
-};
-
-export const updateKnowledgeWithDeductions = (
-  knowledge: CardKnowledge[],
-  playerTuples: PlayerCardTuples[]
-): CardKnowledge[] => {
-  const analysis = analyzePlayerTuples(playerTuples, knowledge);
-  let updatedKnowledge = knowledge;
-  // Apply definite has
-  analysis.definitelyHas.forEach(({ playerName, cardName }) => {
-    updatedKnowledge = markCardInPlayerHand(updatedKnowledge, cardName, playerName);
-  });
-  // Apply definite does not have
-  analysis.definitelyDoesNotHave.forEach(({ playerName, cardName }) => {
-    updatedKnowledge = markCardNotInPlayerHand(updatedKnowledge, cardName, playerName);
-  });
   return updatedKnowledge;
 };
 

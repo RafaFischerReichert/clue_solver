@@ -343,7 +343,7 @@ function App() {
   return (
     <div className="App">
       <h1>Cluedo Solver</h1>
-      <div className="version-label">Version 1.2.0</div>
+      <div className="version-label">Version 1.2.1</div>
 
       {currentStep === "setup" && <GameSetup onGameStart={handleGameSetup} />}
 
@@ -502,15 +502,27 @@ function App() {
                   });
                   // Filter: keep only guesses with at least one card where inSolution == null
                   allGuesses = allGuesses.filter((guess) => {
-                    const suspectStatus = cardKnowledge.find(
-                      (c) => c.cardName === guess.suspect
-                    )?.inSolution;
-                    const weaponStatus = cardKnowledge.find(
-                      (c) => c.cardName === guess.weapon
-                    )?.inSolution;
-                    const roomStatus = cardKnowledge.find(
-                      (c) => c.cardName === guess.room
-                    )?.inSolution;
+                    const suspectCard = cardKnowledge.find((c) => c.cardName === guess.suspect);
+                    const weaponCard = cardKnowledge.find((c) => c.cardName === guess.weapon);
+                    const roomCard = cardKnowledge.find((c) => c.cardName === guess.room);
+                    // Exclude guesses where any card is known to be in another player's hand
+                    const isInOtherPlayersHand = (card: CardKnowledge | undefined, user: string) => {
+                      if (!card || !card.inPlayersHand) return false;
+                      return Object.entries(card.inPlayersHand).some(
+                        ([player, hasIt]) => player !== user && hasIt === true
+                      );
+                    };
+                    if (
+                      isInOtherPlayersHand(suspectCard, currentUser) ||
+                      isInOtherPlayersHand(weaponCard, currentUser) ||
+                      isInOtherPlayersHand(roomCard, currentUser)
+                    ) {
+                      return false;
+                    }
+                    // Keep only guesses with at least one card where inSolution == null
+                    const suspectStatus = suspectCard?.inSolution;
+                    const weaponStatus = weaponCard?.inSolution;
+                    const roomStatus = roomCard?.inSolution;
                     return [suspectStatus, weaponStatus, roomStatus].some(
                       (status) => status === null
                     );

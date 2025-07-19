@@ -9,10 +9,7 @@ import {
   initializeKnowledgeBase,
   CardKnowledge,
   recordGuessResponse,
-  PlayerCardTuples,
-  markCardInPlayerHand,
-  markCardNotInPlayerHand,
-  checkForSolution, // <-- add this import
+  PlayerCardTuples, // <-- add this import
 } from "./components/GameLogic";
 import React from "react";
 import { Guess } from "./components/GuessEvaluator";
@@ -206,76 +203,8 @@ function App() {
 
   // Handle guess form submission
   const handleGuessSubmit = (guessData: any) => {
-    // If user is guesser and knows the shown card
-    if (
-      guessData.guessedBy === currentUser &&
-      guessData.showedBy &&
-      guessData.shownCard
-    ) {
-      let updatedKnowledge = markCardInPlayerHand(
-        cardKnowledge,
-        guessData.shownCard,
-        guessData.showedBy
-      );
-      if (gameData) {
-        // Compute asked players (those between guesser and shower, inclusive of shower)
-        const askedPlayers = getAskedPlayers(
-          gameData.playerOrder,
-          guessData.guessedBy,
-          guessData.showedBy
-        );
-        // Exclude the shower
-        const nonShowerAsked = askedPlayers.filter(
-          (p) => p !== guessData.showedBy
-        );
-        // Mark all three cards as not in their hand
-        for (const player of nonShowerAsked) {
-          updatedKnowledge = markCardNotInPlayerHand(
-            updatedKnowledge,
-            guessData.suspect || guessData.selectedSuspect,
-            player
-          );
-          updatedKnowledge = markCardNotInPlayerHand(
-            updatedKnowledge,
-            guessData.weapon || guessData.selectedWeapon,
-            player
-          );
-          updatedKnowledge = markCardNotInPlayerHand(
-            updatedKnowledge,
-            guessData.room || guessData.selectedRoom,
-            player
-          );
-        }
-        // Debug printout
-        const before = JSON.stringify(cardKnowledge);
-        const after = JSON.stringify(updatedKnowledge);
-        if (before !== after) {
-          const beforeObj = cardKnowledge;
-          const afterObj = updatedKnowledge;
-          const diffs: string[] = [];
-          for (let i = 0; i < beforeObj.length; i++) {
-            const beforeCard = beforeObj[i];
-            const afterCard = afterObj[i];
-            for (const player of Object.keys(beforeCard.inPlayersHand)) {
-              if (
-                beforeCard.inPlayersHand[player] !==
-                afterCard.inPlayersHand[player]
-              ) {
-                diffs.push(
-                  `Player ${player} for card ${beforeCard.cardName}: ${beforeCard.inPlayersHand[player]} -> ${afterCard.inPlayersHand[player]}`
-                );
-              }
-            }
-          }
-          console.log("Knowledge changes:", diffs);
-        } else {
-          console.log("No knowledge changes.");
-        }
-      }
-      setCardKnowledge(checkForSolution([...updatedKnowledge]));
-      return;
-    }
-    // Default case: update knowledge and tuples
+    // Always use the comprehensive recordGuessResponse function to ensure
+    // all knowledge updates are applied consistently
     const askedPlayers =
       gameData && gameData.playerOrder && guessData.guessedBy
         ? getAskedPlayers(
@@ -285,6 +214,7 @@ function App() {
           )
         : [];
     console.log("Asked players for deduction:", askedPlayers);
+    
     // Track knowledge before
     const before = JSON.stringify(cardKnowledge);
     const result = recordGuessResponse(
@@ -298,9 +228,10 @@ function App() {
       guessData.guessedBy,
       askedPlayers,
       cardKnowledge,
-      undefined, // handSizes (not used here)
-      currentUser // <-- pass currentUser
+      gameData?.handSizes, // Pass handSizes for full deduction
+      currentUser
     );
+    
     // Track knowledge after
     const after = JSON.stringify(result.knowledge);
     if (before !== after) {
@@ -325,8 +256,9 @@ function App() {
     } else {
       console.log("No knowledge changes.");
     }
+    
     setPlayerTuples([...result.tuples]);
-    setCardKnowledge(checkForSolution([...result.knowledge]));
+    setCardKnowledge([...result.knowledge]);
     setPreviousGuesses((prev) => [
       ...prev,
       {

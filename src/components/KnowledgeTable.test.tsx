@@ -13,6 +13,7 @@ describe("KnowledgeTable", () => {
       inPlayersHand: { Alice: false, Bob: null, Charlie: null },
       inSolution: null,
       eliminatedFromSolution: false,
+      likelyHas: { Alice: false, Bob: false, Charlie: false }
     },
     {
       cardName: "Candlestick",
@@ -21,6 +22,7 @@ describe("KnowledgeTable", () => {
       inPlayersHand: { Alice: true, Bob: false, Charlie: false },
       inSolution: false,
       eliminatedFromSolution: true,
+      likelyHas: { Alice: false, Bob: false, Charlie: false }
     },
     {
       cardName: "Ballroom",
@@ -29,6 +31,7 @@ describe("KnowledgeTable", () => {
       inPlayersHand: { Alice: null, Bob: null, Charlie: null },
       inSolution: null,
       eliminatedFromSolution: false,
+      likelyHas: { Alice: false, Bob: false, Charlie: false }
     },
   ];
 
@@ -91,6 +94,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: false, Charlie: false },
         inSolution: false,
         eliminatedFromSolution: true,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
     render(
@@ -120,6 +124,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: false, Bob: true, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
     render(
@@ -149,6 +154,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: false, Bob: true, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
     render(
@@ -178,6 +184,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: null, Bob: true, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
     render(
@@ -244,6 +251,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: null, Charlie: null },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
       // Missing inPlayersHand for some players
       {
@@ -253,6 +261,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: null, Charlie: null }, // Fixed to include all players
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
 
@@ -312,6 +321,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: false, Charlie: false }, // Alice has it, others don't
         inSolution: false,
         eliminatedFromSolution: true,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
 
@@ -347,6 +357,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: false, Charlie: false }, // Alice has it
         inSolution: false,
         eliminatedFromSolution: true,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
       {
         cardName: "Candlestick",
@@ -355,6 +366,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: false, Bob: true, Charlie: false }, // Bob has it
         inSolution: false,
         eliminatedFromSolution: true,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
       {
         cardName: "Library",
@@ -363,6 +375,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: false, Bob: false, Charlie: true }, // Charlie has it
         inSolution: false,
         eliminatedFromSolution: true,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
 
@@ -410,6 +423,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: false, Bob: false, Charlie: false }, // All players marked as not having it
         inSolution: false,
         eliminatedFromSolution: true,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
       {
         cardName: "Rope",
@@ -418,6 +432,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: false, Charlie: false }, // Alice has it
         inSolution: false,
         eliminatedFromSolution: true,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
 
@@ -460,6 +475,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: true, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
       {
         cardName: "Card2",
@@ -468,6 +484,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: null, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
     render(
@@ -494,6 +511,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: true, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
       {
         cardName: "Card2",
@@ -502,6 +520,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: null, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
     render(
@@ -529,6 +548,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: true, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
       {
         cardName: "Card2",
@@ -537,6 +557,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: null, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
     render(
@@ -564,6 +585,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: true, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
       {
         cardName: "Card2",
@@ -572,6 +594,7 @@ describe("KnowledgeTable", () => {
         inPlayersHand: { Alice: true, Bob: null, Charlie: false },
         inSolution: null,
         eliminatedFromSolution: false,
+        likelyHas: { Alice: false, Bob: false, Charlie: false }
       },
     ];
     render(

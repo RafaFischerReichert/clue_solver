@@ -23,7 +23,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
   const [playerNames, setPlayerNames] = useState("");
   /** Suspect names (newline-separated) */
   const [suspects, setSuspects] = useState(
-    "Scarlett\nMustard\nOrchid\nGreen\nPeacock\nPlum"
+    "Mustard\nScarlett\nPeacock\nOrchid\nPlum\nGreen"
   );
   /** Weapon names (newline-separated) */
   const [weapons, setWeapons] = useState(
@@ -31,7 +31,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onGameStart }) => {
   );
   /** Room names (newline-separated) */
   const [rooms, setRooms] = useState(
-    "Kitchen\nBallroom\nConservatory\nDining Room\nBilliard Room\nLibrary\nLounge\nHall\nStudy"
+    "Ballroom\nBilliard Room\nConservatory\nDining Room\nHall\nKitchen\nLibrary\nLounge\nStudy"
   );
   /** The current user's player name */
   const [yourPlayerName, setYourPlayerName] = useState("");

@@ -14,10 +14,12 @@ A desktop application for solving Cluedo/Clue board games using React, TypeScrip
 - **Solution Detection**: Automatically identify when cards must be in the solution
 - **Comprehensive Testing**: Full test coverage with TDD approach
 - **Automated Versioning**: Script to update version numbers, create release commits, and tag/push releases
+- **Suggestion AI**: Intelligent suggestions with strategic guessing capabilities, enhanced scoring system, and LikelyHas probability tracking
+- **Strategic Value Recognition**: AI recognizes when guessing cards in your hand can be strategically valuable
+- **Smart Penalty System**: Properly penalizes poor guesses while rewarding strategic moves
+- **World Generation**: Advanced possible world generation with probability calculations
 
 ### 🚧 In Progress / Planned
-- **Suggestion AI**: Intelligent suggestions for optimal gameplay
-- **Response Tracker UI**: Interface for recording player responses
 - **Solution Display**: Clear presentation of deduced solution
 - **Game State Persistence**: Save and load game progress
 - **Export/Import**: Share game states with other players
@@ -45,7 +47,6 @@ clue_solver/
 │   │   ├── KnowledgeTable.tsx # Knowledge display
 │   │   ├── GameLogic.tsx   # Core deduction logic
 │   │   ├── SuggestionForm.tsx # Suggestion interface
-│   │   ├── ResponseTracker.tsx # Response recording
 │   │   └── ...            # Other components
 │   ├── App.tsx            # Main application component
 │   ├── main.tsx           # Application entry point
@@ -93,9 +94,9 @@ clue_solver/
 ### Versioning & Release
 To bump the version, commit, tag, and push a release:
 ```bash
-node update-version.cjs 1.2.0
+node update-version.cjs 1.3.0
 ```
-(Replace `1.2.0` with your desired version number.)
+(Replace `1.3.0` with your desired version number.)
 
 ### Development Commands
 
@@ -112,7 +113,7 @@ npm run tauri dev    # Start development server in a new window
 ## 🧠 Core Logic
 
 ### Deduction Logic Pipeline
-The deduction engine now uses a unified, robust pipeline for all deduction steps, handled by `updateKnowledgeWithDeductions` in `GameLogic.tsx`. The deduction flow is as follows:
+The deduction engine uses a unified, robust pipeline for all deduction steps, handled by `updateKnowledgeWithDeductions` in `GameLogic.tsx`. The deduction flow is as follows:
 
 1. **Tuple-based and Direct Deductions**
    - Analyzes all guess/response tuples to deduce who definitely or definitely does not have which cards.
@@ -123,7 +124,15 @@ The deduction engine now uses a unified, robust pipeline for all deduction steps
 4. **Advanced Deduction**
    - If the solution for a category is known, and for another card in that category all but one player are known not to have it, the last possible player must have that card.
 
-This pipeline ensures that each deduction step feeds into the next, maximizing the information gained and keeping the knowledge base as up-to-date as possible. All deduction logic is now centralized in `updateKnowledgeWithDeductions` for maintainability and clarity.
+This pipeline ensures that each deduction step feeds into the next, maximizing the information gained and keeping the knowledge base as up-to-date as possible. All deduction logic is centralized in `updateKnowledgeWithDeductions` for maintainability and clarity.
+
+### Suggestion AI Features
+The Suggestion AI includes advanced strategic capabilities:
+- **Strategic Value Recognition**: Recognizes when guessing cards in your hand can be strategically valuable
+- **Enhanced Scoring System**: Combines entropy-based information gain with strategic value bonuses
+- **Smart Penalty System**: Properly penalizes poor guesses while rewarding strategic moves
+- **LikelyHas Probability System**: Tracks cards likely to be in specific players' hands vs. default probability
+- **World Generation**: Advanced possible world generation with probability calculations for better AI decision making
 
 ### Knowledge Base System
 The app uses a sophisticated three-state knowledge system:
@@ -133,8 +142,7 @@ The app uses a sophisticated three-state knowledge system:
 
 ### Deduction Engine
 The `GameLogic.tsx` module contains the core deduction algorithms:
-- **`analyzePlayerTuples`**: Analyzes guess responses to deduce card locations
-- **`updatedKnowledgeBaseFromTuples`**: Applies deductions to knowledge base
+- **`updateKnowledgeWithDeductions`**: Unified deduction pipeline that handles all deduction types (tuple-based, direct, and advanced)
 - **`checkForSolution`**: Identifies cards that must be in the solution
 
 ### Key Functions
@@ -142,7 +150,7 @@ The `GameLogic.tsx` module contains the core deduction algorithms:
 - `markCardInPlayerHand()`: Marks a card as definitely in a player's hand
 - `markCardNotInPlayerHand()`: Marks a card as definitely not in a player's hand
 - `recordGuessResponse()`: Records and analyzes player responses
-- `analyzePlayerTuples()`: Deduces new information from recorded responses
+- `updateKnowledgeWithDeductions()`: Unified function that handles all deduction logic
 
 ## 🧪 Testing
 

@@ -31,3 +31,14 @@
 - Updated all tests to use the unified deduction pipeline and removed tests for deprecated functions.
 - Improved type annotation practices in test files, ensuring explicit types where beneficial and removing unused imports.
 - Cleaned up code and comments for clarity and maintainability.
+
+# [1.3.0] - 2025-07-18
+### Changed
+- Fixed bugs regarding with the new deduction logic
+- Improved Suggestion AI with strategic guessing capabilities:
+  - **Strategic Value Recognition**: AI now recognizes when guessing cards in your hand can be strategically valuable (e.g., using a room in hand to test two possible suspect/weapon combinations)
+  - **Enhanced Scoring System**: Combines entropy-based information gain with strategic value bonuses for more sophisticated decision making
+  - **Smart Penalty System**: Properly penalizes poor guesses (cards known to be in other players' hands) while rewarding strategic moves
+  - **World Generation Fixes**: Fixed issues with possible world generation when cards are in your hand
+  - **Comprehensive Evaluation**: AI now goes through full entropy calculation for all guesses instead of returning early with basic scores
+  - **LikelyHas Probability System**: Implemented soft deduction system that tracks cards likely to be in specific players' hands vs. default probability, improving world probability calculations and AI decision making

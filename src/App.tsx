@@ -297,7 +297,9 @@ function App() {
       guessData.showedBy || guessData.showedBy || null,
       guessData.guessedBy,
       askedPlayers,
-      cardKnowledge
+      cardKnowledge,
+      undefined, // handSizes (not used here)
+      currentUser // <-- pass currentUser
     );
     // Track knowledge after
     const after = JSON.stringify(result.knowledge);
@@ -343,7 +345,7 @@ function App() {
   return (
     <div className="App">
       <h1>Cluedo Solver</h1>
-      <div className="version-label">Version 1.2.1</div>
+      <div className="version-label">Version 1.3.0</div>
 
       {currentStep === "setup" && <GameSetup onGameStart={handleGameSetup} />}
 

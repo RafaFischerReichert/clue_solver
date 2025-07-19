@@ -18,7 +18,79 @@ export function evaluateGuess(
     console.log("Game state:", gameState);
   }
 
-  // Step 1: Generate possible worlds
+  // Initialize information bonus
+  let informationBonus = 0;
+
+  // Check if any cards in the guess are in your hand
+  const knowledge = gameState.knowledge || [];
+  const cardsInYourHand = [];
+  for (const cardName of [guess.suspect, guess.weapon, guess.room]) {
+    const cardInfo = knowledge.find(k => k.cardName === cardName);
+    if (cardInfo?.inYourHand) {
+      cardsInYourHand.push(cardName);
+    }
+  }
+  
+  // Analyze the strategic value of guessing cards in your hand
+  if (cardsInYourHand.length > 0) {
+    if (debug) {
+      console.log(`Cards in your hand: ${cardsInYourHand.join(', ')}`);
+    }
+    
+    // Calculate the strategic value of this guess
+    const strategicValue = calculateStrategicValueOfHandGuess(guess, cardsInYourHand, gameState, debug);
+    
+    if (debug) {
+      console.log(`Strategic value of hand guess: ${strategicValue}`);
+    }
+    
+    // Store the strategic value to add to the final score
+    informationBonus += strategicValue;
+    
+    if (debug) {
+      console.log(`Strategic value added to bonus: ${strategicValue}`);
+      console.log(`Total information bonus so far: ${informationBonus}`);
+    }
+  }
+  
+  // Check for cards likely to be in other players' hands - these should be penalized
+  const cardsInOtherHands = [];
+  const cardsLikelyInOtherHands = [];
+  for (const cardName of [guess.suspect, guess.weapon, guess.room]) {
+    const cardInfo = knowledge.find(k => k.cardName === cardName);
+    if (cardInfo?.inPlayersHand) {
+      const definitelyInOtherHand = Object.values(cardInfo.inPlayersHand).some(hasIt => hasIt === true);
+      if (definitelyInOtherHand) {
+        cardsInOtherHands.push(cardName);
+      }
+    }
+    if (cardInfo?.likelyHas) {
+      // Only consider likelyHas if we don't have definitive knowledge
+      const hasDefinitiveKnowledge = Object.values(cardInfo.inPlayersHand).some(hasIt => hasIt !== null);
+      if (!hasDefinitiveKnowledge) {
+                  const likelyInOtherHand = Object.values(cardInfo.likelyHas).some(likely => likely === true);
+        if (likelyInOtherHand) {
+          cardsLikelyInOtherHands.push(cardName);
+        }
+      }
+    }
+  }
+  
+  if (cardsInOtherHands.length > 0) {
+    informationBonus -= cardsInOtherHands.length * 0.5; // Penalty for cards definitely in other hands
+    if (debug) {
+      console.log(`Cards definitely in other hands: ${cardsInOtherHands.join(', ')} - penalty: ${-cardsInOtherHands.length * 0.5}`);
+    }
+  }
+  
+  if (cardsLikelyInOtherHands.length > 0) {
+    informationBonus -= cardsLikelyInOtherHands.length * 0.2; // Smaller penalty for cards likely in other hands
+    if (debug) {
+      console.log(`Cards likely in other hands: ${cardsLikelyInOtherHands.join(', ')} - penalty: ${-cardsLikelyInOtherHands.length * 0.2}`);
+    }
+  }
+
+  // Step 1: Generate possible worlds with proper probabilities
   const possibleWorlds = generatePossibleWorlds(guess, gameState, debug);
   if (debug) {
     console.log("Possible worlds:", possibleWorlds);
@@ -32,7 +104,7 @@ export function evaluateGuess(
   }
 
   // Step 2 & 3: For each world, simulate responses and update knowledge
-  // We'll aggregate probabilities across all possible worlds (assume each world is equally likely)
+  // Use proper world probabilities instead of assuming equal likelihood
   const entropyAfterList: { entropy: number, probability: number }[] = [];
   for (const world of possibleWorlds) {
     if (debug) {
@@ -43,7 +115,7 @@ export function evaluateGuess(
     if (debug) {
       console.log("Responses for this world:", responsesWithProb);
     }
-    const worldProb = 1 / possibleWorlds.length;
+    const worldProb = world.probability; // Use the world's calculated probability
     for (const { response, probability } of responsesWithProb) {
       if (debug) {
         console.log("Processing response:", response, "with probability:", probability);
@@ -67,15 +139,147 @@ export function evaluateGuess(
 
   // Step 5: Aggregate expected information gain
   const infoGain = aggregateExpectedInformationGain(entropyBefore, entropyAfterList, debug);
+  const finalScore = infoGain + informationBonus;
   if (debug) {
-    console.log("Final information gain:", infoGain);
+    console.log("Base information gain:", infoGain);
+    console.log("Information bonus:", informationBonus);
+    console.log("Final score:", finalScore);
     console.log("=== End evaluation ===");
   }
-  return infoGain;
+  return finalScore;
 }
 
-// Step 1: Generate all possible worlds consistent with current knowledge (focus on solution uncertainty)
-function generatePossibleWorlds(guess:Guess, gameState: GameState, debug: boolean): any[] {
+// Calculate the strategic value of guessing cards in your hand
+function calculateStrategicValueOfHandGuess(
+  guess: Guess,
+  cardsInYourHand: string[],
+  gameState: GameState,
+  debug: boolean
+): number {
+  if (debug) {
+    console.log("Calculating strategic value of hand guess");
+  }
+
+  const knowledge = gameState.knowledge || [];
+
+  // Get the other cards in the guess (not in your hand)
+  const otherCards = [guess.suspect, guess.weapon, guess.room].filter(
+    card => !cardsInYourHand.includes(card)
+  );
+
+  if (debug) {
+    console.log("Other cards in guess:", otherCards);
+  }
+
+  // Count possible solutions for each category
+  // Note: We include all cards not in your hand for strategic value calculation
+  // This allows the AI to consider guessing cards in other players' hands
+  // The penalty system will handle the evaluation appropriately
+  const possibleSuspects = knowledge
+    .filter(card => card.category === "suspect" && !card.inYourHand)
+    .map(card => card.cardName);
+  
+  const possibleWeapons = knowledge
+    .filter(card => card.category === "weapon" && !card.inYourHand)
+    .map(card => card.cardName);
+  
+  const possibleRooms = knowledge
+    .filter(card => card.category === "room" && !card.inYourHand)
+    .map(card => card.cardName);
+
+  if (debug) {
+    console.log("Possible solutions:", { suspects: possibleSuspects, weapons: possibleWeapons, rooms: possibleRooms });
+  }
+
+  // Calculate the reduction in solution space this guess could provide
+  let strategicValue = 0;
+
+  // If we're guessing a room in our hand, we're essentially asking about the other two cards
+  if (cardsInYourHand.includes(guess.room)) {
+    const suspectInGuess = guess.suspect;
+    const weaponInGuess = guess.weapon;
+    
+    // Check if the suspect and weapon in our guess are among the possible solutions
+    const suspectIsPossible = possibleSuspects.includes(suspectInGuess);
+    const weaponIsPossible = possibleWeapons.includes(weaponInGuess);
+    
+    if (suspectIsPossible && weaponIsPossible) {
+      // This is a strategic guess - we're testing both possible solution cards
+      const totalPossibleSolutions = possibleSuspects.length * possibleWeapons.length * possibleRooms.length;
+      const solutionsEliminatedIfNoResponse = (possibleSuspects.length - 1) * (possibleWeapons.length - 1) * possibleRooms.length;
+      const informationGain = totalPossibleSolutions - solutionsEliminatedIfNoResponse;
+      
+      strategicValue = informationGain / totalPossibleSolutions * 2; // Bonus for strategic value
+      
+      if (debug) {
+        console.log(`Strategic room guess: testing ${suspectInGuess} and ${weaponInGuess}`);
+        console.log(`Information gain potential: ${informationGain} out of ${totalPossibleSolutions} solutions`);
+        console.log(`Strategic value: ${strategicValue}`);
+      }
+    }
+  }
+
+  // Similar logic for suspect and weapon guesses
+  if (cardsInYourHand.includes(guess.suspect)) {
+    const weaponInGuess = guess.weapon;
+    const roomInGuess = guess.room;
+    
+    const weaponIsPossible = possibleWeapons.includes(weaponInGuess);
+    const roomIsPossible = possibleRooms.includes(roomInGuess);
+    
+    if (weaponIsPossible && roomIsPossible) {
+      const totalPossibleSolutions = possibleSuspects.length * possibleWeapons.length * possibleRooms.length;
+      const solutionsEliminatedIfNoResponse = possibleSuspects.length * (possibleWeapons.length - 1) * (possibleRooms.length - 1);
+      const informationGain = totalPossibleSolutions - solutionsEliminatedIfNoResponse;
+      
+      strategicValue = Math.max(strategicValue, informationGain / totalPossibleSolutions * 2);
+      
+      if (debug) {
+        console.log(`Strategic suspect guess: testing ${weaponInGuess} and ${roomInGuess}`);
+        console.log(`Information gain potential: ${informationGain} out of ${totalPossibleSolutions} solutions`);
+        console.log(`Strategic value: ${strategicValue}`);
+      }
+    }
+  }
+
+  if (cardsInYourHand.includes(guess.weapon)) {
+    const suspectInGuess = guess.suspect;
+    const roomInGuess = guess.room;
+    
+    const suspectIsPossible = possibleSuspects.includes(suspectInGuess);
+    const roomIsPossible = possibleRooms.includes(roomInGuess);
+    
+    if (suspectIsPossible && roomIsPossible) {
+      const totalPossibleSolutions = possibleSuspects.length * possibleWeapons.length * possibleRooms.length;
+      const solutionsEliminatedIfNoResponse = (possibleSuspects.length - 1) * possibleWeapons.length * (possibleRooms.length - 1);
+      const informationGain = totalPossibleSolutions - solutionsEliminatedIfNoResponse;
+      
+      strategicValue = Math.max(strategicValue, informationGain / totalPossibleSolutions * 2);
+      
+      if (debug) {
+        console.log(`Strategic weapon guess: testing ${suspectInGuess} and ${roomInGuess}`);
+        console.log(`Information gain potential: ${informationGain} out of ${totalPossibleSolutions} solutions`);
+        console.log(`Strategic value: ${strategicValue}`);
+      }
+    }
+  }
+
+  // Additional bonus for guesses that could eliminate many solutions at once
+  if (cardsInYourHand.length === 1 && otherCards.length === 2) {
+    // We're guessing one card in hand and two possible solution cards
+    // This is often a very strategic move
+    strategicValue += 0.5;
+    
+    if (debug) {
+      console.log("Bonus for strategic elimination guess");
+    }
+  }
+
+  return strategicValue;
+}
+
+// Step 1: Generate all possible worlds consistent with current knowledge with proper probabilities
+function generatePossibleWorlds(guess: Guess, gameState: GameState, debug: boolean): Array<{ [key: string]: string | number, probability: number }> {
   const { suspect, weapon, room } = guess;
   const cards = [suspect, weapon, room];
   const players = gameState.playerOrder || [];
@@ -86,8 +290,24 @@ function generatePossibleWorlds(guess:Guess, gameState: GameState, debug: boolea
     console.log("Players:", players);
   }
 
-  // Use shared utility to get possible locations for each card
-  const possibleLocationsList = cards.map(card => getPossibleCardLocations(card, knowledge, players));
+  // Get possible locations for each card, but filter out impossible ones
+  const possibleLocationsList = cards.map(card => {
+    const locations = getPossibleCardLocations(card, knowledge, players);
+    // Filter out locations that are impossible based on current knowledge
+    return locations.filter(location => {
+      if (location === "solution") {
+        // Check if card is known to be in someone's hand
+        const cardInfo = knowledge.find(k => k.cardName === card);
+        if (cardInfo?.inYourHand) return false; // Can't be in solution if in your hand
+        if (cardInfo?.inPlayersHand) {
+          // Can't be in solution if known to be in any player's hand
+          return !Object.values(cardInfo.inPlayersHand).some(hasIt => hasIt === true);
+        }
+        return true;
+      }
+      return true; // Player locations are always possible if not explicitly ruled out
+    });
+  });
   
   if (debug) {
     console.log("Possible locations for each card:", {
@@ -113,17 +333,113 @@ function generatePossibleWorlds(guess:Guess, gameState: GameState, debug: boolea
     console.log("All possible assignments:", allAssignments);
   }
 
-  // Return as array of objects for clarity
-  const worlds = allAssignments.map(assignment => ({
-    [suspect]: assignment[0],
-    [weapon]: assignment[1],
-    [room]: assignment[2],
-  }));
+  // Calculate probabilities for each world based on card distribution constraints
+  const worldsWithProbabilities = allAssignments.map(assignment => {
+    const world = {
+      [suspect]: assignment[0],
+      [weapon]: assignment[1],
+      [room]: assignment[2],
+    };
+    
+    // Calculate probability based on card distribution constraints
+    const probability = calculateWorldProbability(world, cards, players, knowledge, debug);
+    
+    return {
+      ...world,
+      probability
+    };
+  }).filter(world => world.probability > 0); // Filter out impossible worlds
+
+  // Normalize probabilities to sum to 1
+  const totalProbability = worldsWithProbabilities.reduce((sum, world) => sum + world.probability, 0);
+  if (totalProbability > 0) {
+    worldsWithProbabilities.forEach(world => {
+      world.probability = world.probability / totalProbability;
+    });
+  }
   
   if (debug) {
-    console.log("Generated worlds:", worlds);
+    console.log("Generated worlds with probabilities:", worldsWithProbabilities);
   }
-  return worlds;
+  return worldsWithProbabilities;
+}
+
+// Calculate the probability of a world based on card distribution constraints
+function calculateWorldProbability(
+  world: { [key: string]: string },
+  cards: string[],
+  _players: string[],
+  knowledge: any[],
+  debug: boolean
+): number {
+  if (debug) {
+    console.log("Calculating probability for world:", world);
+  }
+
+  // Check if this world is consistent with known constraints
+  for (const card of cards) {
+    const location = world[card];
+    const cardInfo = knowledge.find(k => k.cardName === card);
+    
+    // If card is known to be in your hand, it can't be in solution or other players' hands
+    if (cardInfo?.inYourHand && location !== "You") {
+      if (debug) {
+        console.log(`Card ${card} is in your hand but world places it in ${location}`);
+      }
+      return 0;
+    }
+    
+    // If card is known to be in a specific player's hand, it can't be elsewhere
+    if (cardInfo?.inPlayersHand) {
+      for (const [player, hasIt] of Object.entries(cardInfo.inPlayersHand)) {
+        if (hasIt === true && location !== player) {
+          if (debug) {
+            console.log(`Card ${card} is known to be in ${player}'s hand but world places it in ${location}`);
+          }
+          return 0;
+        }
+        if (hasIt === false && location === player) {
+          if (debug) {
+            console.log(`Card ${card} is known NOT to be in ${player}'s hand but world places it there`);
+          }
+          return 0;
+        }
+      }
+    }
+  }
+
+  // Calculate probability based on likelyHas information
+  let probability = 1;
+  
+  for (const card of cards) {
+    const location = world[card];
+    const cardInfo = knowledge.find(k => k.cardName === card);
+    
+    if (cardInfo && location !== "solution" && location !== "your_hand") {
+      // Check if we have definitive knowledge about this card's location
+      const definitiveLocation = cardInfo.inPlayersHand[location];
+      
+      if (definitiveLocation === true) {
+        // Card is definitely with this player - boost probability significantly
+        probability *= 4;
+      } else if (definitiveLocation === false) {
+        // Card is definitely NOT with this player - this world should be impossible
+        return 0;
+      } else {
+        // No definitive knowledge, use likelyHas information
+        if (cardInfo.likelyHas[location]) {
+          probability *= 2; // Boost probability for likely cards
+        } else {
+          probability *= 0.5; // Reduce probability for unlikely cards
+        }
+      }
+    }
+  }
+  
+  if (debug) {
+    console.log("World probability based on likelyHas:", probability);
+  }
+  return probability; // Will be normalized later
 }
 
 // Step 2: Simulate responses for a guess in a given world
@@ -275,14 +591,38 @@ function computeSolutionEntropy(gameState: GameState, debug: boolean): number {
   }
 
   // Get all suspects, weapons, and rooms that could possibly be in the solution
+  // Filter out cards that are known to be in players' hands or your hand
   const suspects = knowledge
-    .filter(card => card.category === "suspect" && getPossibleCardLocations(card.cardName, knowledge, players).includes("solution"))
+    .filter(card => {
+      if (card.category !== "suspect") return false;
+      if (card.inYourHand) return false; // Can't be in solution if in your hand
+      if (card.inPlayersHand && Object.values(card.inPlayersHand).some(hasIt => hasIt === true)) {
+        return false; // Can't be in solution if known to be in any player's hand
+      }
+      return getPossibleCardLocations(card.cardName, knowledge, players).includes("solution");
+    })
     .map(card => card.cardName);
+    
   const weapons = knowledge
-    .filter(card => card.category === "weapon" && getPossibleCardLocations(card.cardName, knowledge, players).includes("solution"))
+    .filter(card => {
+      if (card.category !== "weapon") return false;
+      if (card.inYourHand) return false;
+      if (card.inPlayersHand && Object.values(card.inPlayersHand).some(hasIt => hasIt === true)) {
+        return false;
+      }
+      return getPossibleCardLocations(card.cardName, knowledge, players).includes("solution");
+    })
     .map(card => card.cardName);
+    
   const rooms = knowledge
-    .filter(card => card.category === "room" && getPossibleCardLocations(card.cardName, knowledge, players).includes("solution"))
+    .filter(card => {
+      if (card.category !== "room") return false;
+      if (card.inYourHand) return false;
+      if (card.inPlayersHand && Object.values(card.inPlayersHand).some(hasIt => hasIt === true)) {
+        return false;
+      }
+      return getPossibleCardLocations(card.cardName, knowledge, players).includes("solution");
+    })
     .map(card => card.cardName);
 
   if (debug) {

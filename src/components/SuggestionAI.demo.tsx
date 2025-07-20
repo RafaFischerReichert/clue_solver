@@ -143,7 +143,7 @@ export function demonstrateStrategicGuesses() {
   console.log("Strategy: Testing both possible suspects and weapons at once");
   console.log("Expected outcome: Either someone shows us a card (eliminating that suspect/weapon) or no one can show anything (meaning both are in the solution)");
   
-  const strategicScore = evaluateGuess(strategicGuess, JSON.parse(JSON.stringify(gameState)), true);
+  const strategicScore = evaluateGuess(strategicGuess, JSON.parse(JSON.stringify(gameState)), undefined, true);
   console.log(`AI Score: ${strategicScore.toFixed(3)}\n`);
 
   // Test 2: Non-strategic guess - all cards not in hand
@@ -157,7 +157,7 @@ export function demonstrateStrategicGuesses() {
   console.log(`Guess: ${nonStrategicGuess.suspect}, ${nonStrategicGuess.weapon}, ${nonStrategicGuess.room}`);
   console.log("Strategy: Standard guess with all cards not in hand");
   
-  const nonStrategicScore = evaluateGuess(nonStrategicGuess, JSON.parse(JSON.stringify(gameState)), true);
+  const nonStrategicScore = evaluateGuess(nonStrategicGuess, JSON.parse(JSON.stringify(gameState)), undefined, true);
   console.log(`AI Score: ${nonStrategicScore.toFixed(3)}\n`);
 
   // Test 3: Poor guess - guessing a card known to be in someone's hand
@@ -171,7 +171,7 @@ export function demonstrateStrategicGuesses() {
   console.log(`Guess: ${poorGuess.suspect} (in Alice's hand), ${poorGuess.weapon}, ${poorGuess.room}`);
   console.log("Strategy: Guessing a card we know someone has");
   
-  const poorScore = evaluateGuess(poorGuess, JSON.parse(JSON.stringify(gameState)), true);
+  const poorScore = evaluateGuess(poorGuess, JSON.parse(JSON.stringify(gameState)), undefined, true);
   console.log(`AI Score: ${poorScore.toFixed(3)}\n`);
 
   console.log("=== Analysis ===");

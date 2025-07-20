@@ -11,6 +11,7 @@ import {
   recordGuessResponse,
   PlayerCardTuples, // <-- add this import
 } from "./components/GameLogic";
+import { AI_PRESETS } from "./components/SuggestionAI";
 import React from "react";
 import { Guess } from "./components/GuessEvaluator";
 
@@ -115,6 +116,8 @@ function App() {
   const workerRef = useRef<Worker | null>(null);
   // Store the user's hand
   const [userHand, setUserHand] = useState<string[]>([]);
+  // AI personality selection
+  const [selectedAIPersonality, setSelectedAIPersonality] = useState<keyof typeof AI_PRESETS>('balanced');
 
   useEffect(() => {
     workerRef.current = new Worker(
@@ -277,7 +280,7 @@ function App() {
   return (
     <div className="App">
       <h1>Cluedo Solver</h1>
-      <div className="version-label">Version 1.3.0</div>
+      <div className="version-label">Version 1.4.0</div>
 
       {currentStep === "setup" && <GameSetup onGameStart={handleGameSetup} />}
 
@@ -333,6 +336,7 @@ function App() {
                   showedBy: null,
                   shownCard: "",
                 });
+                setSelectedAIPersonality('balanced');
               }}
             >
               End Game
@@ -385,6 +389,33 @@ function App() {
                 selectedRooms={accessibleRooms}
                 onChange={setAccessibleRooms}
               />
+              
+              {/* AI Personality Selector */}
+              <div className="ai-personality-section">
+                <h3>AI Personality</h3>
+                <div className="ai-personality-controls">
+                  <label htmlFor="ai-personality-select">Choose AI Behavior:</label>
+                  <select
+                    id="ai-personality-select"
+                    value={selectedAIPersonality}
+                    onChange={(e) => setSelectedAIPersonality(e.target.value as keyof typeof AI_PRESETS)}
+                  >
+                    <option value="balanced">Balanced</option>
+                    <option value="conservative">Conservative</option>
+                    <option value="aggressive">Aggressive</option>
+                    <option value="informationFocused">Information-Focused</option>
+                    <option value="strategic">Strategic</option>
+                  </select>
+                  <div className="ai-personality-description">
+                    {selectedAIPersonality === 'balanced' && "Balanced approach with moderate risk tolerance"}
+                    {selectedAIPersonality === 'conservative' && "Prefers safe, high-probability guesses"}
+                    {selectedAIPersonality === 'aggressive' && "Willing to take risks for high information gain"}
+                    {selectedAIPersonality === 'informationFocused' && "Prioritizes entropy reduction over strategic moves"}
+                    {selectedAIPersonality === 'strategic' && "Focuses on elimination strategies and card testing"}
+                  </div>
+                </div>
+              </div>
+              
               <button
                 onClick={() => {
                   setLoading(true);
@@ -468,9 +499,10 @@ function App() {
                       previousGuesses: previousGuesses,
                       playerOrder: gameData.playerOrder,
                     },
+                    aiWeights: AI_PRESETS[selectedAIPersonality],
                   });
                 }}
-                style={{ marginLeft: 8 }}
+                className="btn-primary"
               >
                 Evaluate Best Guess
               </button>

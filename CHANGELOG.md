@@ -44,5 +44,19 @@
   - **LikelyHas Probability System**: Implemented soft deduction system that tracks cards likely to be in specific players' hands vs. default probability, improving world probability calculations and AI decision making
 
   ## [1.4.0]
+  ### Added
+  - **Configurable AI Weights System**: Introduced comprehensive fine-tuning capabilities for the Suggestion AI:
+    - **9 Configurable Parameters**: Penalty weights, strategic multipliers, probability weights, and information gain weights
+    - **5 AI Personalities**: Balanced, Conservative, Aggressive, Information-Focused, and Strategic presets
+    - **UI Configuration Component**: Interactive sliders and preset selection for real-time AI behavior adjustment
+    - **Demo Component**: Side-by-side comparison of different AI configurations with test scenarios
+    - **Backward Compatibility**: All existing code continues to work with default weights
+  - **AI Weights Configuration Interface**: Full UI for adjusting AI behavior with real-time preview
+  - **AI Weights Demo**: Interactive demonstration showing how different configurations affect guess evaluation
+
   ### Changed
-  - Cards being marked as solution now will automatically mark as not in any player's hands.
+  - **Knowledge Table Rendering**: Cards being marked as solution now will automatically mark as not in any player's hands.
+  - **Enhanced Suggestion AI**: Now accepts configurable weights parameter for fine-tuning behavior
+  - **Updated Function Signatures**: `evaluateGuess` now accepts optional `AIWeights` parameter
+  - **Improved Test Coverage**: Added tests for configurable weights functionality
+  - **AI Strategic Insight Implementation**: Optimized AI decision-making by treating cards in your hand and cards in the solution as equivalent outcomes - both result in no player being able to show anything, allowing for more efficient strategic evaluation

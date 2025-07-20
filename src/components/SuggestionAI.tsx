@@ -2,26 +2,107 @@
 import { Guess, GameState } from './GuessEvaluator';
 import { getPossibleCardLocations, updateKnowledgeWithDeductions, checkForSolution } from './GameLogic';
 
+// Configuration interface for fine-tuning AI weights
+export interface AIWeights {
+  // Penalties for guessing cards in other players' hands
+  penaltyDefinitelyInOtherHands: number;  // Default: -0.5
+  penaltyLikelyInOtherHands: number;      // Default: -0.2
+  
+  // Strategic value multipliers
+  strategicValueMultiplier: number;       // Default: 2.0
+  strategicEliminationBonus: number;      // Default: 0.5
+  
+  // World probability multipliers
+  probabilityDefinitelyKnown: number;     // Default: 4.0
+  probabilityLikely: number;              // Default: 2.0
+  probabilityUnlikely: number;            // Default: 0.5
+  
+  // Information gain weighting
+  entropyWeight: number;                  // Default: 1.0
+  informationBonusWeight: number;         // Default: 1.0
+}
+
+// Default weights for balanced AI behavior
+export const DEFAULT_AI_WEIGHTS: AIWeights = {
+  penaltyDefinitelyInOtherHands: -0.5,
+  penaltyLikelyInOtherHands: -0.2,
+  strategicValueMultiplier: 2.0,
+  strategicEliminationBonus: 0.5,
+  probabilityDefinitelyKnown: 4.0,
+  probabilityLikely: 2.0,
+  probabilityUnlikely: 0.5,
+  entropyWeight: 1.0,
+  informationBonusWeight: 1.0,
+};
+
+// Preset configurations for different AI personalities
+export const AI_PRESETS = {
+  // Conservative AI - prefers safe, high-probability guesses
+  conservative: {
+    ...DEFAULT_AI_WEIGHTS,
+    penaltyDefinitelyInOtherHands: -1.0,
+    penaltyLikelyInOtherHands: -0.5,
+    strategicValueMultiplier: 1.5,
+    probabilityUnlikely: 0.3,
+  },
+  
+  // Aggressive AI - willing to take risks for high information gain
+  aggressive: {
+    ...DEFAULT_AI_WEIGHTS,
+    penaltyDefinitelyInOtherHands: -0.2,
+    penaltyLikelyInOtherHands: -0.1,
+    strategicValueMultiplier: 3.0,
+    strategicEliminationBonus: 1.0,
+    probabilityUnlikely: 0.7,
+  },
+  
+  // Balanced AI - default configuration
+  balanced: DEFAULT_AI_WEIGHTS,
+  
+  // Information-focused AI - prioritizes entropy reduction
+  informationFocused: {
+    ...DEFAULT_AI_WEIGHTS,
+    entropyWeight: 2.0,
+    informationBonusWeight: 0.5,
+    strategicValueMultiplier: 1.0,
+  },
+  
+  // Strategic AI - focuses on elimination strategies
+  strategic: {
+    ...DEFAULT_AI_WEIGHTS,
+    strategicValueMultiplier: 3.0,
+    strategicEliminationBonus: 1.0,
+    entropyWeight: 0.8,
+    informationBonusWeight: 1.5,
+  },
+} as const;
+
 /**
  * Evaluate a guess using minimax/expectimax or entropy-based logic.
  * @param guess The guess to evaluate (room, suspect, weapon)
  * @param gameState The current game state (knowledge, previous guesses, player order, etc.)
+ * @param weights Optional configuration for fine-tuning AI behavior
+ * @param debug Whether to enable debug logging
  * @returns Expected information gain (entropy reduction) or other metric
  */
 export function evaluateGuess(
   guess: Guess,
   gameState: GameState,
+  weights: AIWeights = DEFAULT_AI_WEIGHTS,
   debug: boolean = false
 ): number {
   if (debug) {
     console.log("=== Evaluating guess:", guess);
     console.log("Game state:", gameState);
+    console.log("AI weights:", weights);
   }
 
   // Initialize information bonus
   let informationBonus = 0;
 
   // Check if any cards in the guess are in your hand
+  // Note: Cards in your hand and cards in the solution produce identical outcomes - no one can show them
+  // This insight allows the AI to treat them similarly for strategic evaluation
   const knowledge = gameState.knowledge || [];
   const cardsInYourHand = [];
   for (const cardName of [guess.suspect, guess.weapon, guess.room]) {
@@ -38,7 +119,7 @@ export function evaluateGuess(
     }
     
     // Calculate the strategic value of this guess
-    const strategicValue = calculateStrategicValueOfHandGuess(guess, cardsInYourHand, gameState, debug);
+    const strategicValue = calculateStrategicValueOfHandGuess(guess, cardsInYourHand, gameState, weights, debug);
     
     if (debug) {
       console.log(`Strategic value of hand guess: ${strategicValue}`);
@@ -77,21 +158,21 @@ export function evaluateGuess(
   }
   
   if (cardsInOtherHands.length > 0) {
-    informationBonus -= cardsInOtherHands.length * 0.5; // Penalty for cards definitely in other hands
+    informationBonus += cardsInOtherHands.length * weights.penaltyDefinitelyInOtherHands;
     if (debug) {
-      console.log(`Cards definitely in other hands: ${cardsInOtherHands.join(', ')} - penalty: ${-cardsInOtherHands.length * 0.5}`);
+      console.log(`Cards definitely in other hands: ${cardsInOtherHands.join(', ')} - penalty: ${cardsInOtherHands.length * weights.penaltyDefinitelyInOtherHands}`);
     }
   }
   
   if (cardsLikelyInOtherHands.length > 0) {
-    informationBonus -= cardsLikelyInOtherHands.length * 0.2; // Smaller penalty for cards likely in other hands
+    informationBonus += cardsLikelyInOtherHands.length * weights.penaltyLikelyInOtherHands;
     if (debug) {
-      console.log(`Cards likely in other hands: ${cardsLikelyInOtherHands.join(', ')} - penalty: ${-cardsLikelyInOtherHands.length * 0.2}`);
+      console.log(`Cards likely in other hands: ${cardsLikelyInOtherHands.join(', ')} - penalty: ${cardsLikelyInOtherHands.length * weights.penaltyLikelyInOtherHands}`);
     }
   }
 
   // Step 1: Generate possible worlds with proper probabilities
-  const possibleWorlds = generatePossibleWorlds(guess, gameState, debug);
+  const possibleWorlds = generatePossibleWorlds(guess, gameState, weights, debug);
   if (debug) {
     console.log("Possible worlds:", possibleWorlds);
     console.log("Number of possible worlds:", possibleWorlds.length);
@@ -139,10 +220,12 @@ export function evaluateGuess(
 
   // Step 5: Aggregate expected information gain
   const infoGain = aggregateExpectedInformationGain(entropyBefore, entropyAfterList, debug);
-  const finalScore = infoGain + informationBonus;
+  const finalScore = (infoGain * weights.entropyWeight) + (informationBonus * weights.informationBonusWeight);
   if (debug) {
     console.log("Base information gain:", infoGain);
     console.log("Information bonus:", informationBonus);
+    console.log("Weighted entropy:", infoGain * weights.entropyWeight);
+    console.log("Weighted bonus:", informationBonus * weights.informationBonusWeight);
     console.log("Final score:", finalScore);
     console.log("=== End evaluation ===");
   }
@@ -150,10 +233,12 @@ export function evaluateGuess(
 }
 
 // Calculate the strategic value of guessing cards in your hand
+// This function also applies to cards in the solution since they produce identical outcomes
 function calculateStrategicValueOfHandGuess(
   guess: Guess,
   cardsInYourHand: string[],
   gameState: GameState,
+  weights: AIWeights,
   debug: boolean
 ): number {
   if (debug) {
@@ -209,7 +294,7 @@ function calculateStrategicValueOfHandGuess(
       const solutionsEliminatedIfNoResponse = (possibleSuspects.length - 1) * (possibleWeapons.length - 1) * possibleRooms.length;
       const informationGain = totalPossibleSolutions - solutionsEliminatedIfNoResponse;
       
-      strategicValue = informationGain / totalPossibleSolutions * 2; // Bonus for strategic value
+      strategicValue = informationGain / totalPossibleSolutions * weights.strategicValueMultiplier; // Bonus for strategic value
       
       if (debug) {
         console.log(`Strategic room guess: testing ${suspectInGuess} and ${weaponInGuess}`);
@@ -232,7 +317,7 @@ function calculateStrategicValueOfHandGuess(
       const solutionsEliminatedIfNoResponse = possibleSuspects.length * (possibleWeapons.length - 1) * (possibleRooms.length - 1);
       const informationGain = totalPossibleSolutions - solutionsEliminatedIfNoResponse;
       
-      strategicValue = Math.max(strategicValue, informationGain / totalPossibleSolutions * 2);
+      strategicValue = Math.max(strategicValue, informationGain / totalPossibleSolutions * weights.strategicValueMultiplier);
       
       if (debug) {
         console.log(`Strategic suspect guess: testing ${weaponInGuess} and ${roomInGuess}`);
@@ -254,7 +339,7 @@ function calculateStrategicValueOfHandGuess(
       const solutionsEliminatedIfNoResponse = (possibleSuspects.length - 1) * possibleWeapons.length * (possibleRooms.length - 1);
       const informationGain = totalPossibleSolutions - solutionsEliminatedIfNoResponse;
       
-      strategicValue = Math.max(strategicValue, informationGain / totalPossibleSolutions * 2);
+      strategicValue = Math.max(strategicValue, informationGain / totalPossibleSolutions * weights.strategicValueMultiplier);
       
       if (debug) {
         console.log(`Strategic weapon guess: testing ${suspectInGuess} and ${roomInGuess}`);
@@ -268,7 +353,7 @@ function calculateStrategicValueOfHandGuess(
   if (cardsInYourHand.length === 1 && otherCards.length === 2) {
     // We're guessing one card in hand and two possible solution cards
     // This is often a very strategic move
-    strategicValue += 0.5;
+    strategicValue += weights.strategicEliminationBonus;
     
     if (debug) {
       console.log("Bonus for strategic elimination guess");
@@ -279,7 +364,7 @@ function calculateStrategicValueOfHandGuess(
 }
 
 // Step 1: Generate all possible worlds consistent with current knowledge with proper probabilities
-function generatePossibleWorlds(guess: Guess, gameState: GameState, debug: boolean): Array<{ [key: string]: string | number, probability: number }> {
+function generatePossibleWorlds(guess: Guess, gameState: GameState, weights: AIWeights, debug: boolean): Array<{ [key: string]: string | number, probability: number }> {
   const { suspect, weapon, room } = guess;
   const cards = [suspect, weapon, room];
   const players = gameState.playerOrder || [];
@@ -342,7 +427,7 @@ function generatePossibleWorlds(guess: Guess, gameState: GameState, debug: boole
     };
     
     // Calculate probability based on card distribution constraints
-    const probability = calculateWorldProbability(world, cards, players, knowledge, debug);
+    const probability = calculateWorldProbability(world, cards, players, knowledge, weights, debug);
     
     return {
       ...world,
@@ -370,6 +455,7 @@ function calculateWorldProbability(
   cards: string[],
   _players: string[],
   knowledge: any[],
+  weights: AIWeights,
   debug: boolean
 ): number {
   if (debug) {
@@ -421,16 +507,16 @@ function calculateWorldProbability(
       
       if (definitiveLocation === true) {
         // Card is definitely with this player - boost probability significantly
-        probability *= 4;
+        probability *= weights.probabilityDefinitelyKnown;
       } else if (definitiveLocation === false) {
         // Card is definitely NOT with this player - this world should be impossible
         return 0;
       } else {
         // No definitive knowledge, use likelyHas information
         if (cardInfo.likelyHas[location]) {
-          probability *= 2; // Boost probability for likely cards
+          probability *= weights.probabilityLikely; // Boost probability for likely cards
         } else {
-          probability *= 0.5; // Reduce probability for unlikely cards
+          probability *= weights.probabilityUnlikely; // Reduce probability for unlikely cards
         }
       }
     }
@@ -471,6 +557,7 @@ export function simulateResponses(guess: Guess, world: any, gameState: GameState
   }
 
   // For each player, check if they can show any of the guessed cards
+  // Note: Cards in your hand and cards in the solution produce the same effect - no one can show them
   for (const player of askedPlayers) {
     const cardsInHand = cards.filter(card => world[card] === player);
     if (debug) {
@@ -489,8 +576,9 @@ export function simulateResponses(guess: Guess, world: any, gameState: GameState
   }
 
   // If no player can show a card, return a response indicating that
+  // This happens when all cards are either in your hand or in the solution
   if (debug) {
-    console.log("No player can show any cards");
+    console.log("No player can show any cards (all cards in your hand or solution)");
   }
   return [{ response: { shownBy: null, card: null }, probability: 1 }];
 }

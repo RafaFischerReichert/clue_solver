@@ -73,13 +73,13 @@ describe("GameSetup", () => {
     const roomInput = screen.getByLabelText(/rooms/i);
 
     expect(suspectInput).toHaveValue(
-      "Scarlett\nMustard\nOrchid\nGreen\nPeacock\nPlum"
+      "Mustard\nScarlett\nPeacock\nOrchid\nPlum\nGreen"
     );
     expect(weaponInput).toHaveValue(
       "Candlestick\nDagger\nLead Pipe\nRevolver\nRope\nWrench"
     );
     expect(roomInput).toHaveValue(
-      "Kitchen\nBallroom\nConservatory\nDining Room\nBilliard Room\nLibrary\nLounge\nHall\nStudy"
+      "Ballroom\nBilliard Room\nConservatory\nDining Room\nHall\nKitchen\nLibrary\nLounge\nStudy"
     );
   });
 
@@ -120,12 +120,12 @@ describe("GameSetup", () => {
       "Mustard",
       "Orchid",
     ], "Scarlett", [
-      "Scarlett",
       "Mustard",
-      "Orchid",
-      "Green",
+      "Scarlett",
       "Peacock",
+      "Orchid",
       "Plum",
+      "Green",
     ], [
       "Candlestick",
       "Dagger",
@@ -134,14 +134,14 @@ describe("GameSetup", () => {
       "Rope",
       "Wrench",
     ], [
-      "Kitchen",
       "Ballroom",
+      "Billiard Room",
       "Conservatory",
       "Dining Room",
-      "Billiard Room",
+      "Hall",
+      "Kitchen",
       "Library",
       "Lounge",
-      "Hall",
       "Study",
     ]);
   });
@@ -337,12 +337,12 @@ describe("GameSetup", () => {
     fireEvent.click(startButton);
 
     expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"], "Alice", [
-      "Scarlett",
       "Mustard",
-      "Orchid",
-      "Green",
+      "Scarlett",
       "Peacock",
+      "Orchid",
       "Plum",
+      "Green",
     ], [
       "Candlestick",
       "Dagger",
@@ -351,14 +351,14 @@ describe("GameSetup", () => {
       "Rope",
       "Wrench",
     ], [
-      "Kitchen",
       "Ballroom",
+      "Billiard Room",
       "Conservatory",
       "Dining Room",
-      "Billiard Room",
+      "Hall",
+      "Kitchen",
       "Library",
       "Lounge",
-      "Hall",
       "Study",
     ]);
   });
@@ -455,12 +455,12 @@ describe("GameSetup", () => {
     fireEvent.click(startButton);
 
     expect(mockOnGameStart).toHaveBeenCalledWith(["Alice", "Bob", "Charlie"], "Alice", [
-      "Scarlett",
       "Mustard",
-      "Orchid",
-      "Green",
+      "Scarlett",
       "Peacock",
+      "Orchid",
       "Plum",
+      "Green",
     ], [
       "Candlestick",
       "Dagger",
@@ -469,14 +469,14 @@ describe("GameSetup", () => {
       "Rope",
       "Wrench",
     ], [
-      "Kitchen",
       "Ballroom",
+      "Billiard Room",
       "Conservatory",
       "Dining Room",
-      "Billiard Room",
+      "Hall",
+      "Kitchen",
       "Library",
       "Lounge",
-      "Hall",
       "Study",
     ]);
   });
@@ -609,12 +609,12 @@ describe("GameSetup", () => {
       "Alice",
       "Bob"
     ], "Charlie", [
-      "Scarlett",
       "Mustard",
-      "Orchid",
-      "Green",
+      "Scarlett",
       "Peacock",
+      "Orchid",
       "Plum",
+      "Green",
     ], [
       "Candlestick",
       "Dagger",
@@ -623,14 +623,14 @@ describe("GameSetup", () => {
       "Rope",
       "Wrench",
     ], [
-      "Kitchen",
       "Ballroom",
+      "Billiard Room",
       "Conservatory",
       "Dining Room",
-      "Billiard Room",
+      "Hall",
+      "Kitchen",
       "Library",
       "Lounge",
-      "Hall",
       "Study",
     ]);
   });

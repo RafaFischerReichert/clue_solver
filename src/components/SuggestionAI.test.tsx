@@ -1,4 +1,4 @@
-import { evaluateGuess } from './SuggestionAI';
+import { evaluateGuess, AI_PRESETS } from './SuggestionAI';
 import { Guess, GameState } from './GuessEvaluator';
 import { describe, expect, test } from 'vitest';
 
@@ -80,7 +80,7 @@ describe('SuggestionAI', () => {
       room: 'Library' // Possible solution
     };
 
-    const score = evaluateGuess(guessWithCardInHand, mockGameState, false);
+    const score = evaluateGuess(guessWithCardInHand, mockGameState, undefined, false);
     // Should have some strategic value since we're testing two possible solution cards
     expect(score).toBeGreaterThan(-1); // Should not be heavily penalized
   });
@@ -98,8 +98,8 @@ describe('SuggestionAI', () => {
       room: 'Library'
     };
 
-    const score1 = evaluateGuess(guessWithCardInOtherHand, mockGameState, false);
-    const score2 = evaluateGuess(guessWithUnknownCards, mockGameState, false);
+    const score1 = evaluateGuess(guessWithCardInOtherHand, mockGameState, undefined, false);
+    const score2 = evaluateGuess(guessWithUnknownCards, mockGameState, undefined, false);
     
     // The guess with cards in other hands should score lower due to penalty
     expect(score1).toBeLessThan(score2);
@@ -112,7 +112,7 @@ describe('SuggestionAI', () => {
       room: 'Library'
     };
 
-    const score = evaluateGuess(guessWithMultipleCardsInOtherHands, mockGameState, false);
+    const score = evaluateGuess(guessWithMultipleCardsInOtherHands, mockGameState, undefined, false);
     expect(score).toBeLessThan(0); // Should have negative score due to penalties for cards in other hands
   });
 
@@ -124,7 +124,7 @@ describe('SuggestionAI', () => {
     };
 
     // This should return early with a penalty, not generate impossible worlds
-    const score = evaluateGuess(guess, mockGameState, false);
+    const score = evaluateGuess(guess, mockGameState, undefined, false);
     expect(score).toBeGreaterThan(-1); // Should not be heavily penalized due to strategic value
   });
 
@@ -234,9 +234,89 @@ describe('SuggestionAI', () => {
       room: 'Library' // In your hand
     };
 
-    const score = evaluateGuess(strategicGuess, strategicGameState, true); // Enable debug
+    const score = evaluateGuess(strategicGuess, strategicGameState, undefined, true); // Enable debug
     console.log(`Strategic guess score: ${score}`);
     // This should be a very strategic guess - testing both possible suspects and weapons
     expect(score).toBeGreaterThan(0); // Should have positive strategic value
+  });
+
+  test('should respect configurable weights', () => {
+    const guess: Guess = {
+      suspect: 'Colonel Mustard',
+      weapon: 'Revolver', 
+      room: 'Library'
+    };
+
+    // Test with default weights
+    const defaultScore = evaluateGuess(guess, mockGameState, undefined, false);
+    
+    // Test with aggressive weights (should score higher for strategic moves)
+    const aggressiveWeights = {
+      penaltyDefinitelyInOtherHands: -0.1,
+      penaltyLikelyInOtherHands: -0.05,
+      strategicValueMultiplier: 3.0,
+      strategicEliminationBonus: 1.0,
+      probabilityDefinitelyKnown: 4.0,
+      probabilityLikely: 2.0,
+      probabilityUnlikely: 0.5,
+      entropyWeight: 1.0,
+      informationBonusWeight: 1.0,
+    };
+    const aggressiveScore = evaluateGuess(guess, mockGameState, aggressiveWeights, false);
+    
+    // Test with conservative weights (should penalize more)
+    const conservativeWeights = {
+      penaltyDefinitelyInOtherHands: -1.0,
+      penaltyLikelyInOtherHands: -0.5,
+      strategicValueMultiplier: 1.0,
+      strategicEliminationBonus: 0.2,
+      probabilityDefinitelyKnown: 4.0,
+      probabilityLikely: 2.0,
+      probabilityUnlikely: 0.3,
+      entropyWeight: 1.0,
+      informationBonusWeight: 1.0,
+    };
+    const conservativeScore = evaluateGuess(guess, mockGameState, conservativeWeights, false);
+    
+    // Aggressive weights should score higher than conservative weights for strategic moves
+    expect(aggressiveScore).toBeGreaterThan(conservativeScore);
+    
+    // All scores should be reasonable (not extreme values)
+    expect(defaultScore).toBeGreaterThan(-10);
+    expect(defaultScore).toBeLessThan(10);
+    expect(aggressiveScore).toBeGreaterThan(-10);
+    expect(aggressiveScore).toBeLessThan(10);
+    expect(conservativeScore).toBeGreaterThan(-10);
+    expect(conservativeScore).toBeLessThan(10);
+  });
+
+  test('should produce different results with different AI presets', () => {
+    const guess: Guess = {
+      suspect: 'Colonel Mustard',
+      weapon: 'Revolver', 
+      room: 'Library'
+    };
+
+    // Test all presets
+    const results = Object.entries(AI_PRESETS).map(([name, weights]) => {
+      const score = evaluateGuess(guess, mockGameState, weights, false);
+      return { name, score };
+    });
+
+    // All presets should produce different scores for this strategic guess
+    const scores = results.map(r => r.score);
+    const uniqueScores = new Set(scores);
+    
+    // At least some presets should produce different scores
+    expect(uniqueScores.size).toBeGreaterThan(1);
+    
+    // All scores should be reasonable
+    scores.forEach(score => {
+      expect(score).toBeGreaterThan(-10);
+      expect(score).toBeLessThan(10);
+    });
+
+    // Log the results for debugging
+    console.log('AI Preset Results:', results);
   });
 });

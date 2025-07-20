@@ -65,6 +65,16 @@
   --success-text: #155724;
   --info-text: #0c5460;
   --warning-text: #856404;
+
+  /* AI Weights and UI Components */
+  --card-bg: #380000;        /* Dark red background matching header */
+  --bg-secondary: #6e0000;   /* Main red background */
+  --text-primary: #ffffff;   /* White text */
+  --text-secondary: #b1b1b1; /* Muted text matching existing theme */
+  --border-color: #dfb428;   /* Gold border matching drag/drop highlights */
+  --input-bg: #380000;       /* Dark red input background */
+  --accent-color: #dfb428;   /* Gold accent color */
+  --accent-hover: #866700;   /* Darker gold on hover */
 }
 
 /* Global link styles */
@@ -207,7 +217,7 @@ input[type="checkbox"]:disabled {
 .btn-primary {
   background-color: var(--btn-primary-bg);
   color: var(--primary-text);
-  border: none;
+  border: 1px solid var(--accent-color);
   padding: 12px 24px;
   border-radius: 5px;
   cursor: pointer;
@@ -216,6 +226,7 @@ input[type="checkbox"]:disabled {
 }
 .btn-primary:hover {
   background-color: var(--btn-primary-hover);
+  border-color: var(--accent-hover);
 }
 
 /* Secondary button styles */

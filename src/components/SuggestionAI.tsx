@@ -97,13 +97,49 @@ export function evaluateGuess(
     console.log("AI weights:", weights);
   }
 
+  // Check if this guess has any potential for information gain
+  // A guess has zero value if all cards are either known to be in your hand, in other players' hands, or in the solution
+  const knowledge = gameState.knowledge || [];
+  const cardsInGuess = [guess.suspect, guess.weapon, guess.room];
+  
+  // Check if any card in the guess could potentially be shown by another player
+  let hasPotentialInfoGain = false;
+  for (const cardName of cardsInGuess) {
+    const cardInfo = knowledge.find(k => k.cardName === cardName);
+    
+    // Skip cards known to be in your hand
+    if (cardInfo?.inYourHand) {
+      continue;
+    }
+    
+    // Check if this card is known to be in any player's hand
+    const isKnownInPlayersHand = cardInfo?.inPlayersHand && 
+      Object.values(cardInfo.inPlayersHand).some(hasIt => hasIt === true);
+    
+    // Check if this card is known to be in the solution
+    const isKnownInSolution = cardInfo?.inSolution === true;
+    
+    // If the card is not in your hand, not known to be in any player's hand, and not known to be in the solution,
+    // then it could potentially be shown by someone (it's unknown)
+    if (!isKnownInPlayersHand && !isKnownInSolution) {
+      hasPotentialInfoGain = true;
+      break;
+    }
+  }
+  
+  if (!hasPotentialInfoGain) {
+    if (debug) {
+      console.log("=== Guess has zero information gain potential - all cards in your hand, other players' hands, or solution ===");
+    }
+    return 0;
+  }
+
   // Initialize information bonus
   let informationBonus = 0;
 
   // Check if any cards in the guess are in your hand
   // Note: Cards in your hand and cards in the solution produce identical outcomes - no one can show them
   // This insight allows the AI to treat them similarly for strategic evaluation
-  const knowledge = gameState.knowledge || [];
   const cardsInYourHand = [];
   for (const cardName of [guess.suspect, guess.weapon, guess.room]) {
     const cardInfo = knowledge.find(k => k.cardName === cardName);

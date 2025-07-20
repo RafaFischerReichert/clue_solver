@@ -43,7 +43,7 @@
   - **Comprehensive Evaluation**: AI now goes through full entropy calculation for all guesses instead of returning early with basic scores
   - **LikelyHas Probability System**: Implemented soft deduction system that tracks cards likely to be in specific players' hands vs. default probability, improving world probability calculations and AI decision making
 
-  ## [1.4.0]
+  ## [1.4.0] - 2025-01-27
   ### Added
   - **Configurable AI Weights System**: Introduced comprehensive fine-tuning capabilities for the Suggestion AI:
     - **9 Configurable Parameters**: Penalty weights, strategic multipliers, probability weights, and information gain weights
@@ -60,3 +60,17 @@
   - **Updated Function Signatures**: `evaluateGuess` now accepts optional `AIWeights` parameter
   - **Improved Test Coverage**: Added tests for configurable weights functionality
   - **AI Strategic Insight Implementation**: Optimized AI decision-making by treating cards in your hand and cards in the solution as equivalent outcomes - both result in no player being able to show anything, allowing for more efficient strategic evaluation
+
+## [1.4.1] - 2025-01-27
+### Added
+- **Zero Information Gain Detection**: Suggestion AI now intelligently detects and rejects guesses with zero information gain potential
+- **Comprehensive Zero-Value Check**: AI evaluates whether all cards in a guess are either:
+  - Known to be in your hand
+  - Known to be in other players' hands  
+  - Known to be in the solution
+- **Enhanced Test Coverage**: Added comprehensive tests for zero information gain scenarios
+
+### Changed
+- **Suggestion AI Logic**: `evaluateGuess` function now returns 0 immediately for guesses that cannot provide any new information
+- **Improved AI Efficiency**: Prevents AI from suggesting pointless guesses that waste turns and provide no strategic value
+- **Debug Output Enhancement**: Added clear debug messaging when zero information gain is detected

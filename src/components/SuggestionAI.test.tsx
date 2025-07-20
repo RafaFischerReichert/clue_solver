@@ -240,6 +240,210 @@ describe('SuggestionAI', () => {
     expect(score).toBeGreaterThan(0); // Should have positive strategic value
   });
 
+  test('should return 0 for guesses with zero information gain potential', () => {
+    // Create a scenario where all cards in the guess are either in your hand, known to be in other players' hands, or known to be in the solution
+    const zeroInfoGameState: GameState = {
+      knowledge: [
+        {
+          cardName: 'Colonel Mustard',
+          category: 'suspect',
+          inYourHand: true, // In your hand
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: false,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Professor Plum',
+          category: 'suspect',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: true, // Known to be in solution
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Miss Scarlet',
+          category: 'suspect',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Revolver',
+          category: 'weapon',
+          inYourHand: false,
+          inPlayersHand: { Alice: true, Bob: false, Charlie: false }, // Known to be in Alice's hand
+          likelyHas: {},
+          inSolution: false,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Dagger',
+          category: 'weapon',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Lead Pipe',
+          category: 'weapon',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Library',
+          category: 'room',
+          inYourHand: false,
+          inPlayersHand: { Alice: false, Bob: true, Charlie: false }, // Known to be in Bob's hand
+          likelyHas: {},
+          inSolution: false,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Study',
+          category: 'room',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Kitchen',
+          category: 'room',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        }
+      ],
+      previousGuesses: [],
+      playerOrder: ['You', 'Alice', 'Bob', 'Charlie']
+    };
+
+    // This guess has zero information gain - all cards are either in your hand, known to be in other players' hands, or known to be in the solution
+    const zeroInfoGuess: Guess = {
+      suspect: 'Colonel Mustard', // In your hand
+      weapon: 'Revolver', // Known to be in Alice's hand
+      room: 'Library' // Known to be in Bob's hand
+    };
+
+    const score = evaluateGuess(zeroInfoGuess, zeroInfoGameState, undefined, true); // Enable debug
+    console.log(`Zero info guess score: ${score}`);
+    expect(score).toBe(0); // Should return 0 for zero information gain potential
+  });
+
+  test('should return 0 for guesses with cards known to be in solution', () => {
+    // Create a scenario where one card is known to be in the solution
+    const solutionGameState: GameState = {
+      knowledge: [
+        {
+          cardName: 'Colonel Mustard',
+          category: 'suspect',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: true, // Known to be in solution
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Professor Plum',
+          category: 'suspect',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Miss Scarlet',
+          category: 'suspect',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Revolver',
+          category: 'weapon',
+          inYourHand: true, // In your hand
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: false,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Dagger',
+          category: 'weapon',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Lead Pipe',
+          category: 'weapon',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Library',
+          category: 'room',
+          inYourHand: false,
+          inPlayersHand: { Alice: true, Bob: false, Charlie: false }, // Known to be in Alice's hand
+          likelyHas: {},
+          inSolution: false,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Study',
+          category: 'room',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        },
+        {
+          cardName: 'Kitchen',
+          category: 'room',
+          inYourHand: false,
+          inPlayersHand: {},
+          likelyHas: {},
+          inSolution: null,
+          eliminatedFromSolution: false
+        }
+      ],
+      previousGuesses: [],
+      playerOrder: ['You', 'Alice', 'Bob', 'Charlie']
+    };
+
+    // This guess has zero information gain - all cards are either in your hand, known to be in other players' hands, or known to be in the solution
+    const solutionGuess: Guess = {
+      suspect: 'Colonel Mustard', // Known to be in solution
+      weapon: 'Revolver', // In your hand
+      room: 'Library' // Known to be in Alice's hand
+    };
+
+    const score = evaluateGuess(solutionGuess, solutionGameState, undefined, true); // Enable debug
+    console.log(`Solution guess score: ${score}`);
+    expect(score).toBe(0); // Should return 0 for zero information gain potential
+  });
+
   test('should respect configurable weights', () => {
     const guess: Guess = {
       suspect: 'Colonel Mustard',

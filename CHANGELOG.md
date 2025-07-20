@@ -32,7 +32,7 @@
 - Improved type annotation practices in test files, ensuring explicit types where beneficial and removing unused imports.
 - Cleaned up code and comments for clarity and maintainability.
 
-# [1.3.0] - 2025-07-18
+## [1.3.0] - 2025-07-18
 ### Changed
 - Fixed bugs regarding with the new deduction logic
 - Improved Suggestion AI with strategic guessing capabilities:
@@ -42,3 +42,7 @@
   - **World Generation Fixes**: Fixed issues with possible world generation when cards are in your hand
   - **Comprehensive Evaluation**: AI now goes through full entropy calculation for all guesses instead of returning early with basic scores
   - **LikelyHas Probability System**: Implemented soft deduction system that tracks cards likely to be in specific players' hands vs. default probability, improving world probability calculations and AI decision making
+
+  ## [1.4.0]
+  ### Changed
+  - Cards being marked as solution now will automatically mark as not in any player's hands.

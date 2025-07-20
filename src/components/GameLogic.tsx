@@ -652,11 +652,21 @@ export const checkForSolution = (
   console.log("Solution cards found:", solutionCards);
   
   // For each found solution card, mark all other cards in the same category as not in the solution
+  // AND mark the solution card as not in any player's hand
   solutionCards.forEach(({ cardName, category }) => {
     knowledge.forEach(card => {
       if (card.category === category && card.cardName !== cardName) {
         card.inSolution = false;
         card.eliminatedFromSolution = true;
+      } else if (card.cardName === cardName) {
+        // Mark the solution card as not in any player's hand
+        Object.keys(card.inPlayersHand).forEach(player => {
+          card.inPlayersHand[player] = false;
+        });
+        // Clear any likelyHas entries for this card
+        Object.keys(card.likelyHas).forEach(player => {
+          card.likelyHas[player] = false;
+        });
       }
     });
   });
